@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://2yvq6yiiep7y"]
+
+[ext_resource type="Script" uid="uid://38s3dlwmc6i1" path="res://scripts/rooms/main_menu.gd" id="1_ekxnf"]
+[ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Sprites/Backgrounds/background1.png" id="1_l6cm7"]
+
+[node name="MainMenu" type="Control" unique_id=1321718083]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ekxnf")
+
+[node name="ColorRect" type="TextureRect" parent="." unique_id=1127100974]
+layout_mode = 0
+offset_right = 1288.0
+offset_bottom = 728.0
+texture = ExtResource("1_l6cm7")
+
+[node name="Label" type="Label" parent="." unique_id=1315582843]
+layout_mode = 0
+offset_left = 464.0
+offset_top = 192.0
+offset_right = 823.0
+offset_bottom = 275.0
+theme_override_font_sizes/font_size = 60
+text = "Game Name"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1568220491]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer" unique_id=613897124]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="CenterContainer/HBoxContainer" unique_id=293340843]
+layout_mode = 2
+text = "Start Game
+"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/HBoxContainer" unique_id=731556297]
+layout_mode = 2
+text = "Quit
+"
+
+[connection signal="pressed" from="CenterContainer/HBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

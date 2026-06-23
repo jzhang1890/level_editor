@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://krec82ca1xe8"]
+
+[ext_resource type="Script" uid="uid://dgwjjvf5qi2ki" path="res://scripts/Objects/spinning_obstacle.gd" id="1_6jvxm"]
+[ext_resource type="Texture2D" uid="uid://dwrcgteta61b5" path="res://Sprites/Obstacles/meteor.png" id="2_cyiuj"]
+
+[node name="SolidMeteor" type="StaticBody2D" unique_id=888763138]
+scale = Vector2(0.25, 0.25)
+script = ExtResource("1_6jvxm")
+metadata/_custom_type_script = "uid://dgwjjvf5qi2ki"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=249990255]
+scale = Vector2(1.6938775, 1.5729166)
+texture = ExtResource("2_cyiuj")
+
+[node name="CollisionShape2D" type="CollisionPolygon2D" parent="." unique_id=40307501]
+position = Vector2(3, 10)
+polygon = PackedVector2Array(173, -278, 309, 14, 161, 262, -143, 270, -319, 2, -151, -274)

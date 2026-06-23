@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://cv61yr4jbuhfq"]
+
+[ext_resource type="Script" uid="uid://crrim6fs5r7pm" path="res://camera_2d.gd" id="1_51ree"]
+[ext_resource type="Script" uid="uid://bc1ws4485cqip" path="res://editor_root.gd" id="1_dsqd0"]
+[ext_resource type="Script" uid="uid://d210fgxhcoeiv" path="res://room_canvas.gd" id="2_lmmer"]
+[ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Sprites/Backgrounds/background1.png" id="3_qqhf1"]
+[ext_resource type="Script" uid="uid://b5d70mqbd8735" path="res://editor_ui.gd" id="4_c2d34"]
+
+[node name="EditorRoot" type="Node2D" unique_id=134942868]
+script = ExtResource("1_dsqd0")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1900298284]
+position = Vector2(0, -360)
+limit_left = -2000
+limit_right = 2000
+limit_bottom = 1000
+script = ExtResource("1_51ree")
+
+[node name="BackgroundLayer" type="Parallax2D" parent="." unique_id=1666973801]
+scroll_scale = Vector2(0.3, 0.3)
+repeat_size = Vector2(1024, 1024)
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=1699632227]
+z_index = -10
+offset_left = -2173.0
+offset_top = -1482.0
+offset_right = 2063.0
+offset_bottom = 2258.0
+mouse_filter = 2
+texture = ExtResource("3_qqhf1")
+stretch_mode = 1
+
+[node name="Foreground" type="Node2D" parent="." unique_id=1534465774]
+
+[node name="RoomCanvas" type="Node2D" parent="Foreground" unique_id=1057609325]
+script = ExtResource("2_lmmer")
+room_width_x = 1000.0
+grid_size = 64.0
+
+[node name="LeftWall" type="Line2D" parent="Foreground/RoomCanvas" unique_id=850215650]
+
+[node name="RightWall" type="Line2D" parent="Foreground/RoomCanvas" unique_id=1049294201]
+
+[node name="EditorUI" type="CanvasLayer" parent="." unique_id=675944361]
+script = ExtResource("4_c2d34")
+
+[node name="ObjectBrowser" type="PanelContainer" parent="EditorUI" unique_id=1354532443]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 145.0
+grow_vertical = 2
+
+[node name="Tabs" type="TabContainer" parent="EditorUI/ObjectBrowser" unique_id=316205441]
+layout_mode = 2
+current_tab = 0
+
+[node name="Obstacles" type="ItemList" parent="EditorUI/ObjectBrowser/Tabs" unique_id=1857335409]
+layout_mode = 2
+max_columns = 0
+icon_mode = 0
+metadata/_tab_index = 0
+
+[connection signal="item_selected" from="EditorUI/ObjectBrowser/Tabs/Obstacles" to="EditorUI" method="_on_obstacles_item_selected"]

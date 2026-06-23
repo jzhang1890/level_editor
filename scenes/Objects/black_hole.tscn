@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://dewt8ss8unwj2"]
+
+[ext_resource type="Script" uid="uid://dgwjjvf5qi2ki" path="res://scripts/Objects/spinning_obstacle.gd" id="1_78ve5"]
+[ext_resource type="Texture2D" uid="uid://dncnoccwfdt1t" path="res://Sprites/Obstacles/black_hole.png" id="2_ab8mr"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r8fna"]
+radius = 108.04166
+
+[node name="Blackhole" type="StaticBody2D" unique_id=2067773606]
+script = ExtResource("1_78ve5")
+rotation_speed = 30
+metadata/_custom_type_script = "uid://dgwjjvf5qi2ki"
+
+[node name="BlackholeSprite" type="Sprite2D" parent="." unique_id=276152179]
+texture = ExtResource("2_ab8mr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=34475592]
+position = Vector2(-4, -9)
+shape = SubResource("CircleShape2D_r8fna")

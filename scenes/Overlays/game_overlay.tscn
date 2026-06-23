@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://dsjeomtwsue1q"]
+
+[ext_resource type="Script" uid="uid://bwue2bnrp4hbv" path="res://scripts/Overlays/game_overlay.gd" id="1_i6bnf"]
+
+[node name="GameOverlay" type="CanvasLayer" unique_id=117800239]
+script = ExtResource("1_i6bnf")
+
+[node name="Panel" type="Panel" parent="." unique_id=1296112973]
+offset_left = 192.0
+offset_top = 64.0
+offset_right = 1088.0
+offset_bottom = 640.0
+
+[node name="Label" type="Label" parent="." unique_id=265469665]
+offset_left = 320.0
+offset_top = 128.0
+offset_right = 960.0
+offset_bottom = 297.0
+theme_override_font_sizes/font_size = 60
+text = "New Level"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RetryButton" type="Button" parent="." unique_id=315503165]
+offset_left = 384.0
+offset_top = 384.0
+offset_right = 512.0
+offset_bottom = 512.0
+text = "Retry"
+
+[node name="QuitButton" type="Button" parent="." unique_id=2099277801]
+offset_left = 768.0
+offset_top = 384.0
+offset_right = 896.0
+offset_bottom = 512.0
+text = "Quit"
+
+[connection signal="pressed" from="RetryButton" to="." method="_on_retry_button_pressed"]
+[connection signal="pressed" from="QuitButton" to="." method="_on_quit_button_pressed"]

@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://bdhbkwvekb7nu"]
+
+[ext_resource type="Script" uid="uid://d3m3yf26kegpk" path="res://scripts/Level Editor/level_editor.gd" id="1_qnyfc"]
+[ext_resource type="PackedScene" uid="uid://bjgevyjq3cifm" path="res://scenes/Objects/block.tscn" id="2_8ye2a"]
+[ext_resource type="PackedScene" uid="uid://iss3d0cddvd2" path="res://scenes/Objects/blackhole.tscn" id="3_b3jqs"]
+
+[node name="LevelEditor" type="Node2D" unique_id=1602364702]
+script = ExtResource("1_qnyfc")
+item_catalog = Array[PackedScene]([ExtResource("2_8ye2a"), ExtResource("3_b3jqs")])
+
+[node name="MainCanvas" type="Node2D" parent="." unique_id=11699574]
+
+[node name="PlacedObjects" type="Node2D" parent="MainCanvas" unique_id=796368906]
+
+[node name="PreviewSprite" type="Sprite2D" parent="." unique_id=1933354303]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1775092241]
+
+[node name="ItemSelectionPanel" type="PanelContainer" parent="UI" unique_id=156601885]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1009.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="UI/ItemSelectionPanel" unique_id=1082920009]
+layout_mode = 2
+
+[node name="ActionPanel" type="HBoxContainer" parent="UI" unique_id=1362316877]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -234.0
+offset_bottom = 54.0
+grow_horizontal = 0
+alignment = 1
+
+[node name="EditButton" type="Button" parent="UI/ActionPanel" unique_id=214136862]
+layout_mode = 2
+text = "Edit"
+
+[node name="DeleteButton" type="Button" parent="UI/ActionPanel" unique_id=456464016]
+layout_mode = 2
+text = "Delete"
+
+[node name="LoadButton" type="Button" parent="UI/ActionPanel" unique_id=88840730]
+layout_mode = 2
+text = "Load"
+
+[node name="SaveButton" type="Button" parent="UI/ActionPanel" unique_id=1947743171]
+layout_mode = 2
+text = "Save"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=841532393]

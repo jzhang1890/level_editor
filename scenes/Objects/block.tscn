@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://bjgevyjq3cifm"]
+
+[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/Objects/obstacle.gd" id="1_3h408"]
+[ext_resource type="Texture2D" uid="uid://dg32wvqgxdu5r" path="res://Sprites/Obstacles/block1.png" id="2_pwoxv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
+size = Vector2(64, 64)
+
+[node name="block" type="StaticBody2D" unique_id=530130337]
+input_pickable = true
+script = ExtResource("1_3h408")
+metadata/_custom_type_script = "uid://sk3rn71awo6r"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
+texture = ExtResource("2_pwoxv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
+shape = SubResource("RectangleShape2D_als3r")

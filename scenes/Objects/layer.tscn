@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b3j5uduj58fx3"]
+
+[ext_resource type="Script" uid="uid://cvyhw27vfoa6e" path="res://scripts/Foreground/layer.gd" id="1_lqts8"]
+
+[node name="Layer" type="Node2D" unique_id=1436941233]
+script = ExtResource("1_lqts8")

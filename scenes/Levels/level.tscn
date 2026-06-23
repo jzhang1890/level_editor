@@ -1,0 +1,272 @@
+[gd_scene format=3 uid="uid://dxon0mk8dgivo"]
+
+[ext_resource type="Script" uid="uid://b8vffe7fik1nm" path="res://scripts/Levels/level.gd" id="1_bg4jh"]
+[ext_resource type="PackedScene" uid="uid://btl2h5tebls37" path="res://scenes/Background/background.tscn" id="2_43ksg"]
+[ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Sprites/Backgrounds/background1.png" id="3_loupo"]
+[ext_resource type="PackedScene" uid="uid://b3j5uduj58fx3" path="res://scenes/Objects/layer.tscn" id="4_1meta"]
+[ext_resource type="PackedScene" uid="uid://krec82ca1xe8" path="res://scenes/Objects/meteor.tscn" id="5_i35yb"]
+[ext_resource type="PackedScene" uid="uid://bjgevyjq3cifm" path="res://scenes/Objects/block.tscn" id="6_18iqp"]
+[ext_resource type="PackedScene" uid="uid://dewt8ss8unwj2" path="res://scenes/Objects/black_hole.tscn" id="7_px5jg"]
+[ext_resource type="PackedScene" uid="uid://cqow47bch5ocs" path="res://scenes/Player/player.tscn" id="8_f2oql"]
+[ext_resource type="PackedScene" uid="uid://b06gabo1gajjr" path="res://scenes/Player/player_camera.tscn" id="9_8hdhy"]
+[ext_resource type="Script" uid="uid://c8vfki1a1nm6c" path="res://scripts/Foreground/borders.gd" id="10_8ydj0"]
+[ext_resource type="PackedScene" uid="uid://dsjeomtwsue1q" path="res://scenes/Overlays/game_overlay.tscn" id="11_ol8dr"]
+[ext_resource type="Script" uid="uid://c8rxrypaf4kti" path="res://scripts/Overlays/in_game_overlay.gd" id="12_eorea"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2r41h"]
+size = Vector2(177, 1109.75)
+
+[node name="Level" type="Node2D" unique_id=528998893]
+script = ExtResource("1_bg4jh")
+
+[node name="Background" parent="." unique_id=1164919063 instance=ExtResource("2_43ksg")]
+scroll_scale = Vector2(0.15, 0.2)
+repeat_size = Vector2(1024, 1024)
+repeat_times = 50
+
+[node name="Sprite2D" parent="Background" index="0" unique_id=210773978]
+texture = ExtResource("3_loupo")
+
+[node name="Layer1" parent="." unique_id=523679410 instance=ExtResource("4_1meta")]
+
+[node name="SolidMeteor" parent="Layer1" unique_id=1687464699 instance=ExtResource("5_i35yb")]
+position = Vector2(112, -504)
+
+[node name="SolidMeteor2" parent="Layer1" unique_id=1880958968 instance=ExtResource("5_i35yb")]
+position = Vector2(-216, -440)
+scale = Vector2(0.4, 0.4)
+
+[node name="SolidMeteor3" parent="Layer1" unique_id=1086246007 instance=ExtResource("5_i35yb")]
+position = Vector2(80, -768)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor7" parent="Layer1" unique_id=949580984 instance=ExtResource("5_i35yb")]
+position = Vector2(-128, -1232)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor8" parent="Layer1" unique_id=1072547369 instance=ExtResource("5_i35yb")]
+position = Vector2(280, -1280)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor12" parent="Layer1" unique_id=439846078 instance=ExtResource("5_i35yb")]
+position = Vector2(407, -600)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor13" parent="Layer1" unique_id=1712345591 instance=ExtResource("5_i35yb")]
+position = Vector2(584, -1640)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor4" parent="Layer1" unique_id=1811022972 instance=ExtResource("5_i35yb")]
+position = Vector2(-368, -760)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor5" parent="Layer1" unique_id=619901444 instance=ExtResource("5_i35yb")]
+position = Vector2(-176, -960)
+
+[node name="SolidMeteor6" parent="Layer1" unique_id=1439860424 instance=ExtResource("5_i35yb")]
+position = Vector2(128, -1024)
+
+[node name="SolidMeteor10" parent="Layer1" unique_id=1099738064 instance=ExtResource("5_i35yb")]
+position = Vector2(288, -1544)
+
+[node name="SolidMeteor11" parent="Layer1" unique_id=692973020 instance=ExtResource("5_i35yb")]
+position = Vector2(-512, -520)
+
+[node name="Layer2" parent="." unique_id=1436941233 instance=ExtResource("4_1meta")]
+
+[node name="block" parent="Layer2" unique_id=1822238327 instance=ExtResource("6_18iqp")]
+position = Vector2(248, -400)
+
+[node name="block2" parent="Layer2" unique_id=1859074602 instance=ExtResource("6_18iqp")]
+position = Vector2(-200, -624)
+
+[node name="block3" parent="Layer2" unique_id=434591871 instance=ExtResource("6_18iqp")]
+position = Vector2(608, -736)
+
+[node name="block9" parent="Layer2" unique_id=491666217 instance=ExtResource("6_18iqp")]
+position = Vector2(304, -888)
+
+[node name="block4" parent="Layer2" unique_id=538046585 instance=ExtResource("6_18iqp")]
+position = Vector2(288, -1056)
+scale = Vector2(1.5, 1.5)
+
+[node name="block5" parent="Layer2" unique_id=1049325446 instance=ExtResource("6_18iqp")]
+position = Vector2(-328, -1455.9999)
+scale = Vector2(2.2, 2.2)
+
+[node name="block6" parent="Layer2" unique_id=1014296275 instance=ExtResource("6_18iqp")]
+position = Vector2(-352, -1056)
+scale = Vector2(2, 2)
+
+[node name="block7" parent="Layer2" unique_id=1221938950 instance=ExtResource("6_18iqp")]
+position = Vector2(-664, -904)
+scale = Vector2(3, 3)
+
+[node name="block8" parent="Layer2" unique_id=1647949255 instance=ExtResource("6_18iqp")]
+position = Vector2(480, -928)
+scale = Vector2(2, 2)
+
+[node name="block10" parent="Layer2" unique_id=221364441 instance=ExtResource("6_18iqp")]
+position = Vector2(-480, -304)
+scale = Vector2(2.5, 2.5)
+
+[node name="Layer3" parent="." unique_id=1840402187 instance=ExtResource("4_1meta")]
+position = Vector2(160, -1440)
+
+[node name="SolidMeteor" parent="Layer3" unique_id=800965306 instance=ExtResource("5_i35yb")]
+position = Vector2(112, -504)
+
+[node name="SolidMeteor2" parent="Layer3" unique_id=183353453 instance=ExtResource("5_i35yb")]
+position = Vector2(-216, -440)
+scale = Vector2(0.4, 0.4)
+
+[node name="SolidMeteor3" parent="Layer3" unique_id=1069982181 instance=ExtResource("5_i35yb")]
+position = Vector2(80, -768)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor7" parent="Layer3" unique_id=992089320 instance=ExtResource("5_i35yb")]
+position = Vector2(-152, -1232)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor8" parent="Layer3" unique_id=94465270 instance=ExtResource("5_i35yb")]
+position = Vector2(280, -1280)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor12" parent="Layer3" unique_id=1950267732 instance=ExtResource("5_i35yb")]
+position = Vector2(407, -600)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor9" parent="Layer3" unique_id=879059972 instance=ExtResource("5_i35yb")]
+position = Vector2(72, -1672)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor4" parent="Layer3" unique_id=1049515893 instance=ExtResource("5_i35yb")]
+position = Vector2(-368, -760)
+scale = Vector2(0.5, 0.5)
+
+[node name="SolidMeteor5" parent="Layer3" unique_id=1772561729 instance=ExtResource("5_i35yb")]
+position = Vector2(-176, -960)
+
+[node name="SolidMeteor6" parent="Layer3" unique_id=635000062 instance=ExtResource("5_i35yb")]
+position = Vector2(128, -1024)
+
+[node name="SolidMeteor10" parent="Layer3" unique_id=922434069 instance=ExtResource("5_i35yb")]
+position = Vector2(296, -1528)
+
+[node name="SolidMeteor11" parent="Layer3" unique_id=1694568896 instance=ExtResource("5_i35yb")]
+position = Vector2(-512, -520)
+
+[node name="Layer4" parent="." unique_id=593967322 instance=ExtResource("4_1meta")]
+position = Vector2(152, -1408)
+
+[node name="block" parent="Layer4" unique_id=1128845703 instance=ExtResource("6_18iqp")]
+position = Vector2(248, -400)
+
+[node name="block2" parent="Layer4" unique_id=1225441467 instance=ExtResource("6_18iqp")]
+position = Vector2(-168, -664)
+
+[node name="block3" parent="Layer4" unique_id=1727704538 instance=ExtResource("6_18iqp")]
+position = Vector2(608, -736)
+
+[node name="block9" parent="Layer4" unique_id=1656828152 instance=ExtResource("6_18iqp")]
+position = Vector2(304, -888)
+
+[node name="block4" parent="Layer4" unique_id=909642305 instance=ExtResource("6_18iqp")]
+position = Vector2(288, -1056)
+scale = Vector2(1.5, 1.5)
+
+[node name="block5" parent="Layer4" unique_id=52045242 instance=ExtResource("6_18iqp")]
+position = Vector2(-328, -1455.9999)
+scale = Vector2(2.2, 2.2)
+
+[node name="block6" parent="Layer4" unique_id=1202391187 instance=ExtResource("6_18iqp")]
+position = Vector2(-352, -1056)
+scale = Vector2(2, 2)
+
+[node name="block7" parent="Layer4" unique_id=938071122 instance=ExtResource("6_18iqp")]
+position = Vector2(-664, -904)
+scale = Vector2(3, 3)
+
+[node name="block8" parent="Layer4" unique_id=2110387129 instance=ExtResource("6_18iqp")]
+position = Vector2(480, -928)
+scale = Vector2(2, 2)
+
+[node name="block10" parent="Layer4" unique_id=1487538284 instance=ExtResource("6_18iqp")]
+position = Vector2(-480, -304)
+scale = Vector2(2.5, 2.5)
+
+[node name="Layer5" type="Node2D" parent="." unique_id=344719032]
+
+[node name="Blackhole2" parent="Layer5" unique_id=1522288587 instance=ExtResource("7_px5jg")]
+position = Vector2(-440, -2640)
+
+[node name="Blackhole4" parent="Layer5" unique_id=1165563262 instance=ExtResource("7_px5jg")]
+position = Vector2(-48, -1560)
+
+[node name="Blackhole5" parent="Layer5" unique_id=179102540 instance=ExtResource("7_px5jg")]
+position = Vector2(672, -1168)
+
+[node name="Blackhole6" parent="Layer5" unique_id=569183232 instance=ExtResource("7_px5jg")]
+position = Vector2(-584, -1248)
+
+[node name="Blackhole3" parent="Layer5" unique_id=33926791 instance=ExtResource("7_px5jg")]
+position = Vector2(832, -2536)
+
+[node name="Player" parent="." unique_id=562159398 instance=ExtResource("8_f2oql")]
+
+[node name="Body" parent="Player/PlayerSprite" parent_id_path=PackedInt32Array(562159398, 873178819) index="0" unique_id=202774480]
+modulate = Color(0.17785329, 0.17785344, 0.17785394, 1)
+
+[node name="Misc" parent="Player/PlayerSprite" parent_id_path=PackedInt32Array(562159398, 873178819) index="1" unique_id=1842518117]
+modulate = Color(0.7491028, 0.26341102, 0.45814186, 1)
+
+[node name="Outline" parent="Player/PlayerSprite" parent_id_path=PackedInt32Array(562159398, 873178819) index="2" unique_id=565256926]
+modulate = Color(5.2943824e-06, 0.74726874, 0.50800866, 1)
+
+[node name="Camera2D" parent="." unique_id=1170865184 instance=ExtResource("9_8hdhy")]
+offset = Vector2(0, -230)
+
+[node name="Borders" type="Node2D" parent="." unique_id=639548502]
+script = ExtResource("10_8ydj0")
+
+[node name="LeftBorder" type="StaticBody2D" parent="Borders" unique_id=856365432]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/LeftBorder" unique_id=1615585664]
+position = Vector2(-900, -300)
+shape = SubResource("RectangleShape2D_2r41h")
+
+[node name="LeftBorder2" type="StaticBody2D" parent="Borders" unique_id=8497510]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Borders/LeftBorder2" unique_id=1755091501]
+position = Vector2(900, -300)
+shape = SubResource("RectangleShape2D_2r41h")
+
+[node name="GameOverlay" parent="." unique_id=117800239 instance=ExtResource("11_ol8dr")]
+process_mode = 3
+
+[node name="PlayButton" type="Button" parent="GameOverlay" unique_id=714023001]
+offset_left = 576.0
+offset_top = 384.0
+offset_right = 704.0
+offset_bottom = 512.0
+text = "Play"
+
+[node name="InGameOverlay" type="CanvasLayer" parent="." unique_id=2015169160]
+process_mode = 3
+script = ExtResource("12_eorea")
+
+[node name="PauseButton" type="Button" parent="InGameOverlay" unique_id=1236576421]
+offset_left = 1176.0
+offset_top = 24.0
+offset_right = 1256.0
+offset_bottom = 104.0
+text = "I  I"
+
+[connection signal="pressed" from="GameOverlay/PlayButton" to="GameOverlay" method="_on_play_button_pressed"]
+[connection signal="pressed" from="InGameOverlay/PauseButton" to="InGameOverlay" method="_on_pause_button_pressed"]
+
+[editable path="Background"]
+[editable path="Layer1"]
+[editable path="Layer3"]
+[editable path="Player"]
+[editable path="GameOverlay"]

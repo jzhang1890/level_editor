@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://btl2h5tebls37"]
+
+[ext_resource type="Texture2D" uid="uid://b1p6jfx6lkakq" path="res://Sprites/Backgrounds/background2.png" id="1_3uftm"]
+
+[node name="Background" type="Parallax2D" unique_id=1164919063]
+repeat_times = 100
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=210773978]
+texture = ExtResource("1_3uftm")
