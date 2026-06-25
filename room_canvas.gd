@@ -1,8 +1,8 @@
 extends Node2D
 
-@export var room_width_x: float = 400.0 
-@export var starting_height_y: float = 2000.0
-@export var grid_size: float = 32.0 
+@export var room_width_x: float = 1024.0
+@export var starting_height_y: float = 2048.0
+@export var grid_size: float = 64.0 
 
 @onready var camera: Camera2D = $"../../Camera2D" # Adjust path to find Camera2D
 

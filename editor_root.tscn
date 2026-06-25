@@ -34,8 +34,6 @@ stretch_mode = 1
 
 [node name="RoomCanvas" type="Node2D" parent="Foreground" unique_id=1057609325]
 script = ExtResource("2_lmmer")
-room_width_x = 1000.0
-grid_size = 64.0
 
 [node name="LeftWall" type="Line2D" parent="Foreground/RoomCanvas" unique_id=850215650]
 
