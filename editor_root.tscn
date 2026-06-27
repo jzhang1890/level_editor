@@ -16,11 +16,14 @@ limit_right = 2000
 limit_bottom = 1000
 script = ExtResource("1_51ree")
 
-[node name="BackgroundLayer" type="Parallax2D" parent="." unique_id=1666973801]
-scroll_scale = Vector2(0.3, 0.3)
-repeat_size = Vector2(1024, 1024)
+[node name="BackgroundCanvas" type="ParallaxBackground" parent="." unique_id=190032692]
+scroll_ignore_camera_zoom = true
 
-[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=1699632227]
+[node name="ParallaxLayer" type="ParallaxLayer" parent="BackgroundCanvas" unique_id=1441609306]
+motion_scale = Vector2(0.3, 0.3)
+motion_mirroring = Vector2(1024, 1024)
+
+[node name="Background" type="TextureRect" parent="BackgroundCanvas/ParallaxLayer" unique_id=1699632227]
 z_index = -10
 offset_left = -2173.0
 offset_top = -1482.0
@@ -35,17 +38,14 @@ stretch_mode = 1
 [node name="RoomCanvas" type="Node2D" parent="Foreground" unique_id=1057609325]
 script = ExtResource("2_lmmer")
 
-[node name="LeftWall" type="Line2D" parent="Foreground/RoomCanvas" unique_id=850215650]
-
-[node name="RightWall" type="Line2D" parent="Foreground/RoomCanvas" unique_id=1049294201]
-
 [node name="EditorUI" type="CanvasLayer" parent="." unique_id=675944361]
 script = ExtResource("4_c2d34")
 
 [node name="ObjectBrowser" type="PanelContainer" parent="EditorUI" unique_id=1354532443]
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 145.0
+offset_right = 224.0
+offset_bottom = 4.0
 grow_vertical = 2
 
 [node name="Tabs" type="TabContainer" parent="EditorUI/ObjectBrowser" unique_id=316205441]
@@ -54,8 +54,25 @@ current_tab = 0
 
 [node name="Obstacles" type="ItemList" parent="EditorUI/ObjectBrowser/Tabs" unique_id=1857335409]
 layout_mode = 2
-max_columns = 0
+max_columns = 2
 icon_mode = 0
+fixed_icon_size = Vector2i(100, 100)
 metadata/_tab_index = 0
 
+[node name="ZoomInbutton" type="Button" parent="EditorUI" unique_id=430798285]
+offset_left = 269.0
+offset_top = 25.0
+offset_right = 310.0
+offset_bottom = 61.0
+text = "+"
+
+[node name="ZoomOutButton" type="Button" parent="EditorUI" unique_id=344751482]
+offset_left = 335.0
+offset_top = 24.0
+offset_right = 375.0
+offset_bottom = 62.0
+text = "-"
+
 [connection signal="item_selected" from="EditorUI/ObjectBrowser/Tabs/Obstacles" to="EditorUI" method="_on_obstacles_item_selected"]
+[connection signal="pressed" from="EditorUI/ZoomInbutton" to="." method="_on_zoom_in_button_pressed"]
+[connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]

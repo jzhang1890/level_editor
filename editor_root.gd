@@ -3,6 +3,9 @@ extends Node2D
 @onready var ui_layer: CanvasLayer = $EditorUI
 @onready var room_canvas: Node2D = $Foreground/RoomCanvas
 
+# The camera
+@onready var camera: Camera2D = $Camera2D 
+
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
@@ -13,7 +16,19 @@ var selected_world_object: CollisionObject2D = null
 
 const GRID_SIZE: float = 64.0 # Set this to match your block sprite sizes (e.g., 30, 60)
 
+# Zoom settings
+var min_zoom: float = 0.5  # How far out you can see
+var max_zoom: float = 3.0  # How close you can zoom in
+var zoom_step: float = 0.2 # How much the buttons zoom per click
+
 func _unhandled_input(event: InputEvent) -> void:
+	
+	# --- NEW: Handle Pinch-to-Zoom Gesture ---
+	if event is InputEventMagnifyGesture:
+		# event.factor is > 1.0 when pinching out (zooming in), and < 1.0 when pinching in (zooming out)
+		var new_zoom_value = camera.zoom.x * event.factor
+		apply_zoom(new_zoom_value)
+		return # Stop processing this event
 	
 	# 1. Track dragging to protect your camera panning
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -22,33 +37,46 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# 2. Handle Mouse Clicks
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		
 		if event.pressed:
 			mouse_down_screen_pos = event.position
 			is_dragging = false 
 			
 		elif not event.pressed:
 			if not is_dragging:
-				# --- IT WAS A CLEAN CLICK ---
 				var click_pos = get_global_mouse_position()
-				
-				# Check if we clicked an existing object first
 				var clicked_obj = check_for_object_at(click_pos)
 				
 				if clicked_obj != null:
-					# Select the object!
 					change_selection(clicked_obj)
 				else:
-					# Clicked empty space. Place a new object if armed!
 					if ui_layer.selected_scene_path != "":
-						# Deselect whatever we were holding
 						change_selection(null) 
 						place_object(click_pos)
 			
 			is_dragging = false
 
-# Selection logic
 
+# Zoom logic
+func apply_zoom(target_zoom: float) -> void:
+	# Clamp prevents the camera from zooming infinitely or flipping upside down (negative values)
+	target_zoom = clamp(target_zoom, min_zoom, max_zoom)
+	
+	# Apply the new zoom equally to both X and Y axes
+	camera.zoom = Vector2(target_zoom, target_zoom)
+	
+	# Tell the canvas to update the grid thickness
+	room_canvas.queue_redraw()
+
+# Zoom buttons
+func _on_zoom_in_button_pressed() -> void:
+	# Add the step to our current zoom
+	apply_zoom(camera.zoom.x + zoom_step)
+
+func _on_zoom_out_button_pressed() -> void:
+	# Subtract the step from our current zoom
+	apply_zoom(camera.zoom.x - zoom_step)
+
+# Selection logic
 func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 	# Use Godot's physics engine to poke the screen and see what's under the mouse
 	var space_state = get_world_2d().direct_space_state
@@ -79,7 +107,6 @@ func change_selection(new_object: CollisionObject2D) -> void:
 			selected_world_object.set_highlight(true)
 
 # Placement logic
-
 func place_object(pos: Vector2) -> void:
 	var object_resource = load(ui_layer.selected_scene_path)
 	if object_resource:
