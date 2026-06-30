@@ -22,14 +22,14 @@ var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
 func _unhandled_input(event: InputEvent) -> void:
-	
-	# --- NEW: Handle Pinch-to-Zoom Gesture ---
-	if event is InputEventMagnifyGesture:
-		# event.factor is > 1.0 when pinching out (zooming in), and < 1.0 when pinching in (zooming out)
-		var new_zoom_value = camera.zoom.x * event.factor
-		apply_zoom(new_zoom_value)
-		return # Stop processing this event
-	
+
+	# Zoom by scrolling
+	if event is InputEventMouseButton and event.is_pressed():
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			apply_zoom_at_mouse(camera.zoom.x + zoom_step/5)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
+
 	# 1. Track dragging to protect your camera panning
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
@@ -58,7 +58,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # Zoom logic
 func apply_zoom(target_zoom: float) -> void:
-	# Clamp prevents the camera from zooming infinitely or flipping upside down (negative values)
+	# Keeps zoom within min and max zoom limit by clamping it between the limits
 	target_zoom = clamp(target_zoom, min_zoom, max_zoom)
 	
 	# Apply the new zoom equally to both X and Y axes
@@ -66,6 +66,28 @@ func apply_zoom(target_zoom: float) -> void:
 	
 	# Tell the canvas to update the grid thickness
 	room_canvas.queue_redraw()
+
+func apply_zoom_at_mouse(requested_zoom: float) -> void:
+	var old_zoom = camera.zoom.x
+
+	# Keeps zoom within min and max zoom limit by clamping it between the limits
+	var new_zoom = clamp(requested_zoom, min_zoom, max_zoom)
+	
+	# If already at the zoom limit, do nothing
+	if old_zoom == new_zoom:
+		return
+		
+	# 1. Calculate the shift
+	var mouse_pos = get_viewport().get_mouse_position()
+	var screen_center = get_viewport_rect().size / 2.0
+	var mouse_offset = mouse_pos - screen_center
+	var shift = mouse_offset * (1.0 / old_zoom - 1.0 / new_zoom)
+	
+	# 2. Move the camera
+	camera.global_position += shift
+	
+	# 3. Existing zoom function
+	apply_zoom(new_zoom)
 
 # Zoom buttons
 func _on_zoom_in_button_pressed() -> void:
@@ -75,6 +97,7 @@ func _on_zoom_in_button_pressed() -> void:
 func _on_zoom_out_button_pressed() -> void:
 	# Subtract the step from our current zoom
 	apply_zoom(camera.zoom.x - zoom_step)
+	
 
 # Selection logic
 func check_for_object_at(pos: Vector2) -> CollisionObject2D:
@@ -93,15 +116,15 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 	return null
 
 func change_selection(new_object: CollisionObject2D) -> void:
-	# 1. Turn off the green highlight on the OLD object
+	# 1. Turn off the green highlight on the old object
 	if selected_world_object != null and is_instance_valid(selected_world_object):
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(false)
 			
-	# 2. Update our tracking variable
+	# 2. Update tracking variable
 	selected_world_object = new_object
 	
-	# 3. Turn ON the green highlight on the NEW object
+	# 3. Turn on the green highlight on the new object
 	if selected_world_object != null:
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(true)
@@ -115,7 +138,7 @@ func place_object(pos: Vector2) -> void:
 		var cell_x = floor(pos.x / GRID_SIZE)
 		var cell_y = floor(pos.y / GRID_SIZE)
 		
-		# 2. Multiply back up to world coordinates, then add half the grid size (32) 
+		# Multiply back up to world coordinates, then add half the grid size (32) 
 		# so the center-anchored object sits exactly in the middle of the box.
 		var snapped_x = (cell_x * GRID_SIZE) + (GRID_SIZE / 2.0)
 		var snapped_y = (cell_y * GRID_SIZE) + (GRID_SIZE / 2.0)

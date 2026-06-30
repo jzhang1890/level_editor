@@ -4,7 +4,7 @@ extends Node2D
 @export var starting_height_y: float = 2048.0
 @export var grid_size: float = 64.0 
 
-@onready var camera: Camera2D = $"../../Camera2D" # Adjust path to find Camera2D
+@onready var camera: Camera2D = $"../../Camera2D" 
 
 var current_top_y: float = 0.0
 
@@ -19,7 +19,7 @@ func _process(_delta: float) -> void:
 		queue_redraw() # Redraw the expanding grid and walls
 
 func _draw() -> void:
-	# --- NEW: Dynamic thickness math ---
+
 	# If camera zoom is 0.5, thickness becomes 2.0 in the world, staying 1.0 on screen!
 	var grid_thickness = 1.0 / camera.zoom.x
 	var wall_thickness = 4.0 / camera.zoom.x
