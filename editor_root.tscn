@@ -19,11 +19,11 @@ script = ExtResource("1_51ree")
 [node name="BackgroundCanvas" type="ParallaxBackground" parent="." unique_id=190032692]
 scroll_ignore_camera_zoom = true
 
-[node name="ParallaxLayer" type="ParallaxLayer" parent="BackgroundCanvas" unique_id=1441609306]
-motion_scale = Vector2(0.3, 0.3)
+[node name="BackgroundLayer" type="ParallaxLayer" parent="BackgroundCanvas" unique_id=1441609306]
+motion_scale = Vector2(0.1, 0.1)
 motion_mirroring = Vector2(1024, 1024)
 
-[node name="Background" type="TextureRect" parent="BackgroundCanvas/ParallaxLayer" unique_id=1699632227]
+[node name="Background" type="TextureRect" parent="BackgroundCanvas/BackgroundLayer" unique_id=1699632227]
 z_index = -10
 offset_left = -2173.0
 offset_top = -1482.0
@@ -74,22 +74,25 @@ offset_bottom = 62.0
 text = "-"
 
 [node name="SaveButton" type="Button" parent="EditorUI" unique_id=1743275501]
-offset_left = 1211.0
-offset_top = 22.0
-offset_right = 1252.0
-offset_bottom = 57.0
+offset_left = 1203.0
+offset_top = 25.0
+offset_right = 1247.0
+offset_bottom = 65.0
 text = "Save
 "
 
-[node name="DeleteButton" type="Button" parent="EditorUI" unique_id=982780030]
-offset_left = 1073.0
-offset_top = 25.0
-offset_right = 1132.0
-offset_bottom = 56.0
+[node name="SelectionMenu" type="HBoxContainer" parent="EditorUI" unique_id=1799396351]
+offset_left = 947.0
+offset_top = 26.0
+offset_right = 1170.0
+offset_bottom = 67.0
+
+[node name="DeleteButton" type="Button" parent="EditorUI/SelectionMenu" unique_id=982780030]
+layout_mode = 2
 text = "Delete"
 
 [connection signal="item_selected" from="EditorUI/ObjectBrowser/Tabs/Obstacles" to="EditorUI" method="_on_obstacles_item_selected"]
 [connection signal="pressed" from="EditorUI/ZoomInbutton" to="." method="_on_zoom_in_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
 [connection signal="pressed" from="EditorUI/SaveButton" to="." method="_on_save_button_pressed"]
-[connection signal="pressed" from="EditorUI/DeleteButton" to="." method="_on_delete_button_pressed"]
+[connection signal="pressed" from="EditorUI/SelectionMenu/DeleteButton" to="." method="_on_delete_button_pressed"]

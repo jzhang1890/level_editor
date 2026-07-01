@@ -5,7 +5,14 @@ extends Node2D
 
 @onready var camera: Camera2D = $Camera2D 
 
-@onready var delete_button: Button = $EditorUI/DeleteButton
+# Grab the container instead of the individual button
+@onready var selection_menu: Control = $EditorUI/SelectionMenu
+
+# Grab the TextureRect node from Parallax Background setup
+@onready var bg_rect: TextureRect = $BackgroundCanvas/BackgroundLayer/Background
+
+# Default background path
+var current_bg_path: String = "res://Sprites/Backgrounds/background2.png"
 
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
@@ -29,9 +36,9 @@ var zoom_step: float = 0.2 # How much the buttons zoom per click
 
 func _ready() -> void:
 	
-	# Hide delete button initially
-	if delete_button:
-		delete_button.visible = false
+	# Hide the entire contextual menu at the start
+	if selection_menu:
+		selection_menu.visible = false
 	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
@@ -142,26 +149,26 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 
 # Change selected object
 func change_selection(new_object: CollisionObject2D) -> void:
-	# 1. Turn off the green highlight on the old object
+	# 1. Turn off the green highlight on the OLD object
 	if selected_world_object != null and is_instance_valid(selected_world_object):
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(false)
 			
-	# 2. Update the selected variable
+	# 2. Update our tracking variable
 	selected_world_object = new_object
 	
-	# 3. Turn on the green highlight on the new object
+	# 3. Turn ON the green highlight on the NEW object, and SHOW/HIDE the UI menu
 	if selected_world_object != null:
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(true)
 		
-		# Show the delete button something is selected
-		if delete_button:
-			delete_button.visible = true
+		# Show the entire contextual menu because we selected something
+		if selection_menu:
+			selection_menu.visible = true
 	else:
-		# Hide the delete button because empty space clicked
-		if delete_button:
-			delete_button.visible = false
+		# Hide the entire contextual menu because we clicked empty space
+		if selection_menu:
+			selection_menu.visible = false
 
 # Placement logic
 func place_object(pos: Vector2) -> void:
@@ -212,9 +219,10 @@ func _on_save_button_pressed() -> void:
 			}
 			items_array.append(item_data)
 			
-	#  Wrap the array and the level name into a main Dictionary
+	# Wraps everything into a dictionary
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
+		"background": current_bg_path, 
 		"items": items_array
 	}
 			
@@ -251,6 +259,11 @@ func load_level(target_path: String) -> void:
 				current_level_name = level_data["level_name"]
 				print("Loading level: ", current_level_name)
 			
+			# Load and apply the background
+			if level_data.has("background"):
+				current_bg_path = level_data["background"]
+				var loaded_texture = load(current_bg_path)
+			
 			# Loop through the items array tucked inside the dictionary
 			for item in level_data["items"]:
 				var resource = load(item["scene_path"])
@@ -258,3 +271,10 @@ func load_level(target_path: String) -> void:
 					var new_object = resource.instantiate()
 					new_object.global_position = Vector2(item["x"], item["y"])
 					room_canvas.add_child(new_object)
+					
+# Call this from UI when the user picks a new background
+func change_background(new_path: String) -> void:
+	var new_texture = load(new_path)
+	if new_texture:
+		bg_rect.texture = new_texture
+		current_bg_path = new_path # Update the variable so it saves correctly later
