@@ -3,8 +3,9 @@ extends Node2D
 @onready var ui_layer: CanvasLayer = $EditorUI
 @onready var room_canvas: Node2D = $Foreground/RoomCanvas
 
-# The camera
 @onready var camera: Camera2D = $Camera2D 
+
+@onready var delete_button: Button = $EditorUI/DeleteButton
 
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
@@ -27,6 +28,11 @@ var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
 func _ready() -> void:
+	
+	# Hide delete button initially
+	if delete_button:
+		delete_button.visible = false
+	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
 		current_save_path = Global.level_to_load # Ensure we save over this exact file later
@@ -36,6 +42,11 @@ func _ready() -> void:
 		Global.level_to_load = ""
 
 func _unhandled_input(event: InputEvent) -> void:
+
+	# Backspace for deletion
+	if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
+		delete_selected_object()
+		return # Stop processing this event
 
 	# Zoom by scrolling
 	if event is InputEventMouseButton and event.is_pressed():
@@ -129,6 +140,7 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 		return results[0]["collider"] as CollisionObject2D
 	return null
 
+# Change selected object
 func change_selection(new_object: CollisionObject2D) -> void:
 	# 1. Turn off the green highlight on the old object
 	if selected_world_object != null and is_instance_valid(selected_world_object):
@@ -142,6 +154,14 @@ func change_selection(new_object: CollisionObject2D) -> void:
 	if selected_world_object != null:
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(true)
+		
+		# Show the delete button something is selected
+		if delete_button:
+			delete_button.visible = true
+	else:
+		# Hide the delete button because empty space clicked
+		if delete_button:
+			delete_button.visible = false
 
 # Placement logic
 func place_object(pos: Vector2) -> void:
@@ -161,10 +181,22 @@ func place_object(pos: Vector2) -> void:
 		
 		room_canvas.add_child(new_object)
 
+# Deletion logic
+func delete_selected_object() -> void:
+	# Make sure we actually have something selected before trying to delete
+	if selected_world_object != null and is_instance_valid(selected_world_object):
+		# Remove the object from the game completely
+		selected_world_object.queue_free()
+		
+		# Reset selection back to null (which also hides the button)
+		change_selection(null)
+
+func _on_delete_button_pressed() -> void:
+	delete_selected_object()
+
 # Save and Load Logic
 
-# --- UPDATE YOUR SAVE FUNCTION ---
-
+# Saving Level function
 func _on_save_button_pressed() -> void:
 	if not DirAccess.dir_exists_absolute("user://Levels"):
 		DirAccess.make_dir_absolute("user://Levels")
@@ -180,7 +212,7 @@ func _on_save_button_pressed() -> void:
 			}
 			items_array.append(item_data)
 			
-	# NEW: Wrap the array and the level name into a main Dictionary
+	#  Wrap the array and the level name into a main Dictionary
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"items": items_array
@@ -193,8 +225,7 @@ func _on_save_button_pressed() -> void:
 		file.close()
 		print("Level saved to: ", current_save_path)
 
-# --- UPDATE YOUR LOAD FUNCTION ---
-
+# Loading level function
 func load_level(target_path: String) -> void:
 	if not FileAccess.file_exists(target_path):
 		print("No save file found at: ", target_path)
@@ -212,10 +243,10 @@ func load_level(target_path: String) -> void:
 		
 		var level_data = JSON.parse_string(json_string)
 		
-		# NEW: Check if the data is our new Dictionary format
+		# Check if the data is the Dictionary format
 		if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
 			
-			# Grab the name to update our variable
+			# Grab the name to update the variable
 			if level_data.has("level_name"):
 				current_level_name = level_data["level_name"]
 				print("Loading level: ", current_level_name)
