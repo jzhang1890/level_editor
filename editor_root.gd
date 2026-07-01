@@ -14,12 +14,24 @@ var drag_threshold: float = 10.0
 # Tracking for selection
 var selected_world_object: CollisionObject2D = null 
 
-const GRID_SIZE: float = 64.0 # Set this to match your block sprite sizes (e.g., 30, 60)
+# Save path
+var current_save_path: String = "user://Levels/my_new_level.json"
+
+const GRID_SIZE: float = 64.0
 
 # Zoom settings
 var min_zoom: float = 0.5  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
+
+func _ready() -> void:
+	# If the global script has a level queued up, load it immediately
+	if Global.level_to_load != "":
+		current_save_path = Global.level_to_load # Ensure we save over this exact file later
+		load_level(current_save_path)
+		
+		# Clear the global variable so it doesn't accidentally load again next time
+		Global.level_to_load = ""
 
 func _unhandled_input(event: InputEvent) -> void:
 
@@ -101,7 +113,7 @@ func _on_zoom_out_button_pressed() -> void:
 
 # Selection logic
 func check_for_object_at(pos: Vector2) -> CollisionObject2D:
-	# Use Godot's physics engine to poke the screen and see what's under the mouse
+	# Pokes the screen and see what's under the mouse
 	var space_state = get_world_2d().direct_space_state
 	var query = PhysicsPointQueryParameters2D.new()
 	query.position = pos
@@ -121,7 +133,7 @@ func change_selection(new_object: CollisionObject2D) -> void:
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(false)
 			
-	# 2. Update tracking variable
+	# 2. Update the selected variable
 	selected_world_object = new_object
 	
 	# 3. Turn on the green highlight on the new object
@@ -146,3 +158,56 @@ func place_object(pos: Vector2) -> void:
 		new_object.global_position = Vector2(snapped_x, snapped_y)
 		
 		room_canvas.add_child(new_object)
+
+# Save and Load Logic
+
+func _on_save_button_pressed() -> void:
+	# Ensure the directory exists before saving!
+	if not DirAccess.dir_exists_absolute("user://Levels"):
+		DirAccess.make_dir_absolute("user://Levels")
+
+	var level_data: Array = []
+	for child in room_canvas.get_children():
+		if child.scene_file_path != "":
+			var item_data = {
+				"scene_path": child.scene_file_path,
+				"x": child.global_position.x,
+				"y": child.global_position.y
+			}
+			level_data.append(item_data)
+			
+	# Use the current_save_path variable here
+	var file = FileAccess.open(current_save_path, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(level_data, "\t") 
+		file.store_string(json_string)
+		file.close()
+		print("Level saved to: ", current_save_path)
+
+# Loading the level
+func load_level(target_path: String) -> void:
+	if not FileAccess.file_exists(target_path):
+		print("No save file found at: ", target_path)
+		return
+		
+	change_selection(null)
+	
+	for child in room_canvas.get_children():
+		child.queue_free()
+		
+	var file = FileAccess.open(target_path, FileAccess.READ)
+	if file:
+		var json_string = file.get_as_text()
+		file.close()
+		
+		var level_data = JSON.parse_string(json_string)
+		
+		if typeof(level_data) == TYPE_ARRAY:
+			for item in level_data:
+				var resource = load(item["scene_path"])
+				if resource:
+					var new_object = resource.instantiate()
+					new_object.global_position = Vector2(item["x"], item["y"])
+					room_canvas.add_child(new_object)
+					
+	print("Level loaded from: ", target_path)

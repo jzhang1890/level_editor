@@ -11,9 +11,9 @@ script = ExtResource("1_78ve5")
 rotation_speed = 30
 metadata/_custom_type_script = "uid://dgwjjvf5qi2ki"
 
-[node name="BlackholeSprite" type="Sprite2D" parent="." unique_id=276152179]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=276152179]
 texture = ExtResource("2_ab8mr")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=34475592]
-position = Vector2(-4, -9)
+position = Vector2(-3, 0)
 shape = SubResource("CircleShape2D_r8fna")

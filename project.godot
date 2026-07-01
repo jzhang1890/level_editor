@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Level Editor"
-run/main_scene="uid://cv61yr4jbuhfq"
+run/main_scene="uid://g7j8v0im2qke"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*uid://dc2hre24eopif"
 
 [display]
 

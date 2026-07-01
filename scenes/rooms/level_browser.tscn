@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://g7j8v0im2qke"]
+
+[ext_resource type="Script" uid="uid://ovb0i6lrdv4v" path="res://level_browser.gd" id="1_swctr"]
+
+[node name="LevelBrowser" type="Control" unique_id=935588708]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_swctr")
+
+[node name="LevelsLabel" type="Label" parent="." unique_id=294336459]
+layout_mode = 0
+offset_left = 409.0
+offset_top = 28.0
+offset_right = 861.0
+offset_bottom = 98.0
+theme_override_font_sizes/font_size = 40
+text = "Create a Level"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelList" type="ItemList" parent="." unique_id=1739637595]
+layout_mode = 0
+offset_left = 124.0
+offset_top = 114.0
+offset_right = 1154.0
+offset_bottom = 624.0
+
+[connection signal="item_selected" from="LevelList" to="." method="_on_level_list_item_selected"]
