@@ -20,7 +20,7 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 
-	# If camera zoom is 0.5, thickness becomes 2.0 in the world, staying 1.0 on screen!
+	# If camera zoom is 0.5, thickness becomes 2.0 in the world, staying 1.0 on screen
 	var grid_thickness = 1.0 / camera.zoom.x
 	var wall_thickness = 4.0 / camera.zoom.x
 	var floor_thickness = 2.0 / camera.zoom.x

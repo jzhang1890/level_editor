@@ -17,6 +17,8 @@ var selected_world_object: CollisionObject2D = null
 # Save path
 var current_save_path: String = "user://Levels/my_new_level.json"
 
+var current_level_name: String = "My Custom Level"
+
 const GRID_SIZE: float = 64.0
 
 # Zoom settings
@@ -161,12 +163,14 @@ func place_object(pos: Vector2) -> void:
 
 # Save and Load Logic
 
+# --- UPDATE YOUR SAVE FUNCTION ---
+
 func _on_save_button_pressed() -> void:
-	# Ensure the directory exists before saving!
 	if not DirAccess.dir_exists_absolute("user://Levels"):
 		DirAccess.make_dir_absolute("user://Levels")
 
-	var level_data: Array = []
+	var items_array: Array = []
+	
 	for child in room_canvas.get_children():
 		if child.scene_file_path != "":
 			var item_data = {
@@ -174,17 +178,23 @@ func _on_save_button_pressed() -> void:
 				"x": child.global_position.x,
 				"y": child.global_position.y
 			}
-			level_data.append(item_data)
+			items_array.append(item_data)
 			
-	# Use the current_save_path variable here
+	# NEW: Wrap the array and the level name into a main Dictionary
+	var save_dict: Dictionary = {
+		"level_name": current_level_name,
+		"items": items_array
+	}
+			
 	var file = FileAccess.open(current_save_path, FileAccess.WRITE)
 	if file:
-		var json_string = JSON.stringify(level_data, "\t") 
+		var json_string = JSON.stringify(save_dict, "\t") 
 		file.store_string(json_string)
 		file.close()
 		print("Level saved to: ", current_save_path)
 
-# Loading the level
+# --- UPDATE YOUR LOAD FUNCTION ---
+
 func load_level(target_path: String) -> void:
 	if not FileAccess.file_exists(target_path):
 		print("No save file found at: ", target_path)
@@ -202,12 +212,18 @@ func load_level(target_path: String) -> void:
 		
 		var level_data = JSON.parse_string(json_string)
 		
-		if typeof(level_data) == TYPE_ARRAY:
-			for item in level_data:
+		# NEW: Check if the data is our new Dictionary format
+		if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
+			
+			# Grab the name to update our variable
+			if level_data.has("level_name"):
+				current_level_name = level_data["level_name"]
+				print("Loading level: ", current_level_name)
+			
+			# Loop through the items array tucked inside the dictionary
+			for item in level_data["items"]:
 				var resource = load(item["scene_path"])
 				if resource:
 					var new_object = resource.instantiate()
 					new_object.global_position = Vector2(item["x"], item["y"])
 					room_canvas.add_child(new_object)
-					
-	print("Level loaded from: ", target_path)

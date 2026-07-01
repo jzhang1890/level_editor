@@ -15,31 +15,41 @@ func _ready() -> void:
 func populate_list() -> void:
 	level_list.clear()
 	
-	# Open the directory and scan it
 	var dir = DirAccess.open(LEVEL_DIR)
 	if dir:
 		dir.list_dir_begin()
 		var file_name = dir.get_next()
 		
-		# Loop through every file inside the folder
 		while file_name != "":
 			if not dir.current_is_dir() and file_name.ends_with(".json"):
-				# Clean up the name for the UI (removes the ".json" extension for a cleaner look)
-				var clean_name = file_name.replace(".json", "")
-				var index = level_list.add_item(clean_name)
+				var full_path = LEVEL_DIR + "/" + file_name
 				
-				# Save the full path in the metadata so we can load it later
-				level_list.set_item_metadata(index, LEVEL_DIR + "/" + file_name)
+				# 1. Default to the file name just in case the file is corrupted
+				var display_name = file_name.replace(".json", "")
+				
+				# 2. Open the file and peek at the JSON
+				var file = FileAccess.open(full_path, FileAccess.READ)
+				if file:
+					var json_string = file.get_as_text()
+					file.close()
+					
+					var level_data = JSON.parse_string(json_string)
+					
+					# 3. If it has our custom key, use that as the display name instead!
+					if typeof(level_data) == TYPE_DICTIONARY and level_data.has("level_name"):
+						display_name = level_data["level_name"]
+						
+				var index = level_list.add_item(display_name)
+				level_list.set_item_metadata(index, full_path)
 				
 			file_name = dir.get_next()
 
-# Connect this to the 'item_selected' signal on your ItemList!
 func _on_level_list_item_selected(index: int) -> void:
 	# 1. Grab the path from the item we clicked
 	var selected_path = level_list.get_item_metadata(index)
 	
-	# 2. Store it in global.gd
+	# 2. Store it in our Global script
 	Global.level_to_load = selected_path
 	
-	# 3. Load the Editor Scene (Make sure this path matches your exact editor scene name!)
-	get_tree().change_scene_to_file("res://editor_root.tscn")
+	# 3. Safely defer the scene change until the end of the frame
+	get_tree().call_deferred("change_scene_to_file", "res://editor_root.tscn")
