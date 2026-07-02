@@ -11,8 +11,12 @@ extends Node2D
 # Grab the TextureRect node from Parallax Background setup
 @onready var bg_rect: TextureRect = $BackgroundCanvas/BackgroundLayer/Background
 
+# Pause Menu references
+@onready var pause_menu: ColorRect = $EditorUI/PauseMenu
+@onready var level_name_label: Label = $EditorUI/PauseMenu/LevelNameLabel
+
 # Default background path
-var current_bg_path: String = "res://Sprites/Backgrounds/background2.png"
+var current_bg_path: String = "res://Sprites/Backgrounds/background1.png"
 
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
@@ -34,11 +38,15 @@ var min_zoom: float = 0.5  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
+var paused = false
+
 func _ready() -> void:
 	
 	# Hide the entire contextual menu at the start
 	if selection_menu:
 		selection_menu.visible = false
+	if pause_menu:
+		pause_menu.visible = false
 	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
@@ -50,42 +58,43 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 
+	if not paused:
 	# Backspace for deletion
-	if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
-		delete_selected_object()
-		return # Stop processing this event
+		if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
+			delete_selected_object()
+			return # Stop processing this event
 
-	# Zoom by scrolling
-	if event is InputEventMouseButton and event.is_pressed():
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			apply_zoom_at_mouse(camera.zoom.x + zoom_step/5)
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
+		# Zoom by scrolling
+		if event is InputEventMouseButton and event.is_pressed():
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				apply_zoom_at_mouse(camera.zoom.x + zoom_step/5)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
 
-	# 1. Track dragging to protect your camera panning
-	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
-			is_dragging = true
+		# 1. Track dragging to protect your camera panning
+		if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+				is_dragging = true
 
-	# 2. Handle Mouse Clicks
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			mouse_down_screen_pos = event.position
-			is_dragging = false 
-			
-		elif not event.pressed:
-			if not is_dragging:
-				var click_pos = get_global_mouse_position()
-				var clicked_obj = check_for_object_at(click_pos)
+		# 2. Handle Mouse Clicks
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				mouse_down_screen_pos = event.position
+				is_dragging = false 
 				
-				if clicked_obj != null:
-					change_selection(clicked_obj)
-				else:
-					if ui_layer.selected_scene_path != "":
-						change_selection(null) 
-						place_object(click_pos)
-			
-			is_dragging = false
+			elif not event.pressed:
+				if not is_dragging:
+					var click_pos = get_global_mouse_position()
+					var clicked_obj = check_for_object_at(click_pos)
+					
+					if clicked_obj != null:
+						change_selection(clicked_obj)
+					else:
+						if ui_layer.selected_scene_path != "":
+							change_selection(null) 
+							place_object(click_pos)
+				
+				is_dragging = false
 
 
 # Zoom logic
@@ -263,6 +272,10 @@ func load_level(target_path: String) -> void:
 			if level_data.has("background"):
 				current_bg_path = level_data["background"]
 				var loaded_texture = load(current_bg_path)
+				
+				# Add this line to actually apply the texture to the screen!
+				if loaded_texture:
+					bg_rect.texture = loaded_texture
 			
 			# Loop through the items array tucked inside the dictionary
 			for item in level_data["items"]:
@@ -278,3 +291,22 @@ func change_background(new_path: String) -> void:
 	if new_texture:
 		bg_rect.texture = new_texture
 		current_bg_path = new_path # Update the variable so it saves correctly later
+
+
+# Pause Menu logic
+
+func _on_pause_button_pressed() -> void:
+	# Update the label to show the name of the level
+	if level_name_label:
+		level_name_label.text = current_level_name
+		
+	# Reveal the menu
+	if pause_menu:
+		pause_menu.visible = true
+	paused = true
+
+func _on_resume_button_pressed() -> void:
+	# Hide the menu to go back to editing
+	if pause_menu:
+		pause_menu.visible = false
+	paused = false
