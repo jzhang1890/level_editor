@@ -210,37 +210,7 @@ func delete_selected_object() -> void:
 func _on_delete_button_pressed() -> void:
 	delete_selected_object()
 
-# Save and Load Logic
-
-# Saving Level function
-func _on_save_button_pressed() -> void:
-	if not DirAccess.dir_exists_absolute("user://Levels"):
-		DirAccess.make_dir_absolute("user://Levels")
-
-	var items_array: Array = []
-	
-	for child in room_canvas.get_children():
-		if child.scene_file_path != "":
-			var item_data = {
-				"scene_path": child.scene_file_path,
-				"x": child.global_position.x,
-				"y": child.global_position.y
-			}
-			items_array.append(item_data)
-			
-	# Wraps everything into a dictionary
-	var save_dict: Dictionary = {
-		"level_name": current_level_name,
-		"background": current_bg_path, 
-		"items": items_array
-	}
-			
-	var file = FileAccess.open(current_save_path, FileAccess.WRITE)
-	if file:
-		var json_string = JSON.stringify(save_dict, "\t") 
-		file.store_string(json_string)
-		file.close()
-		print("Level saved to: ", current_save_path)
+# Load Logic
 
 # Loading level function
 func load_level(target_path: String) -> void:
@@ -310,3 +280,44 @@ func _on_resume_button_pressed() -> void:
 	if pause_menu:
 		pause_menu.visible = false
 	paused = false
+	
+# Saving Level function
+func _on_save_button_pressed() -> void:
+	if not DirAccess.dir_exists_absolute("user://Levels"):
+		DirAccess.make_dir_absolute("user://Levels")
+
+	var items_array: Array = []
+	
+	for child in room_canvas.get_children():
+		if child.scene_file_path != "":
+			var item_data = {
+				"scene_path": child.scene_file_path,
+				"x": child.global_position.x,
+				"y": child.global_position.y
+			}
+			items_array.append(item_data)
+			
+	# Wraps everything into a dictionary
+	var save_dict: Dictionary = {
+		"level_name": current_level_name,
+		"background": current_bg_path, 
+		"items": items_array
+	}
+			
+	var file = FileAccess.open(current_save_path, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(save_dict, "\t") 
+		file.store_string(json_string)
+		file.close()
+		print("Level saved to: ", current_save_path)	
+	
+func _on_save_and_quit_button_pressed() -> void:
+	# 1. Save logic 
+	_on_save_button_pressed()
+	
+	# 2. Quit to the Level Browser 
+	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
+	
+func _on_quit_button_pressed() -> void:
+	# Return to your Level Browser scene
+	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
