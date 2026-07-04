@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-@onready var obstacles_list: ItemList = $ObjectBrowser/Tabs/Obstacles
+@onready var obstacles_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles
 
 var spawnable_items: Array = [
 	{
@@ -30,7 +30,7 @@ func populate_obstacles_tab() -> void:
 	obstacles_list.clear()
 	
 	for item in spawnable_items:
-		var index = obstacles_list.add_item(item["name"], item["icon"])
+		var index = obstacles_list.add_item("", item["icon"])
 		obstacles_list.set_item_metadata(index, item["scene_path"])
 
 func _on_obstacles_item_selected(index: int) -> void:

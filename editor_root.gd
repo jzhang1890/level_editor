@@ -15,6 +15,13 @@ extends Node2D
 @onready var pause_menu: ColorRect = $EditorUI/PauseMenu
 @onready var level_name_label: Label = $EditorUI/PauseMenu/LevelNameLabel
 
+# Tab container reference
+@onready var main_tab_container: TabContainer = $EditorUI/EditorPanel/MainTabContainer
+
+# Editor modes
+enum EditorMode { BUILD, EDIT, DELETE }
+var current_mode: EditorMode = EditorMode.BUILD
+
 # Default background path
 var current_bg_path: String = "res://Sprites/Backgrounds/background1.png"
 
@@ -47,6 +54,10 @@ func _ready() -> void:
 		selection_menu.visible = false
 	if pause_menu:
 		pause_menu.visible = false
+	
+	# Force the TabContainer back Build tab
+	if main_tab_container:
+		main_tab_container.current_tab = 0
 	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
@@ -87,12 +98,21 @@ func _unhandled_input(event: InputEvent) -> void:
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos)
 					
-					if clicked_obj != null:
-						change_selection(clicked_obj)
-					else:
-						if ui_layer.selected_scene_path != "":
-							change_selection(null) 
-							place_object(click_pos)
+					# --- NEW: MODE-BASED CLICK LOGIC ---
+					match current_mode:
+						EditorMode.BUILD:
+							# Only place objects. Ignore selections.
+							if ui_layer.selected_scene_path != "":
+								place_object(click_pos)
+								
+						EditorMode.EDIT:
+							# Only select objects. Ignore placing.
+							change_selection(clicked_obj)
+							
+						EditorMode.DELETE:
+							# Instantly delete whatever we clicked on.
+							if clicked_obj != null:
+								clicked_obj.queue_free()
 				
 				is_dragging = false
 
@@ -242,8 +262,6 @@ func load_level(target_path: String) -> void:
 			if level_data.has("background"):
 				current_bg_path = level_data["background"]
 				var loaded_texture = load(current_bg_path)
-				
-				# Add this line to actually apply the texture to the screen!
 				if loaded_texture:
 					bg_rect.texture = loaded_texture
 			
@@ -312,12 +330,16 @@ func _on_save_button_pressed() -> void:
 		print("Level saved to: ", current_save_path)	
 	
 func _on_save_and_quit_button_pressed() -> void:
-	# 1. Save logic 
+	# Just combines save and quit logic
 	_on_save_button_pressed()
-	
-	# 2. Quit to the Level Browser 
 	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
 	
 func _on_quit_button_pressed() -> void:
-	# Return to your Level Browser scene
+	# Return to Level Browser scene
 	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
+
+
+# Tab switching logic
+func _on_main_tab_container_tab_changed(tab: int) -> void:
+	# 0 = Build, 1 = Edit, 2 = Delete
+	current_mode = tab as EditorMode
