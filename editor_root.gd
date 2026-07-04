@@ -20,6 +20,7 @@ extends Node2D
 
 # Editor modes
 enum EditorMode { BUILD, EDIT, DELETE }
+# On build tab at start
 var current_mode: EditorMode = EditorMode.BUILD
 
 # Default background path
@@ -36,7 +37,7 @@ var selected_world_object: CollisionObject2D = null
 # Save path
 var current_save_path: String = "user://Levels/my_new_level.json"
 
-var current_level_name: String = "My Custom Level"
+var current_level_name: String = "Untitled"
 
 const GRID_SIZE: float = 64.0
 
@@ -55,17 +56,10 @@ func _ready() -> void:
 	if pause_menu:
 		pause_menu.visible = false
 	
-	# Force the TabContainer back Build tab
-	if main_tab_container:
-		main_tab_container.current_tab = 0
-	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
 		current_save_path = Global.level_to_load # Ensure we save over this exact file later
 		load_level(current_save_path)
-		
-		# Clear the global variable so it doesn't accidentally load again next time
-		Global.level_to_load = ""
 
 func _unhandled_input(event: InputEvent) -> void:
 
@@ -280,6 +274,10 @@ func change_background(new_path: String) -> void:
 		bg_rect.texture = new_texture
 		current_bg_path = new_path # Update the variable so it saves correctly later
 
+# Tab switching logic
+func _on_main_tab_container_tab_changed(tab: int) -> void:
+	# 0 = Build, 1 = Edit, 2 = Delete
+	current_mode = tab as EditorMode
 
 # Pause Menu logic
 
@@ -332,14 +330,8 @@ func _on_save_button_pressed() -> void:
 func _on_save_and_quit_button_pressed() -> void:
 	# Just combines save and quit logic
 	_on_save_button_pressed()
-	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
+	_on_quit_button_pressed()
 	
 func _on_quit_button_pressed() -> void:
 	# Return to Level Browser scene
-	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
-
-
-# Tab switching logic
-func _on_main_tab_container_tab_changed(tab: int) -> void:
-	# 0 = Build, 1 = Edit, 2 = Delete
-	current_mode = tab as EditorMode
+	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")

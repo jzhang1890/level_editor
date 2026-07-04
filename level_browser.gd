@@ -51,5 +51,40 @@ func _on_level_list_item_selected(index: int) -> void:
 	# 2. Store it in our Global script
 	Global.level_to_load = selected_path
 	
-	# 3. Safely defer the scene change until the end of the frame
-	get_tree().call_deferred("change_scene_to_file", "res://editor_root.tscn")
+	# 3. Change to the new Details Hub instead of the Editor
+	get_tree().call_deferred("change_scene_to_file", "res://scenes/rooms/level_details.tscn")
+
+# New level button
+func _on_create_new_button_pressed() -> void:
+	# 1. Make sure the Levels folder exists
+	if not DirAccess.dir_exists_absolute("user://Levels"):
+		DirAccess.make_dir_absolute("user://Levels")
+		
+	# 2. Find a unique file name so we don't overwrite existing "untitled" levels
+	var base_name = "untitled"
+	var file_name = base_name + ".json"
+	var file_path = "user://Levels/" + file_name
+	var counter = 1
+	
+	# If "untitled.json" exists, try "untitled_1.json", "untitled_2.json", etc.
+	while FileAccess.file_exists(file_path):
+		file_name = base_name + "_" + str(counter) + ".json"
+		file_path = "user://Levels/" + file_name
+		counter += 1
+		
+	# 3. Create the default starting data for a brand new level
+	var default_level_data: Dictionary = {
+		"level_name": "Untitled", 
+		"background": "res://Sprites/Backgrounds/background1.png", 
+		"items": [] 
+	}
+	
+	# 4. Save the new JSON file to the drive
+	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(default_level_data, "\t")
+		file.store_string(json_string)
+		file.close()
+		
+	# 5. Refresh the UI list so the level shows up
+	populate_list()
