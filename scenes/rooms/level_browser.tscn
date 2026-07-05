@@ -4,35 +4,51 @@
 
 [node name="LevelBrowser" type="Control" unique_id=935588708]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_swctr")
 
 [node name="LevelsLabel" type="Label" parent="." unique_id=294336459]
-layout_mode = 0
-offset_left = 409.0
-offset_top = 28.0
-offset_right = 861.0
-offset_bottom = 98.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -226.0
+offset_top = -330.0
+offset_right = 226.0
+offset_bottom = -260.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_font_sizes/font_size = 40
 text = "Create a Level"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LevelList" type="ItemList" parent="." unique_id=1739637595]
-layout_mode = 0
-offset_left = 124.0
-offset_top = 114.0
-offset_right = 1154.0
-offset_bottom = 624.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -515.0
+offset_top = -243.0
+offset_right = 515.0
+offset_bottom = 267.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="CreateNewButton" type="Button" parent="." unique_id=157391143]
 layout_mode = 0
-offset_left = 1006.0
+offset_left = 967.0
 offset_top = 62.0
-offset_right = 1149.0
-offset_bottom = 93.0
+offset_right = 1152.0
+offset_bottom = 92.0
 text = "Create New Level"
 
 [connection signal="item_selected" from="LevelList" to="." method="_on_level_list_item_selected"]

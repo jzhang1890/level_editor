@@ -1,0 +1,6 @@
+[gd_resource type="Theme" format=3 uid="uid://cl0g3cwxl3k38"]
+
+[sub_resource type="FontVariation" id="FontVariation_j2q5q"]
+
+[resource]
+default_font = SubResource("FontVariation_j2q5q")

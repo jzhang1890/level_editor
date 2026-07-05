@@ -35,7 +35,7 @@ func _on_name_edit_text_submitted(new_text: String) -> void:
 	name_edit.release_focus()
 
 # --- BUTTON LOGIC ---
-func _on_play_button_pressed() -> void:
+func _on_edit_button_pressed() -> void:
 	# The Global.level_to_load is still intact, so the EditorRoot will catch it!
 	get_tree().change_scene_to_file("res://scenes/rooms/editor_root.tscn")
 

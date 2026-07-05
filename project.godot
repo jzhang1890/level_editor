@@ -23,6 +23,11 @@ Global="*uid://dc2hre24eopif"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[gui]
+
+theme/custom_font="uid://c1ureb53yv0gn"
 
 [physics]
 

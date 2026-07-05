@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Sprites/Backgrounds/background1.png" id="3_xxn6o"]
 [ext_resource type="Script" uid="uid://d210fgxhcoeiv" path="res://room_canvas.gd" id="4_uank4"]
 [ext_resource type="Script" uid="uid://b5d70mqbd8735" path="res://editor_ui.gd" id="5_b4iia"]
+[ext_resource type="Theme" uid="uid://cl0g3cwxl3k38" path="res://Theme/new_theme.tres" id="6_5dt4k"]
 
 [node name="EditorRoot" type="Node2D" unique_id=134942868]
 script = ExtResource("1_eufpp")
@@ -49,17 +50,20 @@ anchor_bottom = 1.0
 offset_top = -187.0
 grow_horizontal = 2
 grow_vertical = 0
+theme = ExtResource("6_5dt4k")
 
 [node name="MainTabContainer" type="TabContainer" parent="EditorUI/EditorPanel" unique_id=1284767482]
 layout_mode = 2
 current_tab = 0
 
-[node name="Build" type="MarginContainer" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1924292062]
+[node name="Build" type="ItemList" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1218822381]
 layout_mode = 2
 metadata/_tab_index = 0
 
 [node name="ObjectsContainer" type="TabContainer" parent="EditorUI/EditorPanel/MainTabContainer/Build" unique_id=1248449710]
-layout_mode = 2
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 156.0
 current_tab = 0
 
 [node name="Obstacles" type="ItemList" parent="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer" unique_id=1857335409]
@@ -69,12 +73,12 @@ icon_mode = 0
 fixed_icon_size = Vector2i(100, 100)
 metadata/_tab_index = 0
 
-[node name="Edit" type="MarginContainer" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1927144120]
+[node name="Edit" type="ItemList" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=796002956]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="Delete" type="MarginContainer" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1516267221]
+[node name="Delete" type="ItemList" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=266423912]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 2
@@ -89,13 +93,34 @@ offset_bottom = 67.0
 layout_mode = 2
 text = "Delete"
 
+[node name="ZoomInbutton" type="Button" parent="EditorUI" unique_id=430798285]
+offset_left = 269.0
+offset_top = 25.0
+offset_right = 310.0
+offset_bottom = 61.0
+text = "+"
+
+[node name="ZoomOutButton" type="Button" parent="EditorUI" unique_id=344751482]
+offset_left = 335.0
+offset_top = 24.0
+offset_right = 375.0
+offset_bottom = 62.0
+text = "-"
+
+[node name="PauseButton" type="Button" parent="EditorUI" unique_id=1775317177]
+offset_left = 1183.0
+offset_top = 29.0
+offset_right = 1238.0
+offset_bottom = 60.0
+text = "Pause"
+
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.39215687)
+color = Color(0, 0, 0, 0.56078434)
 
 [node name="LevelNameLabel" type="Label" parent="EditorUI/PauseMenu" unique_id=1029643853]
 layout_mode = 1
@@ -143,34 +168,13 @@ text = "Quit"
 layout_mode = 2
 text = "Save and Quit"
 
-[node name="ZoomInbutton" type="Button" parent="EditorUI" unique_id=430798285]
-offset_left = 269.0
-offset_top = 25.0
-offset_right = 310.0
-offset_bottom = 61.0
-text = "+"
-
-[node name="ZoomOutButton" type="Button" parent="EditorUI" unique_id=344751482]
-offset_left = 335.0
-offset_top = 24.0
-offset_right = 375.0
-offset_bottom = 62.0
-text = "-"
-
-[node name="PauseButton" type="Button" parent="EditorUI" unique_id=1775317177]
-offset_left = 1183.0
-offset_top = 29.0
-offset_right = 1238.0
-offset_bottom = 60.0
-text = "Pause"
-
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_obstacles_item_selected"]
 [connection signal="pressed" from="EditorUI/SelectionMenu/DeleteButton" to="." method="_on_delete_button_pressed"]
+[connection signal="pressed" from="EditorUI/ZoomInbutton" to="." method="_on_zoom_in_button_pressed"]
+[connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
+[connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="." method="_on_save_and_quit_button_pressed"]
-[connection signal="pressed" from="EditorUI/ZoomInbutton" to="." method="_on_zoom_in_button_pressed"]
-[connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
-[connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
