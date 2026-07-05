@@ -68,7 +68,7 @@ current_tab = 0
 layout_mode = 2
 max_columns = 0
 icon_mode = 0
-fixed_icon_size = Vector2i(75, 75)
+fixed_icon_size = Vector2i(100, 100)
 metadata/_tab_index = 0
 
 [node name="Edit" type="MarginContainer" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1665621497]
@@ -80,7 +80,7 @@ metadata/_tab_index = 1
 layout_mode = 2
 max_columns = 0
 icon_mode = 0
-fixed_icon_size = Vector2i(75, 75)
+fixed_icon_size = Vector2i(100, 100)
 
 [node name="Delete" type="MarginContainer" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1436251423]
 visible = false
@@ -172,10 +172,8 @@ text = "Quit"
 layout_mode = 2
 text = "Save and Quit"
 
-[connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
-[connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_object_item_selected"]
-[connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Edit/Actions" to="EditorUI" method="_on_actions_item_selected"]
+[connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_obstacles_item_selected"]
 [connection signal="pressed" from="EditorUI/SelectionMenu/DeleteButton" to="." method="_on_delete_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomInbutton" to="." method="_on_zoom_in_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]

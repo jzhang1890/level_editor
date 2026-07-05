@@ -209,6 +209,10 @@ func place_object(pos: Vector2) -> void:
 		
 		new_object.global_position = Vector2(snapped_x, snapped_y)
 		
+		# Generate a unique string using the exact microsecond the object was placed
+		var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
+		new_object.set_meta("unique_id", unique_id)
+		
 		room_canvas.add_child(new_object)
 
 # Deletion logic
@@ -264,7 +268,21 @@ func load_level(target_path: String) -> void:
 				var resource = load(item["scene_path"])
 				if resource:
 					var new_object = resource.instantiate()
+					# Position of object
 					new_object.global_position = Vector2(item["x"], item["y"])
+					
+					# Apply rotation (defaults to 0.0)
+					new_object.rotation_degrees = item.get("rotation", 0.0)
+					
+					# Apply scale (defaults to 1.0)
+					var s_x = item.get("scale_x", 1.0)
+					var s_y = item.get("scale_y", 1.0)
+					new_object.scale = Vector2(s_x, s_y)
+					
+					# Apply the saved ID, or create a new one if it's missing
+					var loaded_id = item.get("id", str(Time.get_ticks_usec()))
+					new_object.set_meta("unique_id", loaded_id)
+					
 					room_canvas.add_child(new_object)
 					
 # Call this from UI when the user picks a new background
@@ -309,7 +327,12 @@ func _on_save_button_pressed() -> void:
 			var item_data = {
 				"scene_path": child.scene_file_path,
 				"x": child.global_position.x,
-				"y": child.global_position.y
+				"y": child.global_position.y,
+				"rotation": child.rotation_degrees,
+				"scale_x": child.scale.x,
+				"scale_y": child.scale.y,
+				# Fallback to a random number just in case an older object doesn't have an ID yet
+				"id": child.get_meta("unique_id") if child.has_meta("unique_id") else str(randi())
 			}
 			items_array.append(item_data)
 			
@@ -335,3 +358,23 @@ func _on_save_and_quit_button_pressed() -> void:
 func _on_quit_button_pressed() -> void:
 	# Return to Level Browser scene
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
+	
+func _on_editor_ui_edit_action_requested(action_name: String) -> void:
+	# Ensure we actually have an object selected before trying to move it
+	if selected_world_object == null or not is_instance_valid(selected_world_object):
+		return
+		
+	# Apply the correct transformation based on the metadata string
+	match action_name:
+		"move_up":
+			selected_world_object.global_position.y -= GRID_SIZE
+		"move_down":
+			selected_world_object.global_position.y += GRID_SIZE
+		"move_left":
+			selected_world_object.global_position.x -= GRID_SIZE
+		"move_right":
+			selected_world_object.global_position.x += GRID_SIZE
+		"rotate_left":
+			selected_world_object.rotation_degrees -= 90
+		"rotate_right":
+			selected_world_object.rotation_degrees += 90
