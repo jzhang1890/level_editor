@@ -60,7 +60,7 @@ func _on_create_new_button_pressed() -> void:
 	if not DirAccess.dir_exists_absolute("user://Levels"):
 		DirAccess.make_dir_absolute("user://Levels")
 		
-	# 2. Find a unique file name so we don't overwrite existing "untitled" levels
+	# 2. Find a unique file name so don't accidently overwrite files
 	var base_name = "untitled"
 	var file_name = base_name + ".json"
 	var file_path = "user://Levels/" + file_name

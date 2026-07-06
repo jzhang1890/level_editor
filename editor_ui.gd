@@ -1,5 +1,6 @@
 extends CanvasLayer
 
+# Edit action pressed
 signal edit_action_requested(action_name: String)
 
 # The build tab items
@@ -55,7 +56,7 @@ func populate_object_list(target_list: ItemList, item_array: Array) -> void:
 func populate_actions_tab() -> void:
 	actions_list.clear()
 	for item in edit_actions:
-		# Using "" to hide the text, just like your obstacles tab
+		# Using "" to hide the text like in objects tab
 		var index = actions_list.add_item("", item["icon"]) 
 		actions_list.set_item_metadata(index, item["action"])
 

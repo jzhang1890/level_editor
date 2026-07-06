@@ -76,7 +76,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
 
-		# 1. Track dragging to protect your camera panning
+		# 1. Track dragging to protect camera panning
 		if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
 				is_dragging = true
@@ -170,20 +170,20 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 
 # Change selected object
 func change_selection(new_object: CollisionObject2D) -> void:
-	# 1. Turn off the green highlight on the OLD object
+	# 1. Turn off the green highlight on the old object
 	if selected_world_object != null and is_instance_valid(selected_world_object):
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(false)
 			
-	# 2. Update our tracking variable
+	# 2. Update tracking variable
 	selected_world_object = new_object
 	
-	# 3. Turn ON the green highlight on the NEW object, and SHOW/HIDE the UI menu
+	# 3. Turn on the green highlight on the new object, and show/hide the UI menu
 	if selected_world_object != null:
 		if selected_world_object.has_method("set_highlight"):
 			selected_world_object.set_highlight(true)
 		
-		# Show the entire contextual menu because we selected something
+		# Show the selection menu if something is selected
 		if selection_menu:
 			selection_menu.visible = true
 	else:
@@ -215,12 +215,12 @@ func place_object(pos: Vector2) -> void:
 
 # Deletion logic
 func delete_selected_object() -> void:
-	# Make sure somethings actually selected before deleting
+	# Make sure somethings selected before deleting
 	if selected_world_object != null and is_instance_valid(selected_world_object):
-		# Remove the object from the game completely
+		# Remove the object from the game 
 		selected_world_object.queue_free()
 		
-		# Reset selection back to null (which also hides the button)
+		# Reset selection back to null and also hides the button
 		change_selection(null)
 
 func _on_delete_button_pressed() -> void:
@@ -283,7 +283,7 @@ func load_level(target_path: String) -> void:
 					
 					room_canvas.add_child(new_object)
 					
-# Call this from UI when the user picks a new background
+# Called when the user picks a new background
 func change_background(new_path: String) -> void:
 	var new_texture = load(new_path)
 	if new_texture:
@@ -297,7 +297,7 @@ func _on_main_tab_container_tab_changed(tab: int) -> void:
 
 # Pause Menu logic
 func _on_pause_button_pressed() -> void:
-	# Update the label to show the name of the level
+	# Shows name of level
 	if level_name_label:
 		level_name_label.text = current_level_name
 		
@@ -361,7 +361,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 	if selected_world_object == null or not is_instance_valid(selected_world_object):
 		return
 		
-	# Apply the correct transformation based on the metadata string
+	# Apply transformation based on the metadata string
 	match action_name:
 		"move_up":
 			selected_world_object.global_position.y -= GRID_SIZE
