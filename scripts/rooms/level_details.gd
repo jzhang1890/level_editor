@@ -44,7 +44,7 @@ func _on_delete_button_pressed() -> void:
 	if FileAccess.file_exists(Global.level_to_load):
 		DirAccess.remove_absolute(Global.level_to_load)
 		
-	# Return to the browser
+	# Return to the level browser
 	_on_back_button_pressed()
 
 func _on_back_button_pressed() -> void:

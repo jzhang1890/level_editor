@@ -1,21 +1,23 @@
 [gd_scene format=3 uid="uid://cqow47bch5ocs"]
 
 [ext_resource type="Script" uid="uid://w3q520kfcpfr" path="res://scripts/Player/player.gd" id="1_req00"]
-[ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Sprites/Ships/Ship1/ship1body.png" id="2_dqkch"]
-[ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Sprites/Ships/Ship1/ship1misc.png" id="3_qlg0r"]
-[ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Sprites/Ships/Ship1/ship1outline.png" id="4_tuyoq"]
-[ext_resource type="PackedScene" uid="uid://gikhq7etbldx" path="res://scenes/Player/player_projectile.tscn" id="5_uiqp4"]
+[ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Sprites/Ships/Ship1/body.png" id="2_dqkch"]
+[ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Sprites/Ships/Ship1/misc.png" id="3_qlg0r"]
+[ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Sprites/Ships/Ship1/outline.png" id="4_tuyoq"]
 
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
 script = ExtResource("1_req00")
-projectile_scene = ExtResource("5_uiqp4")
+speedX = 350
+acceleration = 1300.0
 
 [node name="PlayerSprite" type="Sprite2D" parent="." unique_id=873178819]
 
 [node name="Body" type="Sprite2D" parent="PlayerSprite" unique_id=202774480]
+modulate = Color(0.7807929, 0.32661316, 0.042604633, 1)
 texture = ExtResource("2_dqkch")
 
 [node name="Misc" type="Sprite2D" parent="PlayerSprite" unique_id=1842518117]
+modulate = Color(0.16215697, 0.27389443, 1, 1)
 texture = ExtResource("3_qlg0r")
 
 [node name="Outline" type="Sprite2D" parent="PlayerSprite" unique_id=565256926]
