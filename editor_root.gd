@@ -92,7 +92,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos)
 					
-					# --- NEW: MODE-BASED CLICK LOGIC ---
+					# Mode-based click logic
 					match current_mode:
 						EditorMode.BUILD:
 							# Only place objects. Ignore selections.
@@ -104,7 +104,7 @@ func _unhandled_input(event: InputEvent) -> void:
 							change_selection(clicked_obj)
 							
 						EditorMode.DELETE:
-							# Instantly delete whatever we clicked on.
+							# Instantly delete whatever is clicked.
 							if clicked_obj != null:
 								clicked_obj.queue_free()
 				
@@ -209,7 +209,7 @@ func place_object(pos: Vector2) -> void:
 		
 		new_object.global_position = Vector2(snapped_x, snapped_y)
 		
-		# Generate a unique string using the exact microsecond the object was placed
+		# Generate a unique id string using the exact microsecond the object was placed
 		var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
 		new_object.set_meta("unique_id", unique_id)
 		
@@ -217,7 +217,7 @@ func place_object(pos: Vector2) -> void:
 
 # Deletion logic
 func delete_selected_object() -> void:
-	# Make sure we actually have something selected before trying to delete
+	# Make sure somethings actually selected before deleting
 	if selected_world_object != null and is_instance_valid(selected_world_object):
 		# Remove the object from the game completely
 		selected_world_object.queue_free()
@@ -298,7 +298,6 @@ func _on_main_tab_container_tab_changed(tab: int) -> void:
 	current_mode = tab as EditorMode
 
 # Pause Menu logic
-
 func _on_pause_button_pressed() -> void:
 	# Update the label to show the name of the level
 	if level_name_label:
@@ -360,7 +359,7 @@ func _on_quit_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
 	
 func _on_editor_ui_edit_action_requested(action_name: String) -> void:
-	# Ensure we actually have an object selected before trying to move it
+	# Make sure object is selected before performing edit action
 	if selected_world_object == null or not is_instance_valid(selected_world_object):
 		return
 		
