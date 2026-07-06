@@ -16,8 +16,3 @@ texture = ExtResource("2_fk068")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1585849887]
 shape = SubResource("CapsuleShape2D_wuqwi")
-
-[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1483955713]
-rect = Rect2(-640, -720, 1280, 867)
-
-[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

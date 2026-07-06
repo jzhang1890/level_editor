@@ -1,12 +1,19 @@
 extends Camera2D
 
-@onready var player = $"../Player"
+@onready var player = $".."
 
 # Percentage of the half-screen size before the camera starts shifting (0.8 = 80%)
 @export_range(0.5, 0.95) var edge_threshold: float = 0.50
 
 # How quickly the camera catches up to the player (Higher = faster camera)
 @export var follow_speed: float = 5.0
+
+# Remember the target position across frames
+@onready var target_x: float = global_position.x
+
+func _ready() -> void:
+	# Severs the physical link to the parent node so camera follows script
+	top_level = true
 
 func _physics_process(delta: float) -> void:
 	if not player:
@@ -27,12 +34,12 @@ func _physics_process(delta: float) -> void:
 	var pushing_right: bool = distance_from_center > inner_boundary and player.velocity.x > 0
 	var pushing_left: bool = distance_from_center < -inner_boundary and player.velocity.x < 0
 	
+	# Update the target destination only when the player pushes the boundaries
 	if pushing_right:
-		# Calculate the target X position to bring the player back to the threshold line
-		var target_x: float = player.global_position.x - inner_boundary
-		global_position.x = lerp(global_position.x, target_x, follow_speed * delta)
-		
+		target_x = player.global_position.x - inner_boundary
 	elif pushing_left:
-		# Calculate the target X position to bring the player back to the threshold line
-		var target_x: float = player.global_position.x + inner_boundary
-		global_position.x = lerp(global_position.x, target_x, follow_speed * delta)
+		target_x = player.global_position.x + inner_boundary
+		
+	# Run the lerp unconditionally
+	# The camera will smoothly glide to target_x, then settle.
+	global_position.x = lerp(global_position.x, target_x, follow_speed * delta)
