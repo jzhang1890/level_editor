@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://g7j8v0im2qke"]
 
-[ext_resource type="Script" uid="uid://ovb0i6lrdv4v" path="res://level_browser.gd" id="1_swctr"]
+[ext_resource type="Script" uid="uid://ovb0i6lrdv4v" path="res://scripts/rooms/level_browser.gd" id="1_swctr"]
 
 [node name="LevelBrowser" type="Control" unique_id=935588708]
 layout_mode = 3

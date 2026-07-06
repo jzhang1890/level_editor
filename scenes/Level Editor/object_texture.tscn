@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://cslpigbidhvqu"]
-
-[ext_resource type="Script" uid="uid://ctop5uesvv4ux" path="res://scripts/Level Editor/object_texture.gd" id="1_yaxka"]
-
-[node name="item_texture" type="TextureRect" unique_id=357406315]
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("1_yaxka")

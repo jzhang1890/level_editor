@@ -2,7 +2,7 @@ extends Control
 
 @onready var name_edit: LineEdit = $NameEdit
 
-# We store the full parsed dictionary so we can save it back easily without losing the items
+# Store the full parsed dictionary so we can save it back easily without losing the items
 var current_level_data: Dictionary = {}
 
 func _ready() -> void:

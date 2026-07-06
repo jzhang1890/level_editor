@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cv61yr4jbuhfq"]
 
-[ext_resource type="Script" uid="uid://bc1ws4485cqip" path="res://editor_root.gd" id="1_eufpp"]
+[ext_resource type="Script" uid="uid://bc1ws4485cqip" path="res://scripts/rooms/editor_root.gd" id="1_eufpp"]
 [ext_resource type="Script" uid="uid://crrim6fs5r7pm" path="res://camera_2d.gd" id="2_5dt4k"]
 [ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Sprites/Backgrounds/background1.png" id="3_xxn6o"]
 [ext_resource type="Script" uid="uid://d210fgxhcoeiv" path="res://room_canvas.gd" id="4_uank4"]

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bdv1v628je5mi"]
 
-[ext_resource type="Script" uid="uid://5c1i0keix3yp" path="res://level_details.gd" id="1_18tkw"]
+[ext_resource type="Script" uid="uid://5c1i0keix3yp" path="res://scripts/rooms/level_details.gd" id="1_18tkw"]
 
 [node name="LevelDetails" type="Control" unique_id=1939457949]
 layout_mode = 3

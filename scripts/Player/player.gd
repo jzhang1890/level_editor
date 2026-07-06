@@ -11,7 +11,6 @@ signal player_died
 @export var deceleration := 1200.0
 @export var godmode := false
 
-# --- NEW EXPORTS: Replaces your hardcoded 0.2 and 1.0 ---
 @export var max_rotation: float = 0.2
 @export var rotation_speed: float = 1.0
 
@@ -33,7 +32,7 @@ func _physics_process(delta: float) -> void:
 		
 		move_and_slide()
 
-		# --- ADJUSTED: Using your new variables ---
+		# Rotation physics
 		if direction > 0 and $PlayerSprite.rotation < max_rotation:
 			$PlayerSprite.rotation += rotation_speed * delta
 		elif direction < 0 and $PlayerSprite.rotation > -max_rotation:
@@ -49,10 +48,10 @@ func _physics_process(delta: float) -> void:
 		if get_slide_collision_count() > 0 and not godmode:
 			var collision_info = get_slide_collision(0) 
 			var collider = collision_info.get_collider()
-			# Make sure your Obstacles have a class name or belong to a group!
+			# Make sure Obstacles have a class name or belong to a group
 			if collider is Obstacle:
 				print("Physics movement hit an obstacle! Object name: ", collider.name)
 				dead = true
 				
-				# --- ADJUSTED: Emit the signal instead of calling a hardcoded parent ---
+				# Emits the signal outwards when the player dies
 				player_died.emit()

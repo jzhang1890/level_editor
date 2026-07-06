@@ -3,10 +3,25 @@ extends Node2D
 @onready var level_canvas: Node2D = $LevelCanvas
 @onready var player: CharacterBody2D = $Player
 
-# For the background
+# For the background texture
 @onready var bg_rect: TextureRect = $BackgroundCanvas/BackgroundLayer/Background
 
+@onready var pause_menu: ColorRect = $GameOverlay/PauseMenu
+
+@onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
+
+var level_name = ""
+
+var paused = false
+
+var respawn_time = 1
+
 func _ready() -> void:
+	
+	# Hides menu
+	if pause_menu:
+		pause_menu.visible = false
+	
 	# 1. Grab the level path from your Global script
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
@@ -38,8 +53,12 @@ func load_level(target_path: String) -> void:
 				var loaded_texture = load(current_bg_path)
 				if loaded_texture:
 					bg_rect.texture = loaded_texture
+					
+			if level_data.has("level_name"):
+				level_name = level_data["level_name"]
+				level_name_label.text = level_name
 			
-			# Loop through the items array tucked inside the dictionary
+			# Loop through the items array inside library and loads them using their properties
 			for item in level_data["items"]:
 				var resource = load(item["scene_path"])
 				if resource:
@@ -63,8 +82,37 @@ func load_level(target_path: String) -> void:
 					
 
 func _on_player_player_died() -> void:
-	# This catches the signal from your adjusted player script!
-	print("Game Over Sequence Triggered!")
 	
-	# Here you can reload the scene, show a death screen, or kick them back to the level browser:
-	# get_tree().reload_current_scene()
+	# Waits so doesn't respawn immediately
+	await get_tree().create_timer(respawn_time, false).timeout
+	
+	# Reload scene and respawn
+	get_tree().reload_current_scene()
+	
+func _on_resume_button_pressed() -> void:
+	# Hide the menu to resume game
+	if pause_menu:
+		pause_menu.visible = false
+	paused = false	
+	
+	get_tree().paused = false
+	
+# Pause Menu logic
+func _on_pause_button_pressed() -> void:
+	# Shows name of level
+	if level_name_label:
+		level_name_label.text = level_name
+		
+	# Reveal the menu
+	if pause_menu:
+		pause_menu.visible = true
+	paused = true
+	
+	# Pauses the game
+	# GameOverlay node set process mode set to "Always" so it always runs
+	get_tree().paused = true
+	
+func _on_quit_button_pressed() -> void:
+	# Return to Level Browser scene
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
