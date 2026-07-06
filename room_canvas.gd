@@ -14,8 +14,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	# Keep expanding the foreground canvas ahead of the camera
-	if camera.position.y < current_top_y + 1000:
-		current_top_y -= 1000 
+	if camera.position.y < current_top_y + 1500:
+		current_top_y -= 1500 
 		queue_redraw() # Redraw the expanding grid and walls
 
 func _draw() -> void:
@@ -39,7 +39,7 @@ func _draw() -> void:
 		draw_line(Vector2(-room_width_x, current_y), Vector2(room_width_x, current_y), grid_color, grid_thickness)
 		current_y -= grid_size 
 
-	# Main Border Walls (using the dynamic wall_thickness)
+	# Main Border Walls using the dynamic wall_thickness
 	draw_line(Vector2(-room_width_x, 0), Vector2(-room_width_x, current_top_y), Color.DARK_RED, wall_thickness)
 	draw_line(Vector2(room_width_x, 0), Vector2(room_width_x, current_top_y), Color.DARK_RED, wall_thickness)
 	draw_line(Vector2(-room_width_x, 0), Vector2(room_width_x, 0), Color.GRAY, floor_thickness)

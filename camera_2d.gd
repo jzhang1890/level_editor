@@ -8,3 +8,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		# Moving the camera opposite to mouse drag creates a natural "hand pan" tool feel
 		position -= event.relative * pan_speed / zoom.x
+		
+		# Fixing the bug where camera gets stuck at edge
+		# Force Godot to instantly calculate the camera's visual limits
+		force_update_scroll()
+		
+		# Snap the actual node to the clamped visual center so it can't wander off
+		global_position = get_screen_center_position()

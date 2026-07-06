@@ -42,7 +42,7 @@ var current_level_name: String = "Untitled"
 const GRID_SIZE: float = 64.0
 
 # Zoom settings
-var min_zoom: float = 0.5  # How far out you can see
+var min_zoom: float = 0.3  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
@@ -124,24 +124,22 @@ func apply_zoom(target_zoom: float) -> void:
 
 func apply_zoom_at_mouse(requested_zoom: float) -> void:
 	var old_zoom = camera.zoom.x
-
-	# Keeps zoom within min and max zoom limit by clamping it between the limits
 	var new_zoom = clamp(requested_zoom, min_zoom, max_zoom)
 	
-	# If already at the zoom limit, do nothing
-	if old_zoom == new_zoom:
+	if is_equal_approx(old_zoom, new_zoom):
 		return
 		
-	# 1. Calculate the shift
-	var mouse_pos = get_viewport().get_mouse_position()
-	var screen_center = get_viewport_rect().size / 2.0
-	var mouse_offset = mouse_pos - screen_center
-	var shift = mouse_offset * (1.0 / old_zoom - 1.0 / new_zoom)
+	# 1. Get the distance between the camera's center and the mouse
+	var mouse_world_pos = get_global_mouse_position()
+	var offset_to_mouse = mouse_world_pos - camera.global_position
 	
-	# 2. Move the camera
+	# 2. Calculate how much the world shrinks/grows relative to the mouse
+	var shift = offset_to_mouse * (1.0 - (old_zoom / new_zoom))
+	
+	# 3. Shift the camera to instantly compensate
 	camera.global_position += shift
 	
-	# 3. Existing zoom function
+	# 4. Apply the actual zoom
 	apply_zoom(new_zoom)
 
 # Zoom buttons

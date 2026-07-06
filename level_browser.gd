@@ -5,7 +5,7 @@ extends Control
 const LEVEL_DIR: String = "user://Levels"
 
 func _ready() -> void:
-	# 1. Ensure the folder actually exists on the computer
+	# 1. Makes sure the folder exists on the computer
 	if not DirAccess.dir_exists_absolute(LEVEL_DIR):
 		DirAccess.make_dir_absolute(LEVEL_DIR)
 		
@@ -45,7 +45,7 @@ func populate_list() -> void:
 			file_name = dir.get_next()
 
 func _on_level_list_item_selected(index: int) -> void:
-	# 1. Grab the path from the item we clicked
+	# 1. Grab the path from the item clicked
 	var selected_path = level_list.get_item_metadata(index)
 	
 	# 2. Store it in our Global script
