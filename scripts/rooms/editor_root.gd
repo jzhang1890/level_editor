@@ -211,6 +211,9 @@ func place_object(pos: Vector2) -> void:
 		var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
 		new_object.set_meta("unique_id", unique_id)
 		
+		# Sets the base rotation to 0
+		new_object.set_meta("base_rotation", 0.0)
+		
 		room_canvas.add_child(new_object)
 
 # Deletion logic
@@ -270,7 +273,11 @@ func load_level(target_path: String) -> void:
 					new_object.global_position = Vector2(item["x"], item["y"])
 					
 					# Apply rotation (defaults to 0.0)
-					new_object.rotation_degrees = item.get("rotation", 0.0)
+					var loaded_rot = item.get("rotation", 0.0)
+					new_object.rotation_degrees = loaded_rot
+					
+					# Save that rotation into the metadata
+					new_object.set_meta("base_rotation", loaded_rot)
 					
 					# Apply scale (defaults to 1.0)
 					var s_x = item.get("scale_x", 1.0)
@@ -325,10 +332,12 @@ func _on_save_button_pressed() -> void:
 				"scene_path": child.scene_file_path,
 				"x": child.global_position.x,
 				"y": child.global_position.y,
-				"rotation": child.rotation_degrees,
+				
+				# Grab the base rotation meta value. If it doesn't exist yet, fallback to visual rotation 
+				"rotation": child.get_meta("base_rotation", child.rotation_degrees),
+				
 				"scale_x": child.scale.x,
 				"scale_y": child.scale.y,
-				# Fallback to a random number just in case an older object doesn't have an ID yet
 				"id": child.get_meta("unique_id") if child.has_meta("unique_id") else str(randi())
 			}
 			items_array.append(item_data)
@@ -372,6 +381,12 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 		"move_right":
 			selected_world_object.global_position.x += GRID_SIZE
 		"rotate_left":
-			selected_world_object.rotation_degrees -= 90
+			# Grab the current base, subtract 90, save it, and apply it
+			var new_rot = selected_world_object.get_meta("base_rotation", selected_world_object.rotation_degrees) - 15
+			selected_world_object.set_meta("base_rotation", new_rot)
+			selected_world_object.rotation_degrees = new_rot
 		"rotate_right":
-			selected_world_object.rotation_degrees += 90
+			# Grab the current base, add 90, save it, and apply it
+			var new_rot = selected_world_object.get_meta("base_rotation", selected_world_object.rotation_degrees) + 15
+			selected_world_object.set_meta("base_rotation", new_rot)
+			selected_world_object.rotation_degrees = new_rot

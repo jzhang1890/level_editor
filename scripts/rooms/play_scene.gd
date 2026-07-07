@@ -67,7 +67,8 @@ func load_level(target_path: String) -> void:
 					new_object.global_position = Vector2(item["x"], item["y"])
 					
 					# Apply rotation (defaults to 0.0)
-					new_object.rotation_degrees = item.get("rotation", 0.0)
+					var loaded_rot = item.get("rotation", 0.0)
+					new_object.rotation_degrees = loaded_rot
 					
 					# Apply scale (defaults to 1.0)
 					var s_x = item.get("scale_x", 1.0)
