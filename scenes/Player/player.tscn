@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Sprites/Ships/Ship1/outline.png" id="4_tuyoq"]
 
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
+z_index = 4096
 script = ExtResource("1_req00")
 speedX = 350
 acceleration = 1300.0

@@ -14,8 +14,6 @@ script = ExtResource("1_x1qvo")
 offset = Vector2(0, -220)
 script = ExtResource("2_4g8qc")
 
-[node name="LevelCanvas" type="Node2D" parent="." unique_id=845245469]
-
 [node name="BackgroundCanvas" type="ParallaxBackground" parent="." unique_id=2115234044]
 scroll_ignore_camera_zoom = true
 
@@ -32,6 +30,8 @@ offset_bottom = 2258.0
 mouse_filter = 2
 texture = ExtResource("3_qf7ku")
 stretch_mode = 1
+
+[node name="LevelCanvas" type="Node2D" parent="." unique_id=845245469]
 
 [node name="GameOverlay" type="CanvasLayer" parent="." unique_id=540936273]
 process_mode = 3

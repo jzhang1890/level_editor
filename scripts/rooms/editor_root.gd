@@ -32,7 +32,7 @@ var is_dragging: bool = false
 var drag_threshold: float = 10.0 
 
 # Tracking for selection
-var selected_world_object: CollisionObject2D = null 
+var selected_objects: Array[CollisionObject2D] = []
 
 # Save path
 var current_save_path: String = "user://Levels/my_new_level.json"
@@ -100,8 +100,11 @@ func _unhandled_input(event: InputEvent) -> void:
 								place_object(click_pos)
 								
 						EditorMode.EDIT:
-							# Only select objects. Ignore placing.
-							change_selection(clicked_obj)
+							# Check if Ctrl is held down for multi-select
+							var is_multi = Input.is_key_pressed(KEY_CTRL)
+							
+							# Pass both the object and the multi-select status
+							change_selection(clicked_obj, is_multi)
 							
 						EditorMode.DELETE:
 							# Instantly delete whatever is clicked.
@@ -169,27 +172,31 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 	return null
 
 # Change selected object
-func change_selection(new_object: CollisionObject2D) -> void:
-	# 1. Turn off the green highlight on the old object
-	if selected_world_object != null and is_instance_valid(selected_world_object):
-		if selected_world_object.has_method("set_highlight"):
-			selected_world_object.set_highlight(false)
-			
-	# 2. Update tracking variable
-	selected_world_object = new_object
-	
-	# 3. Turn on the green highlight on the new object, and show/hide the UI menu
-	if selected_world_object != null:
-		if selected_world_object.has_method("set_highlight"):
-			selected_world_object.set_highlight(true)
+func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) -> void:
+	# 1. If we ARE NOT holding Ctrl, clear everything first
+	if not is_multi:
+		for obj in selected_objects:
+			if is_instance_valid(obj) and obj.has_method("set_highlight"):
+				obj.set_highlight(false)
+		selected_objects.clear()
 		
-		# Show the selection menu if something is selected
-		if selection_menu:
-			selection_menu.visible = true
-	else:
-		# Hide the entire contextual menu because we clicked empty space
-		if selection_menu:
-			selection_menu.visible = false
+	# 2. If we clicked an actual object...
+	if clicked_obj != null:
+		if is_multi and selected_objects.has(clicked_obj):
+			# Toggle OFF: If we Ctrl+Clicked an object already in the group, remove it
+			selected_objects.erase(clicked_obj)
+			if clicked_obj.has_method("set_highlight"):
+				clicked_obj.set_highlight(false)
+		else:
+			# Toggle ON: Add to group and highlight
+			if not selected_objects.has(clicked_obj):
+				selected_objects.append(clicked_obj)
+			if clicked_obj.has_method("set_highlight"):
+				clicked_obj.set_highlight(true)
+				
+	# 3. Show the UI menu if at least one object is selected
+	if selection_menu:
+		selection_menu.visible = selected_objects.size() > 0
 
 # Placement logic
 func place_object(pos: Vector2) -> void:
@@ -218,13 +225,13 @@ func place_object(pos: Vector2) -> void:
 
 # Deletion logic
 func delete_selected_object() -> void:
-	# Make sure somethings selected before deleting
-	if selected_world_object != null and is_instance_valid(selected_world_object):
-		# Remove the object from the game 
-		selected_world_object.queue_free()
-		
-		# Reset selection back to null and also hides the button
-		change_selection(null)
+	# Loop through all selected objects and delete them
+	for obj in selected_objects:
+		if is_instance_valid(obj):
+			obj.queue_free()
+			
+	# Passing null without Ctrl pressed automatically clears the array and hides the menu!
+	change_selection(null)
 
 func _on_delete_button_pressed() -> void:
 	delete_selected_object()
@@ -366,27 +373,57 @@ func _on_quit_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
 	
 func _on_editor_ui_edit_action_requested(action_name: String) -> void:
-	# Make sure object is selected before performing edit action
-	if selected_world_object == null or not is_instance_valid(selected_world_object):
+	# Make sure the array isn't empty before performing edit action
+	if selected_objects.is_empty():
 		return
+				
+	# --- NEW: Find the center of the group ---
+	var group_center: Vector2 = Vector2.ZERO
+	for obj in selected_objects:
+		group_center += obj.global_position
+	group_center /= selected_objects.size()	
 		
-	# Apply transformation based on the metadata string
-	match action_name:
-		"move_up":
-			selected_world_object.global_position.y -= GRID_SIZE
-		"move_down":
-			selected_world_object.global_position.y += GRID_SIZE
-		"move_left":
-			selected_world_object.global_position.x -= GRID_SIZE
-		"move_right":
-			selected_world_object.global_position.x += GRID_SIZE
-		"rotate_left":
-			# Grab the current base, subtract 90, save it, and apply it
-			var new_rot = selected_world_object.get_meta("base_rotation", selected_world_object.rotation_degrees) - 15
-			selected_world_object.set_meta("base_rotation", new_rot)
-			selected_world_object.rotation_degrees = new_rot
-		"rotate_right":
-			# Grab the current base, add 90, save it, and apply it
-			var new_rot = selected_world_object.get_meta("base_rotation", selected_world_object.rotation_degrees) + 15
-			selected_world_object.set_meta("base_rotation", new_rot)
-			selected_world_object.rotation_degrees = new_rot
+	# Loop through every object currently selected
+	for obj in selected_objects:
+		if not is_instance_valid(obj):
+			continue
+			
+		# Apply transformation to the current 'obj' in the loop
+		match action_name:
+			"move_up_tiny":
+				obj.global_position.y -= GRID_SIZE/16
+			"move_down_tiny":
+				obj.global_position.y += GRID_SIZE/16
+			"move_left_tiny":
+				obj.global_position.x -= GRID_SIZE/16
+			"move_right_tiny":
+				obj.global_position.x += GRID_SIZE/16
+			"rotate_left":
+				# 1. Rotate the object itself (Your existing code)
+				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) - 15
+				obj.set_meta("base_rotation", new_rot)
+				obj.rotation_degrees = new_rot
+				
+				# 2. Orbit the position around the group center
+				var offset = obj.global_position - group_center
+				
+				# Godot's rotated() function requires radians, so we convert -90 degrees
+				var rotated_offset = offset.rotated(deg_to_rad(-15))
+				
+				# Apply the new offset to the center point
+				obj.global_position = group_center + rotated_offset
+			
+			"rotate_right":
+				# 1. Rotate the object itself (Your existing code)
+				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) + 15
+				obj.set_meta("base_rotation", new_rot)
+				obj.rotation_degrees = new_rot
+				
+				# 2. Orbit the position around the group center
+				var offset = obj.global_position - group_center
+				
+				# Godot's rotated() function requires radians, so we convert 90 degrees
+				var rotated_offset = offset.rotated(deg_to_rad(15))
+				
+				# Apply the new offset to the center point
+				obj.global_position = group_center + rotated_offset

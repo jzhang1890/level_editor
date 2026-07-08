@@ -9,7 +9,7 @@ signal player_died
 @export var speedX := 300 # Max horizontal speed
 @export var acceleration := 1200.0
 @export var deceleration := 1200.0
-@export var godmode := false
+@export var noclip := false # noclip testing
 
 @export var max_rotation: float = 0.2
 @export var rotation_speed: float = 1.0
@@ -30,7 +30,12 @@ func _physics_process(delta: float) -> void:
 		# Keep the constant upward movement
 		velocity.y = -speedY
 		
-		move_and_slide()
+		# No clip logic
+		# If noclip is true, bypass move_and_slide() and manually shift position.
+		if noclip:
+			global_position += velocity * delta
+		else:
+			move_and_slide()
 
 		# Rotation physics
 		if direction > 0 and $PlayerSprite.rotation < max_rotation:
@@ -45,7 +50,8 @@ func _physics_process(delta: float) -> void:
 				$PlayerSprite.rotation -= rotation_speed * delta
 				if $PlayerSprite.rotation < 0: $PlayerSprite.rotation = 0
 				
-		if get_slide_collision_count() > 0 and not godmode:
+		# Collision detection is naturally skipped during noclip because move_and_slide() didn't run
+		if get_slide_collision_count() > 0:
 			var collision_info = get_slide_collision(0) 
 			var collider = collision_info.get_collider()
 			# Make sure Obstacles have a class name or belong to a group

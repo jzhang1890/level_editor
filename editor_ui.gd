@@ -31,10 +31,10 @@ var item_database: Dictionary = {
 
 # Define your buttons (Make sure to update the icon paths to match your actual files!)
 var edit_actions: Array = [
-	{"icon": preload("res://icon.svg"), "action": "move_up"},
-	{"icon": preload("res://icon.svg"), "action": "move_down"},
-	{"icon": preload("res://icon.svg"), "action": "move_left"},
-	{"icon": preload("res://icon.svg"), "action": "move_right"},
+	{"icon": preload("res://Sprites/Icons/move_up.svg"), "action": "move_up_tiny"},
+	{"icon": preload("res://Sprites/Icons/move_down.svg"), "action": "move_down_tiny"},
+	{"icon": preload("res://Sprites/Icons/move_left.svg"), "action": "move_left_tiny"},
+	{"icon": preload("res://Sprites/Icons/move_right.svg"), "action": "move_right_tiny"},
 	{"icon": preload("res://icon.svg"), "action": "rotate_left"},
 	{"icon": preload("res://icon.svg"), "action": "rotate_right"}
 ]
