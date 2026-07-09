@@ -36,7 +36,11 @@ var current_bg_path: String = "res://Sprites/Backgrounds/background1.png"
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
-var drag_threshold: float = 10.0 
+var drag_threshold: float = 25.0 
+
+# Track for dragging object
+var is_dragging_objects: bool = false
+var previous_mouse_pos: Vector2 = Vector2.ZERO
 
 # Tracking for selection
 var selected_objects: Array[CollisionObject2D] = []
@@ -85,6 +89,20 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		# 1. Track dragging to protect camera panning
 		if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			if is_dragging_objects:
+				var current_mouse_pos = get_global_mouse_position()
+				var mouse_delta = current_mouse_pos - previous_mouse_pos
+				
+				for obj in selected_objects:
+					if is_instance_valid(obj):
+						obj.global_position += mouse_delta
+						
+				previous_mouse_pos = current_mouse_pos
+				
+				# --- NEW: Kill the input so the camera script never sees it ---
+				get_viewport().set_input_as_handled() 
+				return # Stop processing in this script
+			
 			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
 				is_dragging = true
 
@@ -94,7 +112,41 @@ func _unhandled_input(event: InputEvent) -> void:
 				mouse_down_screen_pos = event.position
 				is_dragging = false 
 				
+				# Check if we are grabbing a selected object 
+				if current_mode == EditorMode.EDIT:
+					var click_pos = get_global_mouse_position()
+					var clicked_obj = check_for_object_at(click_pos)
+					
+					# If user clicked something that's already selected, grab it.
+					if clicked_obj != null and selected_objects.has(clicked_obj):
+						is_dragging_objects = true
+						previous_mouse_pos = click_pos
+						
+						# Freeze the camera so it cannot steal the input
+						camera.set_process_unhandled_input(false)
+						camera.set_process_input(false)
+						camera.set_process(false)
+						
+						# Kill the input so the camera script never sees the initial click
+						get_viewport().set_input_as_handled()
+						return # Stop processing the click so it doesn't deselect
+				
+			# The user let go of event
 			elif not event.pressed:
+				# Drop the objects
+				if is_dragging_objects:
+					is_dragging_objects = false
+					
+					# Unfreeze the camera
+					camera.set_process_unhandled_input(true)
+					camera.set_process_input(true)
+					camera.set_process(true)
+					
+					# Kill the input so dropping doesn't trigger random camera jumps 
+					get_viewport().set_input_as_handled()
+					return
+				
+				# Not dragging so it's a click
 				if not is_dragging:
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos)
@@ -268,7 +320,7 @@ func delete_selected_object() -> void:
 		if is_instance_valid(obj):
 			obj.queue_free()
 			
-	# Passing null without Ctrl pressed automatically clears the array and hides the menu!
+	# Passing null without Ctrl pressed automatically clears the array and hides the menu
 	change_selection(null)
 
 func _on_delete_button_pressed() -> void:
@@ -446,7 +498,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 			"move_right_tiny":
 				obj.global_position.x += GRID_SIZE/16
 			"rotate_left":
-				# 1. Rotate the object itself (Your existing code)
+				# 1. Rotate the object itself 
 				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) - 15
 				obj.set_meta("base_rotation", new_rot)
 				obj.rotation_degrees = new_rot
@@ -461,7 +513,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				obj.global_position = group_center + rotated_offset
 			
 			"rotate_right":
-				# 1. Rotate the object itself (Your existing code)
+				# 1. Rotate the object itself 
 				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) + 15
 				obj.set_meta("base_rotation", new_rot)
 				obj.rotation_degrees = new_rot
