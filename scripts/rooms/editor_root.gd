@@ -21,8 +21,8 @@ extends Node2D
 # Layer label in LayerContainer 
 @onready var layer_label: Label = $EditorUI/LayerContainer/LayerLabel
 
-# 0 represents the "All" layer, 1 is the starting layer
-var current_layer: int = 1
+# 0 represents the "All" layer, 0 is the starting layer
+var current_layer: int = 0
 var max_layer: int = 1
 
 # Editor modes
@@ -161,32 +161,43 @@ func _on_zoom_out_button_pressed() -> void:
 	# Subtract the step from our current zoom
 	apply_zoom(camera.zoom.x - zoom_step)
 	
-
-# Selection logic
 # Selection logic
 func check_for_object_at(pos: Vector2) -> CollisionObject2D:
-	# Pokes the screen and see what's under the mouse
 	var space_state = get_world_2d().direct_space_state
 	var query = PhysicsPointQueryParameters2D.new()
 	query.position = pos
-	query.collide_with_bodies = true # Finds StaticBody2D
-	query.collide_with_areas = true  # Finds Area2D
+	query.collide_with_bodies = true
+	query.collide_with_areas = true
 	
 	var results = space_state.intersect_point(query)
 	
-	# Filter through the clicked objects by layer
+	var best_object: CollisionObject2D = null
+	var best_z_index: int = -999999
+	var best_tree_index: int = -1
+	
+	# Filter through all clicked objects to find the top-most one
 	for result in results:
 		var collider = result["collider"] as CollisionObject2D
 		if collider:
-			# Grab the layer of the object that was just touched
 			var obj_layer = collider.get_meta("layer", 1)
 			
-			# If on "All" layer (0) or the object's layer matches our current layer
+			# Check if the object is on the active layer
 			if current_layer == 0 or current_layer == obj_layer:
-				return collider
 				
-	# If no objects on the correct layer found, return nothing
-	return null
+				# 1. Compare Z-Index (Layer depth)
+				if collider.z_index > best_z_index:
+					best_object = collider
+					best_z_index = collider.z_index
+					best_tree_index = collider.get_index()
+					
+				# 2. Tie breaker: If they are on the exact same layer, pick the one drawn last
+				elif collider.z_index == best_z_index:
+					if collider.get_index() > best_tree_index:
+						best_object = collider
+						best_tree_index = collider.get_index()
+						
+	# Returns the absolute top-most object, or null if nothing was clicked
+	return best_object
 
 # Change selected object
 func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) -> void:
@@ -466,22 +477,22 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 
 
 func _on_left_arrow_button_pressed() -> void:
+	# Deselects objects when changing layers
+	change_selection(null, false)
+	
 	if current_layer > 0:
 		current_layer -= 1
 	update_layer_display()
-	
-	# Deselects objects when changing layers
-	change_selection(null, false)
 
 func _on_right_arrow_button_pressed() -> void:
+	# Deselects objects when changing layers
+	change_selection(null, false)
+	
 	current_layer += 1
 	# Expand the layer is pushed passed limit
 	if current_layer > max_layer:
 		max_layer = current_layer
 	update_layer_display()
-	
-	# Deselects objects when changing layers
-	change_selection(null, false)
 
 func update_layer_display() -> void:
 	if current_layer == 0:

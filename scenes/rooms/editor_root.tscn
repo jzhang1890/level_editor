@@ -109,7 +109,7 @@ text = "left"
 
 [node name="LayerLabel" type="Label" parent="EditorUI/LayerContainer" unique_id=1232861407]
 layout_mode = 2
-text = "1"
+text = "All"
 
 [node name="RightArrowButton" type="Button" parent="EditorUI/LayerContainer" unique_id=225435069]
 layout_mode = 2
