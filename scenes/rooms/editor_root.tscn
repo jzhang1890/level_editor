@@ -97,7 +97,25 @@ offset_bottom = 67.0
 layout_mode = 2
 text = "Delete"
 
-[node name="ZoomInbutton" type="Button" parent="EditorUI" unique_id=430798285]
+[node name="LayerContainer" type="HBoxContainer" parent="EditorUI" unique_id=1910677465]
+offset_left = 172.0
+offset_top = 12.0
+offset_right = 351.0
+offset_bottom = 71.0
+
+[node name="LeftArrowButton" type="Button" parent="EditorUI/LayerContainer" unique_id=1409007721]
+layout_mode = 2
+text = "left"
+
+[node name="LayerLabel" type="Label" parent="EditorUI/LayerContainer" unique_id=1232861407]
+layout_mode = 2
+text = "1"
+
+[node name="RightArrowButton" type="Button" parent="EditorUI/LayerContainer" unique_id=225435069]
+layout_mode = 2
+text = "right"
+
+[node name="ZoomInButton" type="Button" parent="EditorUI" unique_id=430798285]
 offset_left = 28.0
 offset_top = 24.0
 offset_right = 69.0
@@ -177,7 +195,9 @@ text = "Save and Quit"
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_object_item_selected"]
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Edit/Actions" to="EditorUI" method="_on_actions_item_selected"]
 [connection signal="pressed" from="EditorUI/SelectionMenu/DeleteButton" to="." method="_on_delete_button_pressed"]
-[connection signal="pressed" from="EditorUI/ZoomInbutton" to="." method="_on_zoom_in_button_pressed"]
+[connection signal="pressed" from="EditorUI/LayerContainer/LeftArrowButton" to="." method="_on_left_arrow_button_pressed"]
+[connection signal="pressed" from="EditorUI/LayerContainer/RightArrowButton" to="." method="_on_right_arrow_button_pressed"]
+[connection signal="pressed" from="EditorUI/ZoomInButton" to="." method="_on_zoom_in_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]

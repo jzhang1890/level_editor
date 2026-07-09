@@ -18,6 +18,13 @@ extends Node2D
 # Tab container reference
 @onready var main_tab_container: TabContainer = $EditorUI/EditorPanel/MainTabContainer
 
+# Layer label in LayerContainer 
+@onready var layer_label: Label = $EditorUI/LayerContainer/LayerLabel
+
+# 0 represents the "All" layer, 1 is the starting layer
+var current_layer: int = 1
+var max_layer: int = 1
+
 # Editor modes
 enum EditorMode { BUILD, EDIT, DELETE }
 # On build tab at start
@@ -58,7 +65,7 @@ func _ready() -> void:
 	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
-		current_save_path = Global.level_to_load # Ensure we save over this exact file later
+		current_save_path = Global.level_to_load # Makes sure to save to this file later
 		load_level(current_save_path)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -156,6 +163,7 @@ func _on_zoom_out_button_pressed() -> void:
 	
 
 # Selection logic
+# Selection logic
 func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 	# Pokes the screen and see what's under the mouse
 	var space_state = get_world_2d().direct_space_state
@@ -166,24 +174,33 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 	
 	var results = space_state.intersect_point(query)
 	
-	if results.size() > 0:
-		# Return the object we touched
-		return results[0]["collider"] as CollisionObject2D
+	# Filter through the clicked objects by layer
+	for result in results:
+		var collider = result["collider"] as CollisionObject2D
+		if collider:
+			# Grab the layer of the object that was just touched
+			var obj_layer = collider.get_meta("layer", 1)
+			
+			# If on "All" layer (0) or the object's layer matches our current layer
+			if current_layer == 0 or current_layer == obj_layer:
+				return collider
+				
+	# If no objects on the correct layer found, return nothing
 	return null
 
 # Change selected object
 func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) -> void:
-	# 1. If we ARE NOT holding Ctrl, clear everything first
+	# 1. If the user is not holding Ctrl, clear everything first
 	if not is_multi:
 		for obj in selected_objects:
 			if is_instance_valid(obj) and obj.has_method("set_highlight"):
 				obj.set_highlight(false)
 		selected_objects.clear()
 		
-	# 2. If we clicked an actual object...
+	# 2. If user clicked an actual object
 	if clicked_obj != null:
 		if is_multi and selected_objects.has(clicked_obj):
-			# Toggle OFF: If we Ctrl+Clicked an object already in the group, remove it
+			# OFF toggle: If user Ctrl+Clicked an object already in the group, remove it
 			selected_objects.erase(clicked_obj)
 			if clicked_obj.has_method("set_highlight"):
 				clicked_obj.set_highlight(false)
@@ -220,6 +237,16 @@ func place_object(pos: Vector2) -> void:
 		
 		# Sets the base rotation to 0
 		new_object.set_meta("base_rotation", 0.0)
+		
+		# Sets the layer of the new object
+		var assigned_layer = current_layer
+		if assigned_layer == 0:
+			assigned_layer = 1
+			
+		new_object.set_meta("layer", assigned_layer)
+		
+		# Set the z-index so the object is behind objects of higher layers
+		new_object.z_index = -assigned_layer
 		
 		room_canvas.add_child(new_object)
 
@@ -295,6 +322,17 @@ func load_level(target_path: String) -> void:
 					var loaded_id = item.get("id", str(Time.get_ticks_usec()))
 					new_object.set_meta("unique_id", loaded_id)
 					
+					# Load the layer data and apply it
+					var loaded_layer = item.get("layer", 1)
+					new_object.set_meta("layer", loaded_layer)
+					
+					# Z-index so the object is behind objects of higher layers
+					new_object.z_index = -loaded_layer
+					
+					# Expand the max_layer limit so the right arrow button knows how far to go
+					if loaded_layer > max_layer:
+						max_layer = loaded_layer
+					
 					room_canvas.add_child(new_object)
 					
 # Called when the user picks a new background
@@ -339,13 +377,11 @@ func _on_save_button_pressed() -> void:
 				"scene_path": child.scene_file_path,
 				"x": child.global_position.x,
 				"y": child.global_position.y,
-				
-				# Grab the base rotation meta value. If it doesn't exist yet, fallback to visual rotation 
 				"rotation": child.get_meta("base_rotation", child.rotation_degrees),
-				
 				"scale_x": child.scale.x,
 				"scale_y": child.scale.y,
-				"id": child.get_meta("unique_id") if child.has_meta("unique_id") else str(randi())
+				"id": child.get_meta("unique_id") if child.has_meta("unique_id") else str(randi()),
+				"layer": child.get_meta("layer", 1),
 			}
 			items_array.append(item_data)
 			
@@ -407,7 +443,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				# 2. Orbit the position around the group center
 				var offset = obj.global_position - group_center
 				
-				# Godot's rotated() function requires radians, so we convert -90 degrees
+				# Godot's rotated() function requires radians, so convert -90 degrees
 				var rotated_offset = offset.rotated(deg_to_rad(-15))
 				
 				# Apply the new offset to the center point
@@ -422,8 +458,46 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				# 2. Orbit the position around the group center
 				var offset = obj.global_position - group_center
 				
-				# Godot's rotated() function requires radians, so we convert 90 degrees
+				# Godot's rotated() function requires radians, so convert 90 degrees
 				var rotated_offset = offset.rotated(deg_to_rad(15))
 				
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
+
+
+func _on_left_arrow_button_pressed() -> void:
+	if current_layer > 0:
+		current_layer -= 1
+	update_layer_display()
+	
+	# Deselects objects when changing layers
+	change_selection(null, false)
+
+func _on_right_arrow_button_pressed() -> void:
+	current_layer += 1
+	# Expand the layer is pushed passed limit
+	if current_layer > max_layer:
+		max_layer = current_layer
+	update_layer_display()
+	
+	# Deselects objects when changing layers
+	change_selection(null, false)
+
+func update_layer_display() -> void:
+	if current_layer == 0:
+		layer_label.text = "All"
+	else:
+		layer_label.text = str(current_layer)
+		
+	# Instantly refresh the screen transparency when the layer changes
+	refresh_layer_visibility()
+	
+func refresh_layer_visibility() -> void:
+	for child in room_canvas.get_children():
+		# Grab the sticky note. Fallback to layer 1 for older objects.
+		var obj_layer = child.get_meta("layer", 1)
+		
+		if current_layer == 0 or current_layer == obj_layer:
+			child.modulate.a = 1.0  # Fully opaque
+		else:
+			child.modulate.a = 0.2 # Transparent

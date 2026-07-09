@@ -79,6 +79,11 @@ func load_level(target_path: String) -> void:
 					var loaded_id = item.get("id", str(Time.get_ticks_usec()))
 					new_object.set_meta("unique_id", loaded_id)
 					
+					# Use the layer to determine z-index
+					var loaded_layer = item.get("layer", 1)
+					# Z-index so the object is behind objects of higher layers
+					new_object.z_index = -loaded_layer
+					
 					level_canvas.add_child(new_object)
 					
 
