@@ -45,6 +45,9 @@ var previous_mouse_pos: Vector2 = Vector2.ZERO
 # Tracking for selection
 var selected_objects: Array[CollisionObject2D] = []
 
+# Clipboard for Copy/Paste 
+var clipboard: Array[Dictionary] = []
+
 # Save path
 var current_save_path: String = "user://Levels/my_new_level.json"
 
@@ -79,6 +82,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
 			delete_selected_object()
 			return # Stop processing this event
+
+		# --- NEW: Copy (Ctrl + C) ---
+		if event is InputEventKey and event.pressed and event.keycode == KEY_C and Input.is_key_pressed(KEY_CTRL):
+			copy_selection()
+			return
+			
+		# --- NEW: Paste (Ctrl + V) ---
+		if event is InputEventKey and event.pressed and event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
+			paste_clipboard()
+			return
 
 		# Zoom by scrolling
 		if event is InputEventMouseButton and event.is_pressed():
@@ -564,3 +577,65 @@ func refresh_layer_visibility() -> void:
 			child.modulate.a = 1.0  # Fully opaque
 		else:
 			child.modulate.a = 0.2 # Transparent
+
+# --- COPY AND PASTE LOGIC ---
+
+func copy_selection() -> void:
+	# Clear the old clipboard
+	clipboard.clear()
+	
+	# Save the exact state of every selected object
+	for obj in selected_objects:
+		if is_instance_valid(obj) and obj.scene_file_path != "":
+			var item_data = {
+				"scene_path": obj.scene_file_path,
+				"global_position": obj.global_position,
+				"rotation_degrees": obj.rotation_degrees,
+				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
+				"scale": obj.scale,
+				"layer": obj.get_meta("layer", 1)
+			}
+			clipboard.append(item_data)
+
+func paste_clipboard() -> void:
+	if clipboard.is_empty():
+		return
+		
+	# 1. Drop the currently selected objects
+	change_selection(null, false)
+	
+	var new_selection: Array[CollisionObject2D] = []
+	
+	# 2. Build the new objects from the clipboard data
+	for item in clipboard:
+		var resource = load(item["scene_path"])
+		if resource:
+			var new_object = resource.instantiate()
+			
+			# Offset the position by 1 grid blocks up
+			var new_pos = item["global_position"] + Vector2(0, GRID_SIZE * -1)
+			new_object.global_position = new_pos
+			
+			# Apply visual transforms
+			new_object.rotation_degrees = item["rotation_degrees"]
+			new_object.scale = item["scale"]
+			
+			# Apply metadata and depth sorting
+			new_object.set_meta("base_rotation", item["base_rotation"])
+			new_object.set_meta("layer", item["layer"])
+			new_object.z_index = -item["layer"]
+			
+			# Generate a brand new unique ID for the clone
+			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
+			new_object.set_meta("unique_id", unique_id)
+			
+			room_canvas.add_child(new_object)
+			new_selection.append(new_object)
+			
+			# UPDATE the clipboard item's position so pasting again moves it another 2 blocks!
+			item["global_position"] = new_pos
+			
+	# 3. Automatically select the newly pasted objects
+	for obj in new_selection:
+		# Passing 'true' simulates holding Ctrl, adding them all to the group
+		change_selection(obj, true)

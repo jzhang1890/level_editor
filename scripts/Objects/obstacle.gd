@@ -2,6 +2,15 @@
 extends StaticBody2D
 class_name Obstacle
 
+var base_position: Vector2
+
+func _ready() -> void:
+	# Anchor the starting position the moment the level loads
+	base_position = global_position
+
+func reset() -> void:
+	global_position = base_position
+
 # Turns the green selection tint on/off
 func set_highlight(active: bool) -> void:
 	if active:

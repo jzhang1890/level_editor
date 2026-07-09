@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var level_canvas: Node2D = $LevelCanvas
 @onready var player: CharacterBody2D = $Player
+@onready var camera: Camera2D = $Player/Camera2D
 
 # For the background texture
 @onready var bg_rect: TextureRect = $BackgroundCanvas/BackgroundLayer/Background
@@ -14,9 +15,17 @@ var level_name = ""
 
 var paused = false
 
+var spawn_position: Vector2 = Vector2.ZERO
+
 var respawn_time = 1
 
+# Array to track objects altered by triggers or gameplay
+var modified_objects: Array[Obstacle] = []
+
 func _ready() -> void:
+	
+	# After loading the level
+	spawn_position = player.global_position
 	
 	# Hides menu
 	if pause_menu:
@@ -88,12 +97,30 @@ func load_level(target_path: String) -> void:
 					
 
 func _on_player_player_died() -> void:
-	
-	# Waits so doesn't respawn immediately
 	await get_tree().create_timer(respawn_time, false).timeout
 	
-	# Reload scene and respawn
-	get_tree().reload_current_scene()
+	# Reset player
+	player.global_position = spawn_position
+	player.velocity = Vector2(0, player.speedY)
+	player.dead = false
+	
+	# Reset camera
+	# 1. Use global_position because the camera is set to top_level = true
+	camera.global_position = spawn_position 
+	
+	# 2. Reset the custom target_x variable so it doesn't drag the camera back!
+	camera.target_x = spawn_position.x 
+	
+	# 3. Clear Godot's built-in smoothing history
+	camera.reset_smoothing()
+	# Optimization
+	# Only iterate through objects that were actually moved
+	for obj in modified_objects:
+		if is_instance_valid(obj):
+			obj.reset()
+			
+	# Clear the list so we start fresh on the next life
+	modified_objects.clear()
 	
 func _on_resume_button_pressed() -> void:
 	# Hide the menu to resume game
