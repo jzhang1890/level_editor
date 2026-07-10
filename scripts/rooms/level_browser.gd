@@ -75,7 +75,7 @@ func _on_create_new_button_pressed() -> void:
 	# 3. Create the default starting data for a brand new level
 	var default_level_data: Dictionary = {
 		"level_name": "Untitled", 
-		"background": "res://Sprites/Backgrounds/background1.png", 
+		"background": "res://Resources/Backgrounds/background1.png", 
 		"items": [] 
 	}
 	

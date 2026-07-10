@@ -13,7 +13,7 @@ config_version=5
 config/name="Level Editor"
 run/main_scene="uid://g7j8v0im2qke"
 config/features=PackedStringArray("4.6", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://Resources/icon.svg"
 
 [autoload]
 

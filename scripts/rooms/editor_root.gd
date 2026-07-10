@@ -31,7 +31,7 @@ enum EditorMode { BUILD, EDIT, DELETE }
 var current_mode: EditorMode = EditorMode.BUILD
 
 # Default background path
-var current_bg_path: String = "res://Sprites/Backgrounds/background1.png"
+var current_bg_path: String = "res://Resources/Backgrounds/background1.png"
 
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO

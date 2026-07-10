@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dewt8ss8unwj2"]
 
 [ext_resource type="Script" uid="uid://dgwjjvf5qi2ki" path="res://scripts/Objects/spinning_obstacle.gd" id="1_78ve5"]
-[ext_resource type="Texture2D" uid="uid://dncnoccwfdt1t" path="res://Sprites/Obstacles/black_hole.png" id="2_ab8mr"]
+[ext_resource type="Texture2D" uid="uid://dncnoccwfdt1t" path="res://Resources/Obstacles/black_hole.png" id="2_ab8mr"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r8fna"]
 radius = 108.04166

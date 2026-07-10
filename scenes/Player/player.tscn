@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://cqow47bch5ocs"]
 
 [ext_resource type="Script" uid="uid://w3q520kfcpfr" path="res://scripts/Player/player.gd" id="1_req00"]
-[ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Sprites/Ships/Ship1/body.png" id="2_dqkch"]
-[ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Sprites/Ships/Ship1/misc.png" id="3_qlg0r"]
-[ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Sprites/Ships/Ship1/outline.png" id="4_tuyoq"]
+[ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Resources/Ships/Ship1/body.png" id="2_dqkch"]
+[ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Resources/Ships/Ship1/misc.png" id="3_qlg0r"]
+[ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Resources/Ships/Ship1/outline.png" id="4_tuyoq"]
 
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
 z_index = 4096

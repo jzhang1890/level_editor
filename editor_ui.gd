@@ -13,30 +13,30 @@ var item_database: Dictionary = {
 	"obstacles": [
 		{
 			"name": "Black Hole",
-			"icon": preload("res://Sprites/Icons/black_hole.svg"),
+			"icon": preload("res://Resources/Icons/black_hole.svg"),
 			"scene_path": "res://scenes/objects/black_hole.tscn"
 		},
 		{
 			"name": "Meteor",
-			"icon": preload("res://Sprites/Icons/meteor.svg"),
+			"icon": preload("res://Resources/Icons/meteor.svg"),
 			"scene_path": "res://scenes/objects/meteor.tscn"
 		},
 		{
 			"name": "Block",
-			"icon": preload("res://Sprites/Icons/block1.svg"), 
+			"icon": preload("res://Resources/Icons/block1.svg"), 
 			"scene_path": "res://scenes/objects/block.tscn"
 		}
 	]
 }
 
-# Define your buttons (Make sure to update the icon paths to match your actual files!)
+# Define edit buttons
 var edit_actions: Array = [
-	{"icon": preload("res://Sprites/Icons/move_up.svg"), "action": "move_up_tiny"},
-	{"icon": preload("res://Sprites/Icons/move_down.svg"), "action": "move_down_tiny"},
-	{"icon": preload("res://Sprites/Icons/move_left.svg"), "action": "move_left_tiny"},
-	{"icon": preload("res://Sprites/Icons/move_right.svg"), "action": "move_right_tiny"},
-	{"icon": preload("res://icon.svg"), "action": "rotate_left"},
-	{"icon": preload("res://icon.svg"), "action": "rotate_right"}
+	{"icon": preload("res://Resources/Icons/move_up.svg"), "action": "move_up_tiny"},
+	{"icon": preload("res://Resources/Icons/move_down.svg"), "action": "move_down_tiny"},
+	{"icon": preload("res://Resources/Icons/move_left.svg"), "action": "move_left_tiny"},
+	{"icon": preload("res://Resources/Icons/move_right.svg"), "action": "move_right_tiny"},
+	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_left"},
+	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_right"}
 ]
 
 # It stores the path so the main script can grab it when you click the canvas.
