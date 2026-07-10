@@ -12,6 +12,35 @@ func _ready() -> void:
 	# 2. Fill the list
 	populate_list()
 
+# --- LIGHTNING FAST READING (End of File Seek) ---
+func get_level_name_fast(target_path: String) -> String:
+	var file = FileAccess.open(target_path, FileAccess.READ)
+	if not file: return "Unknown Level"
+	
+	var file_len = file.get_length()
+	# Only grab the last 1024 bytes (characters) of the file
+	var read_size = min(file_len, 1024) 
+	
+	# Jump instantly to the bottom of the file
+	file.seek(file_len - read_size)
+	
+	# Read only that tiny chunk into a string
+	var end_text = file.get_buffer(read_size).get_string_from_utf8()
+	file.close()
+	
+	# Instantly split the string to find the name
+	var parts = end_text.split('"level_name"')
+	if parts.size() > 1:
+		var right_side = parts[1]
+		var name_parts = right_side.split('"')
+		
+		# name_parts[0] will be the colon and space (e.g. ": ")
+		# name_parts[1] will be the actual level name!
+		if name_parts.size() >= 2: 
+			return name_parts[1]
+			
+	return "Unknown Level"
+
 func populate_list() -> void:
 	level_list.clear()
 	
@@ -27,17 +56,10 @@ func populate_list() -> void:
 				# 1. Default to the file name just in case the file is corrupted
 				var display_name = file_name.replace(".json", "")
 				
-				# 2. Open the file and peek at the JSON
-				var file = FileAccess.open(full_path, FileAccess.READ)
-				if file:
-					var json_string = file.get_as_text()
-					file.close()
-					
-					var level_data = JSON.parse_string(json_string)
-					
-					# 3. If it has our custom key, use that as the display name instead!
-					if typeof(level_data) == TYPE_DICTIONARY and level_data.has("level_name"):
-						display_name = level_data["level_name"]
+				# 2. Extract the name instantly without parsing the items!
+				var extracted_name = get_level_name_fast(full_path)
+				if extracted_name != "Unknown Level":
+					display_name = extracted_name
 						
 				var index = level_list.add_item(display_name)
 				level_list.set_item_metadata(index, full_path)

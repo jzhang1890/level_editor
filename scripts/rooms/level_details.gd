@@ -2,57 +2,96 @@ extends Control
 
 @onready var name_edit: LineEdit = $NameEdit
 
-# Store the full parsed dictionary so we can save it back easily without losing the items
-var current_level_data: Dictionary = {}
+# --- NEW: Reference to your counter label ---
+@onready var count_label: Label = $ObjectCountLabel
 
 func _ready() -> void:
-	# 1. Open the JSON file passed from the Level Browser
 	if FileAccess.file_exists(Global.level_to_load):
-		var file = FileAccess.open(Global.level_to_load, FileAccess.READ)
-		var json_string = file.get_as_text()
-		file.close()
+		name_edit.text = get_level_name_fast(Global.level_to_load)
 		
-		# 2. Parse it and extract the name
-		var parsed = JSON.parse_string(json_string)
-		if typeof(parsed) == TYPE_DICTIONARY:
-			current_level_data = parsed
-			if current_level_data.has("level_name"):
-				name_edit.text = current_level_data["level_name"]
+		var total_objects = get_object_count_fast(Global.level_to_load)
+		count_label.text = "Total Objects: " + str(total_objects)
 
-# --- RENAMING LOGIC ---
-func _on_name_edit_text_submitted(new_text: String) -> void:
-	# Update the dictionary with the newly typed name
-	current_level_data["level_name"] = new_text
+# --- LIGHTNING FAST READING (End of File Seek) ---
+func get_level_name_fast(target_path: String) -> String:
+	var file = FileAccess.open(target_path, FileAccess.READ)
+	if not file: return "Unknown Level"
 	
-	# Save the updated dictionary back to the exact same JSON file
-	var file = FileAccess.open(Global.level_to_load, FileAccess.WRITE)
+	var file_len = file.get_length()
+	# Only grab the last 1024 bytes (characters) of the file
+	var read_size = min(file_len, 1024) 
+	
+	# Jump instantly to the bottom of the file
+	file.seek(file_len - read_size)
+	
+	# Read only that tiny chunk into a string
+	var end_text = file.get_buffer(read_size).get_string_from_utf8()
+	file.close()
+	
+	# Instantly split the string to find the name
+	var parts = end_text.split('"level_name"')
+	if parts.size() > 1:
+		var right_side = parts[1]
+		var name_parts = right_side.split('"')
+		
+		# name_parts[0] will be the colon and space (e.g. ": ")
+		# name_parts[1] will be the actual level name!
+		if name_parts.size() >= 2: 
+			return name_parts[1]
+			
+	return "Unknown Level"
+
+# Renaming logic (RegEx) 
+func _on_name_edit_text_submitted(new_text: String) -> void:
+	var file = FileAccess.open(Global.level_to_load, FileAccess.READ)
 	if file:
-		var json_string = JSON.stringify(current_level_data, "\t")
-		file.store_string(json_string)
+		var raw_text = file.get_as_text()
 		file.close()
 		
-	# Deselect the text box so they stop typing
+		# Group 1 captures: "level_name": "
+		# Group 2 captures: "
+		var regex = RegEx.new()
+		regex.compile('("level_name"\\s*:\\s*")[^"]+(")')
+		
+		# Fix: Use curly braces so numbers don't blend with the group ID
+		var updated_text = regex.sub(raw_text, "${1}" + new_text + "${2}")
+		
+		var write_file = FileAccess.open(Global.level_to_load, FileAccess.WRITE)
+		if write_file:
+			write_file.store_string(updated_text)
+			write_file.close()
+			
 	name_edit.release_focus()
+	
+func get_object_count_fast(target_path: String) -> int:
+	var file = FileAccess.open(target_path, FileAccess.READ)
+	if not file: return 0
+	
+	var count = 0
+	
+	# Read the file line-by-line using zero RAM
+	while not file.eof_reached():
+		var line = file.get_line()
+		
+		# Every object you save contains this exact key, so we just tally them up!
+		if '"scene_path"' in line:
+			count += 1
+			
+	file.close()
+	return count	
 
-# --- BUTTON LOGIC ---
+# Button logic
 func _on_edit_button_pressed() -> void:
-	# The Global.level_to_load is still intact, so the EditorRoot will catch it!
 	get_tree().change_scene_to_file("res://scenes/rooms/editor_root.tscn")
 
 func _on_delete_button_pressed() -> void:
-	# Delete the JSON file from the hard drive
 	if FileAccess.file_exists(Global.level_to_load):
 		DirAccess.remove_absolute(Global.level_to_load)
-		
-	# Return to the level browser
 	_on_back_button_pressed()
 
 func _on_back_button_pressed() -> void:
-	# Just go back without deleting
 	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")
-	# Change level to load to None
 	Global.level_to_load = ""
 
 func _on_play_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/rooms/play_scene.tscn")
-	

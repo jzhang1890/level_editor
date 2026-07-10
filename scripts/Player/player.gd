@@ -3,8 +3,6 @@ extends CharacterBody2D
 # Add a signal that shouts "player died" when the player dies
 signal player_died
 
-@onready var spawn_position: Vector2 = global_position
-
 @export var speedY := 400
 @export var speedX := 300 # Max horizontal speed
 @export var acceleration := 1200.0
@@ -38,17 +36,17 @@ func _physics_process(delta: float) -> void:
 			move_and_slide()
 
 		# Rotation physics
-		if direction > 0 and $PlayerSprite.rotation < max_rotation:
-			$PlayerSprite.rotation += rotation_speed * delta
-		elif direction < 0 and $PlayerSprite.rotation > -max_rotation:
-			$PlayerSprite.rotation -= rotation_speed * delta
+		if direction > 0 and $Sprite2D.rotation < max_rotation:
+			$Sprite2D.rotation += rotation_speed * delta
+		elif direction < 0 and $Sprite2D.rotation > -max_rotation:
+			$Sprite2D.rotation -= rotation_speed * delta
 		elif direction == 0:
-			if $PlayerSprite.rotation < 0:
-				$PlayerSprite.rotation += rotation_speed * delta
-				if $PlayerSprite.rotation > 0: $PlayerSprite.rotation = 0
-			elif $PlayerSprite.rotation > 0:
-				$PlayerSprite.rotation -= rotation_speed * delta
-				if $PlayerSprite.rotation < 0: $PlayerSprite.rotation = 0
+			if $Sprite2D.rotation < 0:
+				$Sprite2D.rotation += rotation_speed * delta
+				if $Sprite2D.rotation > 0: $Sprite2D.rotation = 0
+			elif $Sprite2D.rotation > 0:
+				$Sprite2D.rotation -= rotation_speed * delta
+				if $Sprite2D.rotation < 0: $Sprite2D.rotation = 0
 				
 		# Collision detection is naturally skipped during noclip because move_and_slide() didn't run
 		if get_slide_collision_count() > 0:

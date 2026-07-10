@@ -42,6 +42,11 @@ var drag_threshold: float = 25.0
 var is_dragging_objects: bool = false
 var previous_mouse_pos: Vector2 = Vector2.ZERO
 
+# Tracking for Box Selection 
+var is_box_selecting: bool = false
+var mouse_down_world_pos: Vector2 = Vector2.ZERO
+var box_current_pos: Vector2 = Vector2.ZERO
+
 # Tracking for selection
 var selected_objects: Array[CollisionObject2D] = []
 
@@ -83,12 +88,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			delete_selected_object()
 			return # Stop processing this event
 
-		# --- NEW: Copy (Ctrl + C) ---
+		# Copy (Ctrl + C)
 		if event is InputEventKey and event.pressed and event.keycode == KEY_C and Input.is_key_pressed(KEY_CTRL):
 			copy_selection()
 			return
 			
-		# --- NEW: Paste (Ctrl + V) ---
+		# Paste (Ctrl + V) 
 		if event is InputEventKey and event.pressed and event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
 			paste_clipboard()
 			return
@@ -112,10 +117,25 @@ func _unhandled_input(event: InputEvent) -> void:
 						
 				previous_mouse_pos = current_mouse_pos
 				
-				# --- NEW: Kill the input so the camera script never sees it ---
+				# Kill the input so the camera script never sees it 
 				get_viewport().set_input_as_handled() 
 				return # Stop processing in this script
-			
+				
+			# --- THE MISSING BLOCK: Box Selection Dragging ---
+			if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+				if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+					is_box_selecting = true
+					box_current_pos = get_global_mouse_position()
+					
+					# Freeze the camera while drawing the box
+					camera.set_process_unhandled_input(false)
+					camera.set_process_input(false)
+					camera.set_process(false)
+					
+					queue_redraw() # Tells the engine to update our drawn rectangle
+					get_viewport().set_input_as_handled()
+					return
+				
 			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
 				is_dragging = true
 
@@ -123,7 +143,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				mouse_down_screen_pos = event.position
+				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
 				is_dragging = false 
+				
+				# --- FIX A: Freeze camera instantly if preparing to draw a box ---
+				if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+					camera.set_process_unhandled_input(false)
+					camera.set_process_input(false)
+					camera.set_process(false)
 				
 				# Check if we are grabbing a selected object 
 				if current_mode == EditorMode.EDIT:
@@ -146,16 +173,29 @@ func _unhandled_input(event: InputEvent) -> void:
 				
 			# The user let go of event
 			elif not event.pressed:
+				
+				# --- FIX B: Unconditionally unfreeze the camera on release ---
+				camera.set_process_unhandled_input(true)
+				camera.set_process_input(true)
+				camera.set_process(true)
+				
 				# Drop the objects
 				if is_dragging_objects:
 					is_dragging_objects = false
 					
-					# Unfreeze the camera
-					camera.set_process_unhandled_input(true)
-					camera.set_process_input(true)
-					camera.set_process(true)
-					
 					# Kill the input so dropping doesn't trigger random camera jumps 
+					get_viewport().set_input_as_handled()
+					return
+				
+				# Finish Box Selection 
+				if is_box_selecting:
+					is_box_selecting = false
+					
+					queue_redraw() # Erases the blue box from the screen
+					
+					# Calculate what objects were inside the box
+					perform_box_selection(mouse_down_world_pos, get_global_mouse_position())
+					
 					get_viewport().set_input_as_handled()
 					return
 				
@@ -167,19 +207,14 @@ func _unhandled_input(event: InputEvent) -> void:
 					# Mode-based click logic
 					match current_mode:
 						EditorMode.BUILD:
-							# Only place objects. Ignore selections.
 							if ui_layer.selected_scene_path != "":
 								place_object(click_pos)
 								
 						EditorMode.EDIT:
-							# Check if Ctrl is held down for multi-select
 							var is_multi = Input.is_key_pressed(KEY_CTRL)
-							
-							# Pass both the object and the multi-select status
 							change_selection(clicked_obj, is_multi)
 							
 						EditorMode.DELETE:
-							# Instantly delete whatever is clicked.
 							if clicked_obj != null:
 								clicked_obj.queue_free()
 				
@@ -639,3 +674,42 @@ func paste_clipboard() -> void:
 	for obj in new_selection:
 		# Passing 'true' simulates holding Ctrl, adding them all to the group
 		change_selection(obj, true)
+		
+# --- BOX SELECTION LOGIC ---
+
+func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
+	# Calculate the perfect rectangle regardless of which direction the mouse was dragged
+	var pos = Vector2(min(start_p.x, end_p.x), min(start_p.y, end_p.y))
+	var size = Vector2(abs(start_p.x - end_p.x), abs(start_p.y - end_p.y))
+	var selection_rect = Rect2(pos, size)
+	
+	for child in room_canvas.get_children():
+		if child is CollisionObject2D:
+			var obj_layer = child.get_meta("layer", 1)
+			
+			# Make sure we only grab objects on the active layer
+			if current_layer == 0 or current_layer == obj_layer:
+				# Check if the object's center point is inside our rectangle
+				if selection_rect.has_point(child.global_position):
+					# Add it to the group safely without deselecting others
+					if not selected_objects.has(child):
+						selected_objects.append(child)
+						if child.has_method("set_highlight"):
+							child.set_highlight(true)
+							
+	# Show the UI menu if we actually caught anything
+	if selection_menu:
+		selection_menu.visible = selected_objects.size() > 0
+
+# Godot's built-in drawing engine
+func _draw() -> void:
+	if is_box_selecting:
+		var pos = Vector2(min(mouse_down_world_pos.x, box_current_pos.x), min(mouse_down_world_pos.y, box_current_pos.y))
+		var size = Vector2(abs(mouse_down_world_pos.x - box_current_pos.x), abs(mouse_down_world_pos.y - box_current_pos.y))
+		var rect = Rect2(pos, size)
+		
+		# Draw translucent blue fill
+		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.3), true)
+		
+		# Draw solid blue outline (width of 2 pixels)
+		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)

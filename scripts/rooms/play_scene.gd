@@ -11,6 +11,12 @@ extends Node2D
 
 @onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
 
+# --- CHUNKING VARIABLES ---
+const CHUNK_HEIGHT: float = 2160.0 # Screen height
+var level_chunks: Dictionary = {} 
+var active_chunks: Array = [] 
+var last_calculated_chunk: int = -999
+
 var level_name = ""
 
 var paused = false
@@ -45,7 +51,12 @@ func load_level(target_path: String) -> void:
 
 	for child in level_canvas.get_children():
 		child.queue_free()
-		
+	
+	# --- NEW: Clear chunks before loading ---
+	level_chunks.clear()
+	active_chunks.clear()
+	last_calculated_chunk = -999
+	
 	var file = FileAccess.open(target_path, FileAccess.READ)
 	if file:
 		var json_string = file.get_as_text()
@@ -93,33 +104,57 @@ func load_level(target_path: String) -> void:
 					# Z-index so the object is behind objects of higher layers
 					new_object.z_index = -loaded_layer
 					
-					level_canvas.add_child(new_object)
+					var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 					
+					# 1. Create a parent node for this chunk if it doesn't exist yet
+					if not level_chunks.has(chunk_id):
+						var chunk_parent = Node2D.new()
+						level_canvas.add_child(chunk_parent)
+						level_chunks[chunk_id] = chunk_parent
+						
+						# Sleep the parent immediately
+						chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
+						chunk_parent.visible = false
+						
+					# 2. Add the object to the parent node instead of the main canvas!
+					level_chunks[chunk_id].add_child(new_object)
+					
+
+func _process(_delta: float) -> void:
+	if paused:
+		return
+		
+	# Check where the camera currently is on the Y-axis
+	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
+	
+	# If we crossed into a new chunk, run the update!
+	if current_camera_chunk != last_calculated_chunk:
+		update_chunks(current_camera_chunk)
+		last_calculated_chunk = current_camera_chunk
 
 func _on_player_player_died() -> void:
 	await get_tree().create_timer(respawn_time, false).timeout
 	
 	# Reset player
+	$Player/Sprite2D.rotation = 0
 	player.global_position = spawn_position
 	player.velocity = Vector2(0, player.speedY)
 	player.dead = false
 	
 	# Reset camera
-	# 1. Use global_position because the camera is set to top_level = true
 	camera.global_position = spawn_position 
-	
-	# 2. Reset the custom target_x variable so it doesn't drag the camera back!
 	camera.target_x = spawn_position.x 
 	
-	# 3. Clear Godot's built-in smoothing history
-	camera.reset_smoothing()
+	# --- NEW: Force the chunks to reset instantly on respawn ---
+	last_calculated_chunk = -999 
+	
 	# Optimization
 	# Only iterate through objects that were actually moved
 	for obj in modified_objects:
 		if is_instance_valid(obj):
 			obj.reset()
-			
-	# Clear the list so we start fresh on the next life
+	
+	# --- FIX: Clear the list so it doesn't cause a memory leak freeze! ---
 	modified_objects.clear()
 	
 func _on_resume_button_pressed() -> void:
@@ -149,3 +184,36 @@ func _on_quit_button_pressed() -> void:
 	# Return to Level Browser scene
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
+	
+# Chunk manager
+func update_chunks(center_chunk: int) -> void:
+	# We want the chunk behind the player, the current chunk, and the chunk ahead
+	var needed_chunks = [center_chunk - 1, center_chunk, center_chunk + 1]
+
+	# --- NEW FIX: Always keep the spawn chunks loaded to prevent blinking ---
+	var current_spawn_chunk = int(floor(spawn_position.y / CHUNK_HEIGHT))
+	var spawn_chunks = [current_spawn_chunk - 1, current_spawn_chunk, current_spawn_chunk + 1]
+	
+	for c in spawn_chunks:
+		if not needed_chunks.has(c):
+			needed_chunks.append(c)
+
+	# Put old chunks to sleep (No nested loop needed!)
+	for chunk_id in active_chunks:
+		if chunk_id not in needed_chunks:
+			if level_chunks.has(chunk_id):
+				var chunk_parent = level_chunks[chunk_id]
+				chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
+				chunk_parent.visible = false
+
+	# 2. Wake up the new chunks (O(1) Engine Speed!)
+	for chunk_id in needed_chunks:
+		if chunk_id not in active_chunks:
+			if level_chunks.has(chunk_id):
+				# --- FIX: Just grab the parent node and wake it up ---
+				var chunk_parent = level_chunks[chunk_id]
+				chunk_parent.process_mode = Node.PROCESS_MODE_INHERIT 
+				chunk_parent.visible = true
+
+	# 3. Update the tracking array so we remember what is currently awake
+	active_chunks = needed_chunks
