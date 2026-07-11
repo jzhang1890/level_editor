@@ -9,7 +9,6 @@
 z_index = 4096
 script = ExtResource("1_req00")
 speedX = 350
-acceleration = 1300.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=873178819]
 

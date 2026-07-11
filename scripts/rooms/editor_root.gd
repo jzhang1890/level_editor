@@ -1,6 +1,9 @@
 extends Node2D
 
+# The UI with tabs
 @onready var ui_layer: CanvasLayer = $EditorUI
+
+# The room where you put the objects
 @onready var room_canvas: Node2D = $Foreground/RoomCanvas
 
 @onready var camera: Camera2D = $Camera2D 
@@ -22,7 +25,7 @@ extends Node2D
 @onready var layer_label: Label = $EditorUI/LayerContainer/LayerLabel
 
 # Chunking variables
-const CHUNK_HEIGHT: float = 2160.0
+const CHUNK_HEIGHT: float = 1024.0
 var level_chunks: Dictionary = {}
 var active_chunks: Array = []
 var last_calculated_chunk: int = -999
@@ -59,22 +62,30 @@ var selected_objects: Array[CollisionObject2D] = []
 # Clipboard for Copy/Paste 
 var clipboard: Array[Dictionary] = []
 
+# Undo/Redo variables
+var undo_stack: Array[Dictionary] = []
+var redo_stack: Array[Dictionary] = []
+const MAX_UNDO_STEPS: int = 100
+var drag_start_state: Array = []
+
 # Save path
 var current_save_path: String = "user://Levels/my_new_level.json"
 
+# Gives it untitled if it doesnt have a name
 var current_level_name: String = "Untitled"
 
+# Current size of one grid
 const GRID_SIZE: float = 64.0
 
 # Zoom settings
-var min_zoom: float = 0.3  # How far out you can see
+var min_zoom: float = 0.35  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
+# Game state
 var paused = false
 
 func _ready() -> void:
-	
 	# Hide the entire contextual menu at the start
 	if selection_menu:
 		selection_menu.visible = false
@@ -87,7 +98,6 @@ func _ready() -> void:
 		load_level(current_save_path)
 
 func _unhandled_input(event: InputEvent) -> void:
-
 	if not paused:
 	# Backspace for deletion
 		if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
@@ -102,6 +112,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Paste (Ctrl + V) 
 		if event is InputEventKey and event.pressed and event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
 			paste_clipboard()
+			return
+			
+		# Undo (Ctrl + Z)
+		if event is InputEventKey and event.pressed and event.keycode == KEY_Z and Input.is_key_pressed(KEY_CTRL):
+			undo_action()
+			return
+			
+		# Redo (Ctrl + Y)
+		if event is InputEventKey and event.pressed and event.keycode == KEY_Y and Input.is_key_pressed(KEY_CTRL):
+			redo_action()
 			return
 
 		# Zoom by scrolling
@@ -168,6 +188,9 @@ func _unhandled_input(event: InputEvent) -> void:
 						is_dragging_objects = true
 						previous_mouse_pos = click_pos
 						
+						# Snapshot state before drag begins
+						drag_start_state = serialize_objects(selected_objects)
+						
 						# Freeze the camera so it cannot steal the input
 						camera.set_process_unhandled_input(false)
 						camera.set_process_input(false)
@@ -188,6 +211,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				# Drop the objects
 				if is_dragging_objects:
 					is_dragging_objects = false
+					
+					# Ending of the dragging object state
+					var drag_end_state = serialize_objects(selected_objects)
+					commit_action("edit", drag_start_state, drag_end_state)
 					
 					# Kill the input so dropping doesn't trigger random camera jumps 
 					get_viewport().set_input_as_handled()
@@ -222,6 +249,10 @@ func _unhandled_input(event: InputEvent) -> void:
 							
 						EditorMode.DELETE:
 							if clicked_obj != null:
+								# Snapshot the single object before deleting
+								var deleted_state = serialize_objects([clicked_obj])
+								commit_action("delete", deleted_state, [])
+								
 								clicked_obj.queue_free()
 				
 				is_dragging = false
@@ -314,11 +345,12 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 
 # Change selected object
 func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) -> void:
-	# 1. Clear everything first
-	for obj in selected_objects:
-		if is_instance_valid(obj) and obj.has_method("set_highlight"):
-			obj.set_highlight(false)
-	selected_objects.clear()
+	# 1. If the user is not holding Ctrl, clear everything first
+	if not is_multi:
+		for obj in selected_objects:
+			if is_instance_valid(obj) and obj.has_method("set_highlight"):
+				obj.set_highlight(false)
+		selected_objects.clear()
 		
 	# 2. If user clicked an actual object
 	if clicked_obj != null:
@@ -381,9 +413,17 @@ func place_object(pos: Vector2) -> void:
 
 		# 2. Add directly to the chunk parent (Do not add to room_canvas!)
 		level_chunks[chunk_id].add_child(new_object)
+		
+		var placed_state = serialize_objects([new_object])
+		commit_action("place", [], placed_state)
 
 # Deletion logic
 func delete_selected_object() -> void:
+	
+	if not selected_objects.is_empty():
+		var deleted_state = serialize_objects(selected_objects)
+		commit_action("delete", deleted_state, [])
+	
 	# Loop through all selected objects and delete them
 	for obj in selected_objects:
 		if is_instance_valid(obj):
@@ -520,7 +560,7 @@ func _on_save_button_pressed() -> void:
 		var chunk_parent = level_chunks[chunk_id]
 		for object in chunk_parent.get_children():
 			
-			# --- FIX: Gather ALL object properties, not just position ---
+			# Gather all object properties
 			var item_data = {
 				"x": object.global_position.x,
 				"y": object.global_position.y,
@@ -557,11 +597,14 @@ func _on_quit_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
 	
 func _on_editor_ui_edit_action_requested(action_name: String) -> void:
+	
+	var start_state = serialize_objects(selected_objects)
+	
 	# Make sure the array isn't empty before performing edit action
 	if selected_objects.is_empty():
 		return
 				
-	# --- NEW: Find the center of the group ---
+	# Find the center of the group 
 	var group_center: Vector2 = Vector2.ZERO
 	for obj in selected_objects:
 		group_center += obj.global_position
@@ -611,7 +654,9 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
-
+				
+	var end_state = serialize_objects(selected_objects)
+	commit_action("edit", start_state, end_state)
 
 func _on_left_arrow_button_pressed() -> void:
 	# Deselects objects when changing layers
@@ -659,8 +704,12 @@ func copy_selection() -> void:
 	# Clear the old clipboard
 	clipboard.clear()
 	
-	# Save the exact state of every selected object
-	for obj in selected_objects:
+	# --- FIX: Sort selection chronologically by their timestamp IDs ---
+	var sorted_selection = selected_objects.duplicate()
+	sorted_selection.sort_custom(func(a, b): return int(a.get_meta("unique_id", "0")) < int(b.get_meta("unique_id", "0")))
+	
+	# Save the exact state of every selected object using the sorted timeline
+	for obj in sorted_selection:
 		if is_instance_valid(obj) and obj.scene_file_path != "":
 			var item_data = {
 				"scene_path": obj.scene_file_path,
@@ -718,7 +767,6 @@ func paste_clipboard() -> void:
 					chunk_parent.visible = false
 
 			level_chunks[chunk_id].add_child(new_object)
-			# --------------------------------------------
 			
 			new_selection.append(new_object)
 			
@@ -729,6 +777,10 @@ func paste_clipboard() -> void:
 	for obj in new_selection:
 		# Passing 'true' simulates holding Ctrl, adding them all to the group
 		change_selection(obj, true)
+		
+	if not new_selection.is_empty():
+		var pasted_state = serialize_objects(new_selection)
+		commit_action("place", [], pasted_state)
 		
 # Box selection logic
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -787,3 +839,123 @@ func update_editor_chunks(center_chunk: int) -> void:
 				level_chunks[chunk_id].visible = true
 
 	active_chunks = needed_chunks
+	
+# UNDO/REDO ENGINE 
+
+# 1. Takes an array of objects and converts them to pure dictionary data
+func serialize_objects(objects: Array) -> Array:
+	var data_array = []
+	for obj in objects:
+		if is_instance_valid(obj) and obj.scene_file_path != "":
+			data_array.append({
+				"scene_path": obj.scene_file_path,
+				"global_position": obj.global_position,
+				"rotation_degrees": obj.rotation_degrees,
+				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
+				"scale": obj.scale,
+				"layer": obj.get_meta("layer", 1),
+				"unique_id": obj.get_meta("unique_id", "")
+			})
+	return data_array
+
+# 2. Pushes a new action to the history and clears the Redo timeline
+func commit_action(action_type: String, old_data: Array, new_data: Array) -> void:
+	undo_stack.append({
+		"type": action_type,
+		"old_data": old_data,
+		"new_data": new_data
+	})
+	
+	if undo_stack.size() > MAX_UNDO_STEPS:
+		undo_stack.pop_front()
+		
+	redo_stack.clear()
+
+# 3. Undo Logic
+func undo_action() -> void:
+	if undo_stack.is_empty(): return
+	var action = undo_stack.pop_back()
+	redo_stack.append(action)
+	
+	match action["type"]:
+		"place": remove_objects_by_id(action["new_data"])
+		"delete": recreate_objects(action["old_data"])
+		"edit": apply_object_state(action["old_data"])
+
+# 4. Redo Logic
+func redo_action() -> void:
+	if redo_stack.is_empty(): return
+	var action = redo_stack.pop_back()
+	undo_stack.append(action)
+	
+	match action["type"]:
+		"place": recreate_objects(action["new_data"])
+		"delete": remove_objects_by_id(action["old_data"])
+		"edit": apply_object_state(action["new_data"])
+
+# 5. UI Button Hooks
+func _on_undo_button_pressed() -> void:
+	undo_action()
+
+func _on_redo_button_pressed() -> void:
+	redo_action()
+
+# --- UNDO/REDO HELPER FUNCTIONS ---
+
+func find_object_by_id(target_id: String) -> CollisionObject2D:
+	for chunk_id in level_chunks:
+		for obj in level_chunks[chunk_id].get_children():
+			if obj.has_meta("unique_id") and obj.get_meta("unique_id") == target_id:
+				return obj
+	return null
+
+func remove_objects_by_id(data_array: Array) -> void:
+	for item in data_array:
+		var obj = find_object_by_id(item["unique_id"])
+		if obj:
+			# Safety check so we don't hold a deleted object in selection
+			if selected_objects.has(obj): change_selection(obj, true) 
+			obj.queue_free()
+
+func recreate_objects(data_array: Array) -> void:
+	change_selection(null, false)
+	var newly_created = []
+	
+	for item in data_array:
+		var resource = load(item["scene_path"])
+		if resource:
+			var new_object = resource.instantiate()
+			new_object.global_position = item["global_position"]
+			new_object.rotation_degrees = item["rotation_degrees"]
+			new_object.scale = item["scale"]
+			new_object.set_meta("base_rotation", item["base_rotation"])
+			new_object.set_meta("layer", item["layer"])
+			new_object.z_index = -item["layer"]
+			new_object.set_meta("unique_id", item["unique_id"])
+			
+			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+			if not level_chunks.has(chunk_id):
+				var chunk_parent = Node2D.new()
+				chunk_parent.name = "Chunk_" + str(chunk_id)
+				room_canvas.add_child(chunk_parent)
+				level_chunks[chunk_id] = chunk_parent
+				if chunk_id not in active_chunks:
+					chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
+					chunk_parent.visible = false
+					
+			level_chunks[chunk_id].add_child(new_object)
+			newly_created.append(new_object)
+			
+	for obj in newly_created:
+		change_selection(obj, true)
+
+func apply_object_state(data_array: Array) -> void:
+	for item in data_array:
+		var obj = find_object_by_id(item["unique_id"])
+		if obj:
+			obj.global_position = item["global_position"]
+			obj.rotation_degrees = item["rotation_degrees"]
+			obj.scale = item["scale"]
+			obj.set_meta("base_rotation", item["base_rotation"])
+			obj.set_meta("layer", item["layer"])
+			obj.z_index = -item["layer"]

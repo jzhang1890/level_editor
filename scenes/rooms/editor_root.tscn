@@ -98,10 +98,10 @@ layout_mode = 2
 text = "Delete"
 
 [node name="LayerContainer" type="HBoxContainer" parent="EditorUI" unique_id=1910677465]
-offset_left = 172.0
-offset_top = 12.0
-offset_right = 351.0
-offset_bottom = 71.0
+offset_left = 1068.0
+offset_top = 115.0
+offset_right = 1247.0
+offset_bottom = 174.0
 
 [node name="LeftArrowButton" type="Button" parent="EditorUI/LayerContainer" unique_id=1409007721]
 layout_mode = 2
@@ -115,19 +115,39 @@ text = "All"
 layout_mode = 2
 text = "right"
 
-[node name="ZoomInButton" type="Button" parent="EditorUI" unique_id=430798285]
-offset_left = 28.0
-offset_top = 24.0
-offset_right = 69.0
-offset_bottom = 60.0
-text = "+"
+[node name="UndoRedoContainer" type="HBoxContainer" parent="EditorUI" unique_id=1864044356]
+offset_left = 57.0
+offset_top = 39.0
+offset_right = 97.0
+offset_bottom = 79.0
 
-[node name="ZoomOutButton" type="Button" parent="EditorUI" unique_id=344751482]
-offset_left = 92.0
-offset_top = 23.0
-offset_right = 132.0
-offset_bottom = 61.0
+[node name="UndoButton" type="Button" parent="EditorUI/UndoRedoContainer" unique_id=199130975]
+layout_mode = 2
+text = "Undo"
+
+[node name="RedoButton" type="Button" parent="EditorUI/UndoRedoContainer" unique_id=278374811]
+layout_mode = 2
+text = "Redo"
+
+[node name="ZoomContainer" type="HBoxContainer" parent="EditorUI" unique_id=1153423195]
+offset_left = 253.0
+offset_top = 33.0
+offset_right = 333.0
+offset_bottom = 83.0
+alignment = 1
+
+[node name="ZoomOutButton" type="Button" parent="EditorUI/ZoomContainer" unique_id=344751482]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 4
 text = "-"
+
+[node name="ZoomInButton" type="Button" parent="EditorUI/ZoomContainer" unique_id=430798285]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "+"
 
 [node name="PauseButton" type="Button" parent="EditorUI" unique_id=1775317177]
 offset_left = 1183.0
@@ -197,8 +217,10 @@ text = "Save and Quit"
 [connection signal="pressed" from="EditorUI/SelectionMenu/DeleteButton" to="." method="_on_delete_button_pressed"]
 [connection signal="pressed" from="EditorUI/LayerContainer/LeftArrowButton" to="." method="_on_left_arrow_button_pressed"]
 [connection signal="pressed" from="EditorUI/LayerContainer/RightArrowButton" to="." method="_on_right_arrow_button_pressed"]
-[connection signal="pressed" from="EditorUI/ZoomInButton" to="." method="_on_zoom_in_button_pressed"]
-[connection signal="pressed" from="EditorUI/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
+[connection signal="pressed" from="EditorUI/UndoRedoContainer/UndoButton" to="." method="_on_undo_button_pressed"]
+[connection signal="pressed" from="EditorUI/UndoRedoContainer/RedoButton" to="." method="_on_redo_button_pressed"]
+[connection signal="pressed" from="EditorUI/ZoomContainer/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
+[connection signal="pressed" from="EditorUI/ZoomContainer/ZoomInButton" to="." method="_on_zoom_in_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]

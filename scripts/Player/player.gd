@@ -6,7 +6,7 @@ signal player_died
 @export var speedY := 400
 @export var speedX := 300 # Max horizontal speed
 @export var acceleration := 1200.0
-@export var deceleration := 1200.0
+@export var deceleration := 800.0
 @export var noclip := false # noclip testing
 
 @export var max_rotation: float = 0.2
