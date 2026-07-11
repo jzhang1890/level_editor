@@ -10,6 +10,15 @@ script = ExtResource("1_x1qvo")
 
 [node name="Player" parent="." unique_id=1001688488 instance=ExtResource("2_qf7ku")]
 
+[node name="Body" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="0" unique_id=202774480]
+modulate = Color(0, 0.55076015, 0.5883362, 1)
+
+[node name="Misc" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="1" unique_id=1842518117]
+modulate = Color(0.7452349, 0.42187068, 1, 1)
+
+[node name="Outline" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="2" unique_id=565256926]
+modulate = Color(0.8426461, 0.58045614, 1, 1)
+
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1096227993]
 offset = Vector2(0, -220)
 script = ExtResource("2_4g8qc")
@@ -92,3 +101,5 @@ text = "Quit"
 [connection signal="pressed" from="GameOverlay/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="GameOverlay/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="GameOverlay/PauseMenu/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
+
+[editable path="Player"]

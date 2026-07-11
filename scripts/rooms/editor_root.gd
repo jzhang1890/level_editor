@@ -21,6 +21,12 @@ extends Node2D
 # Layer label in LayerContainer 
 @onready var layer_label: Label = $EditorUI/LayerContainer/LayerLabel
 
+# Chunking variables
+const CHUNK_HEIGHT: float = 2160.0
+var level_chunks: Dictionary = {}
+var active_chunks: Array = []
+var last_calculated_chunk: int = -999
+
 # 0 represents the "All" layer, 0 is the starting layer
 var current_layer: int = 0
 var max_layer: int = 1
@@ -121,7 +127,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled() 
 				return # Stop processing in this script
 				
-			# --- THE MISSING BLOCK: Box Selection Dragging ---
+			# Box Selection Dragging 
 			if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
 				if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
 					is_box_selecting = true
@@ -220,6 +226,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				
 				is_dragging = false
 
+func _process(_delta: float) -> void:
+	# Track your editor camera's Y position
+	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
+	
+	if current_camera_chunk != last_calculated_chunk:
+		update_editor_chunks(current_camera_chunk)
+		last_calculated_chunk = current_camera_chunk
 
 # Zoom logic
 func apply_zoom(target_zoom: float) -> void:
@@ -301,12 +314,11 @@ func check_for_object_at(pos: Vector2) -> CollisionObject2D:
 
 # Change selected object
 func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) -> void:
-	# 1. If the user is not holding Ctrl, clear everything first
-	if not is_multi:
-		for obj in selected_objects:
-			if is_instance_valid(obj) and obj.has_method("set_highlight"):
-				obj.set_highlight(false)
-		selected_objects.clear()
+	# 1. Clear everything first
+	for obj in selected_objects:
+		if is_instance_valid(obj) and obj.has_method("set_highlight"):
+			obj.set_highlight(false)
+	selected_objects.clear()
 		
 	# 2. If user clicked an actual object
 	if clicked_obj != null:
@@ -334,19 +346,14 @@ func place_object(pos: Vector2) -> void:
 		
 		var cell_x = floor(pos.x / GRID_SIZE)
 		var cell_y = floor(pos.y / GRID_SIZE)
-		
-		# Multiply back up to world coordinates, then add half the grid size (32) 
-		# so the center-anchored object sits exactly in the middle of the box.
 		var snapped_x = (cell_x * GRID_SIZE) + (GRID_SIZE / 2.0)
 		var snapped_y = (cell_y * GRID_SIZE) + (GRID_SIZE / 2.0)
 		
 		new_object.global_position = Vector2(snapped_x, snapped_y)
 		
-		# Generate a unique id string using the exact microsecond the object was placed
+		# Generate a unique id string
 		var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
 		new_object.set_meta("unique_id", unique_id)
-		
-		# Sets the base rotation to 0
 		new_object.set_meta("base_rotation", 0.0)
 		
 		# Sets the layer of the new object
@@ -355,11 +362,25 @@ func place_object(pos: Vector2) -> void:
 			assigned_layer = 1
 			
 		new_object.set_meta("layer", assigned_layer)
-		
-		# Set the z-index so the object is behind objects of higher layers
 		new_object.z_index = -assigned_layer
 		
-		room_canvas.add_child(new_object)
+		# --- CHUNKING PLACEMENT ---
+		var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+
+		# 1. Ensure the chunk parent exists
+		if not level_chunks.has(chunk_id):
+			var chunk_parent = Node2D.new()
+			chunk_parent.name = "Chunk_" + str(chunk_id)
+			room_canvas.add_child(chunk_parent)
+			level_chunks[chunk_id] = chunk_parent
+			
+			# If we are building in a chunk that isn't currently active, keep it asleep
+			if chunk_id not in active_chunks:
+				chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
+				chunk_parent.visible = false
+
+		# 2. Add directly to the chunk parent (Do not add to room_canvas!)
+		level_chunks[chunk_id].add_child(new_object)
 
 # Deletion logic
 func delete_selected_object() -> void:
@@ -443,8 +464,21 @@ func load_level(target_path: String) -> void:
 					# Expand the max_layer limit so the right arrow button knows how far to go
 					if loaded_layer > max_layer:
 						max_layer = loaded_layer
-					
-					room_canvas.add_child(new_object)
+						
+					var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+
+					if not level_chunks.has(chunk_id):
+						var chunk_parent = Node2D.new()
+						chunk_parent.name = "Chunk_" + str(chunk_id)
+						room_canvas.add_child(chunk_parent)
+						level_chunks[chunk_id] = chunk_parent
+						
+						# Start off-screen chunks as sleeping
+						chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
+						chunk_parent.visible = false
+
+					# Add the object to its specific chunk parent
+					level_chunks[chunk_id].add_child(new_object)
 					
 # Called when the user picks a new background
 func change_background(new_path: String) -> void:
@@ -480,27 +514,30 @@ func _on_save_button_pressed() -> void:
 	if not DirAccess.dir_exists_absolute("user://Levels"):
 		DirAccess.make_dir_absolute("user://Levels")
 
-	var items_array: Array = []
-	
-	for child in room_canvas.get_children():
-		if child.scene_file_path != "":
+	var items_to_save = []
+
+	for chunk_id in level_chunks:
+		var chunk_parent = level_chunks[chunk_id]
+		for object in chunk_parent.get_children():
+			
+			# --- FIX: Gather ALL object properties, not just position ---
 			var item_data = {
-				"scene_path": child.scene_file_path,
-				"x": child.global_position.x,
-				"y": child.global_position.y,
-				"rotation": child.get_meta("base_rotation", child.rotation_degrees),
-				"scale_x": child.scale.x,
-				"scale_y": child.scale.y,
-				"id": child.get_meta("unique_id") if child.has_meta("unique_id") else str(randi()),
-				"layer": child.get_meta("layer", 1),
+				"x": object.global_position.x,
+				"y": object.global_position.y,
+				"scene_path": object.scene_file_path,
+				"rotation": object.rotation_degrees,
+				"scale_x": object.scale.x,
+				"scale_y": object.scale.y,
+				"id": object.get_meta("unique_id", ""),
+				"layer": object.get_meta("layer", 1)
 			}
-			items_array.append(item_data)
+			items_to_save.append(item_data)
 			
 	# Wraps everything into a dictionary
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"background": current_bg_path, 
-		"items": items_array
+		"items": items_to_save
 	}
 			
 	var file = FileAccess.open(current_save_path, FileAccess.WRITE)
@@ -604,16 +641,19 @@ func update_layer_display() -> void:
 	refresh_layer_visibility()
 	
 func refresh_layer_visibility() -> void:
-	for child in room_canvas.get_children():
-		# Grab the sticky note. Fallback to layer 1 for older objects.
-		var obj_layer = child.get_meta("layer", 1)
-		
-		if current_layer == 0 or current_layer == obj_layer:
-			child.modulate.a = 1.0  # Fully opaque
-		else:
-			child.modulate.a = 0.2 # Transparent
+	# Loop through chunks, then objects
+	for chunk_id in level_chunks:
+		var chunk_parent = level_chunks[chunk_id]
+		for child in chunk_parent.get_children():
+			
+			var obj_layer = child.get_meta("layer", 1)
+			
+			if current_layer == 0 or current_layer == obj_layer:
+				child.modulate.a = 1.0  # Opaque
+			else:
+				child.modulate.a = 0.07 # Transparent
 
-# --- COPY AND PASTE LOGIC ---
+# Copy and Paste Logic
 
 func copy_selection() -> void:
 	# Clear the old clipboard
@@ -664,7 +704,22 @@ func paste_clipboard() -> void:
 			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
 			new_object.set_meta("unique_id", unique_id)
 			
-			room_canvas.add_child(new_object)
+			# Put pasted objects into chunks
+			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+
+			if not level_chunks.has(chunk_id):
+				var chunk_parent = Node2D.new()
+				chunk_parent.name = "Chunk_" + str(chunk_id)
+				room_canvas.add_child(chunk_parent)
+				level_chunks[chunk_id] = chunk_parent
+				
+				if chunk_id not in active_chunks:
+					chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
+					chunk_parent.visible = false
+
+			level_chunks[chunk_id].add_child(new_object)
+			# --------------------------------------------
+			
 			new_selection.append(new_object)
 			
 			# UPDATE the clipboard item's position so pasting again moves it another 2 blocks!
@@ -675,29 +730,29 @@ func paste_clipboard() -> void:
 		# Passing 'true' simulates holding Ctrl, adding them all to the group
 		change_selection(obj, true)
 		
-# --- BOX SELECTION LOGIC ---
-
+# Box selection logic
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
-	# Calculate the perfect rectangle regardless of which direction the mouse was dragged
 	var pos = Vector2(min(start_p.x, end_p.x), min(start_p.y, end_p.y))
 	var size = Vector2(abs(start_p.x - end_p.x), abs(start_p.y - end_p.y))
 	var selection_rect = Rect2(pos, size)
 	
-	for child in room_canvas.get_children():
-		if child is CollisionObject2D:
-			var obj_layer = child.get_meta("layer", 1)
-			
-			# Make sure we only grab objects on the active layer
-			if current_layer == 0 or current_layer == obj_layer:
-				# Check if the object's center point is inside our rectangle
-				if selection_rect.has_point(child.global_position):
-					# Add it to the group safely without deselecting others
-					if not selected_objects.has(child):
-						selected_objects.append(child)
-						if child.has_method("set_highlight"):
-							child.set_highlight(true)
+	# Loop through chunks, then loop through objects inside them
+	for chunk_id in level_chunks:
+		var chunk_parent = level_chunks[chunk_id]
+		for child in chunk_parent.get_children():
+			if child is CollisionObject2D:
+				var obj_layer = child.get_meta("layer", 1)
+				
+				# Make sure we only grab objects on the active layer
+				if current_layer == 0 or current_layer == obj_layer:
+					# Check if the object's center point is inside our rectangle
+					if selection_rect.has_point(child.global_position):
+						# Add it to the group safely without deselecting others
+						if not selected_objects.has(child):
+							selected_objects.append(child)
+							if child.has_method("set_highlight"):
+								child.set_highlight(true)
 							
-	# Show the UI menu if we actually caught anything
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
 
@@ -713,3 +768,22 @@ func _draw() -> void:
 		
 		# Draw solid blue outline (width of 2 pixels)
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
+
+func update_editor_chunks(center_chunk: int) -> void:
+	var needed_chunks = [center_chunk - 1, center_chunk, center_chunk + 1]
+
+	# 1. Sleep chunks that went off-screen
+	for chunk_id in active_chunks:
+		if chunk_id not in needed_chunks:
+			if level_chunks.has(chunk_id):
+				level_chunks[chunk_id].process_mode = Node.PROCESS_MODE_DISABLED
+				level_chunks[chunk_id].visible = false
+
+	# 2. Wake up chunks coming on-screen
+	for chunk_id in needed_chunks:
+		if chunk_id not in active_chunks:
+			if level_chunks.has(chunk_id):
+				level_chunks[chunk_id].process_mode = Node.PROCESS_MODE_INHERIT
+				level_chunks[chunk_id].visible = true
+
+	active_chunks = needed_chunks
