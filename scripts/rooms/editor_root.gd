@@ -399,20 +399,18 @@ func place_object(pos: Vector2) -> void:
 		# --- CHUNKING PLACEMENT ---
 		var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 
-		# 1. Ensure the chunk parent exists
+		# Create an empty array if the chunk doesn't exist
 		if not level_chunks.has(chunk_id):
-			var chunk_parent = Node2D.new()
-			chunk_parent.name = "Chunk_" + str(chunk_id)
-			room_canvas.add_child(chunk_parent)
-			level_chunks[chunk_id] = chunk_parent
-			
-			# If we are building in a chunk that isn't currently active, keep it asleep
-			if chunk_id not in active_chunks:
-				chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
-				chunk_parent.visible = false
+			level_chunks[chunk_id] = []
 
-		# 2. Add directly to the chunk parent (Do not add to room_canvas!)
-		level_chunks[chunk_id].add_child(new_object)
+		# Add to canvas for perfect chronological layering
+		room_canvas.add_child(new_object)
+		level_chunks[chunk_id].append(new_object)
+		
+		# Sleep immediately if chunk is inactive
+		if chunk_id not in active_chunks:
+			new_object.process_mode = Node.PROCESS_MODE_DISABLED
+			new_object.visible = false
 		
 		var placed_state = serialize_objects([new_object])
 		commit_action("place", [], placed_state)
@@ -507,18 +505,18 @@ func load_level(target_path: String) -> void:
 						
 					var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 
+					# Create an empty array if the chunk doesn't exist
 					if not level_chunks.has(chunk_id):
-						var chunk_parent = Node2D.new()
-						chunk_parent.name = "Chunk_" + str(chunk_id)
-						room_canvas.add_child(chunk_parent)
-						level_chunks[chunk_id] = chunk_parent
-						
-						# Start off-screen chunks as sleeping
-						chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
-						chunk_parent.visible = false
+						level_chunks[chunk_id] = []
 
-					# Add the object to its specific chunk parent
-					level_chunks[chunk_id].add_child(new_object)
+					# Add to canvas for perfect chronological layering
+					room_canvas.add_child(new_object)
+					level_chunks[chunk_id].append(new_object)
+					
+					# Sleep immediately if chunk is inactive
+					if chunk_id not in active_chunks:
+						new_object.process_mode = Node.PROCESS_MODE_DISABLED
+						new_object.visible = false
 					
 # Called when the user picks a new background
 func change_background(new_path: String) -> void:
@@ -555,12 +553,9 @@ func _on_save_button_pressed() -> void:
 		DirAccess.make_dir_absolute("user://Levels")
 
 	var items_to_save = []
-
-	for chunk_id in level_chunks:
-		var chunk_parent = level_chunks[chunk_id]
-		for object in chunk_parent.get_children():
-			
-			# Gather all object properties
+	
+	for object in room_canvas.get_children():
+		if object is CollisionObject2D:
 			var item_data = {
 				"x": object.global_position.x,
 				"y": object.global_position.y,
@@ -585,7 +580,7 @@ func _on_save_button_pressed() -> void:
 		var json_string = JSON.stringify(save_dict, "\t") 
 		file.store_string(json_string)
 		file.close()
-		print("Level saved to: ", current_save_path)	
+		print("Level saved to: ", current_save_path)
 	
 func _on_save_and_quit_button_pressed() -> void:
 	# Just combines save and quit logic
@@ -686,11 +681,8 @@ func update_layer_display() -> void:
 	refresh_layer_visibility()
 	
 func refresh_layer_visibility() -> void:
-	# Loop through chunks, then objects
-	for chunk_id in level_chunks:
-		var chunk_parent = level_chunks[chunk_id]
-		for child in chunk_parent.get_children():
-			
+	for child in room_canvas.get_children():
+		if child is CollisionObject2D:
 			var obj_layer = child.get_meta("layer", 1)
 			
 			if current_layer == 0 or current_layer == obj_layer:
@@ -704,9 +696,9 @@ func copy_selection() -> void:
 	# Clear the old clipboard
 	clipboard.clear()
 	
-	# --- FIX: Sort selection chronologically by their timestamp IDs ---
+	# --- FIX: Sort chronologically using Godot's internal spawn order ---
 	var sorted_selection = selected_objects.duplicate()
-	sorted_selection.sort_custom(func(a, b): return int(a.get_meta("unique_id", "0")) < int(b.get_meta("unique_id", "0")))
+	sorted_selection.sort_custom(func(a, b): return a.get_instance_id() < b.get_instance_id())
 	
 	# Save the exact state of every selected object using the sorted timeline
 	for obj in sorted_selection:
@@ -756,17 +748,18 @@ func paste_clipboard() -> void:
 			# Put pasted objects into chunks
 			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 
+			# Create an empty array if the chunk doesn't exist
 			if not level_chunks.has(chunk_id):
-				var chunk_parent = Node2D.new()
-				chunk_parent.name = "Chunk_" + str(chunk_id)
-				room_canvas.add_child(chunk_parent)
-				level_chunks[chunk_id] = chunk_parent
-				
-				if chunk_id not in active_chunks:
-					chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
-					chunk_parent.visible = false
+				level_chunks[chunk_id] = []
 
-			level_chunks[chunk_id].add_child(new_object)
+			# Add to canvas for perfect chronological layering
+			room_canvas.add_child(new_object)
+			level_chunks[chunk_id].append(new_object)
+			
+			# Sleep immediately if chunk is inactive
+			if chunk_id not in active_chunks:
+				new_object.process_mode = Node.PROCESS_MODE_DISABLED
+				new_object.visible = false
 			
 			new_selection.append(new_object)
 			
@@ -790,20 +783,20 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	
 	# Loop through chunks, then loop through objects inside them
 	for chunk_id in level_chunks:
-		var chunk_parent = level_chunks[chunk_id]
-		for child in chunk_parent.get_children():
-			if child is CollisionObject2D:
-				var obj_layer = child.get_meta("layer", 1)
-				
-				# Make sure we only grab objects on the active layer
-				if current_layer == 0 or current_layer == obj_layer:
-					# Check if the object's center point is inside our rectangle
-					if selection_rect.has_point(child.global_position):
-						# Add it to the group safely without deselecting others
-						if not selected_objects.has(child):
-							selected_objects.append(child)
-							if child.has_method("set_highlight"):
-								child.set_highlight(true)
+		for child in level_chunks[chunk_id]:
+			if is_instance_valid(child):
+				if child is CollisionObject2D:
+					var obj_layer = child.get_meta("layer", 1)
+					
+					# Make sure we only grab objects on the active layer
+					if current_layer == 0 or current_layer == obj_layer:
+						# Check if the object's center point is inside our rectangle
+						if selection_rect.has_point(child.global_position):
+							# Add it to the group safely without deselecting others
+							if not selected_objects.has(child):
+								selected_objects.append(child)
+								if child.has_method("set_highlight"):
+									child.set_highlight(true)
 							
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
@@ -828,15 +821,19 @@ func update_editor_chunks(center_chunk: int) -> void:
 	for chunk_id in active_chunks:
 		if chunk_id not in needed_chunks:
 			if level_chunks.has(chunk_id):
-				level_chunks[chunk_id].process_mode = Node.PROCESS_MODE_DISABLED
-				level_chunks[chunk_id].visible = false
+				for obj in level_chunks[chunk_id]:
+					if is_instance_valid(obj):
+						obj.process_mode = Node.PROCESS_MODE_DISABLED
+						obj.visible = false
 
 	# 2. Wake up chunks coming on-screen
 	for chunk_id in needed_chunks:
 		if chunk_id not in active_chunks:
 			if level_chunks.has(chunk_id):
-				level_chunks[chunk_id].process_mode = Node.PROCESS_MODE_INHERIT
-				level_chunks[chunk_id].visible = true
+				for obj in level_chunks[chunk_id]:
+					if is_instance_valid(obj):
+						obj.process_mode = Node.PROCESS_MODE_INHERIT
+						obj.visible = true
 
 	active_chunks = needed_chunks
 	
@@ -904,9 +901,10 @@ func _on_redo_button_pressed() -> void:
 
 func find_object_by_id(target_id: String) -> CollisionObject2D:
 	for chunk_id in level_chunks:
-		for obj in level_chunks[chunk_id].get_children():
-			if obj.has_meta("unique_id") and obj.get_meta("unique_id") == target_id:
-				return obj
+		for child in level_chunks[chunk_id]:
+			if is_instance_valid(child):
+				if child.has_meta("unique_id") and child.get_meta("unique_id") == target_id:
+					return child
 	return null
 
 func remove_objects_by_id(data_array: Array) -> void:
@@ -934,16 +932,20 @@ func recreate_objects(data_array: Array) -> void:
 			new_object.set_meta("unique_id", item["unique_id"])
 			
 			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+
+			# Create an empty array if the chunk doesn't exist
 			if not level_chunks.has(chunk_id):
-				var chunk_parent = Node2D.new()
-				chunk_parent.name = "Chunk_" + str(chunk_id)
-				room_canvas.add_child(chunk_parent)
-				level_chunks[chunk_id] = chunk_parent
-				if chunk_id not in active_chunks:
-					chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
-					chunk_parent.visible = false
-					
-			level_chunks[chunk_id].add_child(new_object)
+				level_chunks[chunk_id] = []
+
+			# Add to canvas for perfect chronological layering
+			room_canvas.add_child(new_object)
+			level_chunks[chunk_id].append(new_object)
+			
+			# Sleep immediately if chunk is inactive
+			if chunk_id not in active_chunks:
+				new_object.process_mode = Node.PROCESS_MODE_DISABLED
+				new_object.visible = false
+
 			newly_created.append(new_object)
 			
 	for obj in newly_created:

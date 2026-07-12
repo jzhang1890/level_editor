@@ -107,18 +107,18 @@ func load_level(target_path: String) -> void:
 					
 					var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 					
-					# 1. Create a parent node for this chunk if it doesn't exist yet
+					# 1. Create an empty array for this chunk if it doesn't exist yet
 					if not level_chunks.has(chunk_id):
-						var chunk_parent = Node2D.new()
-						level_canvas.add_child(chunk_parent)
-						level_chunks[chunk_id] = chunk_parent
+						level_chunks[chunk_id] = []
 						
-						# Sleep the parent immediately
-						chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
-						chunk_parent.visible = false
-						
-					# 2. Add the object to the parent node instead of the main canvas!
-					level_chunks[chunk_id].add_child(new_object)
+					# 2. Add the object to the main canvas to preserve chronological layering!
+					level_canvas.add_child(new_object)
+					level_chunks[chunk_id].append(new_object)
+					
+					# 3. Sleep the object immediately if it's not in an active chunk
+					if chunk_id not in active_chunks:
+						new_object.process_mode = Node.PROCESS_MODE_DISABLED
+						new_object.visible = false
 					
 
 func _process(_delta: float) -> void:
@@ -188,33 +188,34 @@ func _on_quit_button_pressed() -> void:
 	
 # Chunk manager
 func update_chunks(center_chunk: int) -> void:
-	# We want the chunk behind the player, the current chunk, and the chunk ahead
-	var needed_chunks = [center_chunk - 1, center_chunk, center_chunk + 1]
+	# Widen the active buffer to 5 chunks
+	var needed_chunks = [center_chunk - 2, center_chunk - 1, center_chunk, center_chunk + 1, center_chunk + 2]
 
 	# Always keep the spawn chunks loaded to prevent blinking 
 	var current_spawn_chunk = int(floor(spawn_position.y / CHUNK_HEIGHT))
-	var spawn_chunks = [current_spawn_chunk - 2, current_spawn_chunk, current_spawn_chunk + 2]
+	var spawn_chunks = [current_spawn_chunk - 2, current_spawn_chunk - 1, current_spawn_chunk, current_spawn_chunk + 1, current_spawn_chunk + 2]
 	
 	for c in spawn_chunks:
 		if not needed_chunks.has(c):
 			needed_chunks.append(c)
 
-	# Put old chunks to sleep (No nested loop needed!)
+	# Put old chunks to sleep
 	for chunk_id in active_chunks:
 		if chunk_id not in needed_chunks:
 			if level_chunks.has(chunk_id):
-				var chunk_parent = level_chunks[chunk_id]
-				chunk_parent.process_mode = Node.PROCESS_MODE_DISABLED
-				chunk_parent.visible = false
+				for obj in level_chunks[chunk_id]:
+					if is_instance_valid(obj):
+						obj.process_mode = Node.PROCESS_MODE_DISABLED
+						obj.visible = false
 
-	# 2. Wake up the new chunks (O(1) Engine Speed!)
+	# Wake up the new chunks
 	for chunk_id in needed_chunks:
 		if chunk_id not in active_chunks:
 			if level_chunks.has(chunk_id):
-				# --- FIX: Just grab the parent node and wake it up ---
-				var chunk_parent = level_chunks[chunk_id]
-				chunk_parent.process_mode = Node.PROCESS_MODE_INHERIT 
-				chunk_parent.visible = true
+				for obj in level_chunks[chunk_id]:
+					if is_instance_valid(obj):
+						obj.process_mode = Node.PROCESS_MODE_INHERIT 
+						obj.visible = true
 
-	# 3. Update the tracking array so we remember what is currently awake
+	# Update the tracking array so we remember what is currently awake
 	active_chunks = needed_chunks
