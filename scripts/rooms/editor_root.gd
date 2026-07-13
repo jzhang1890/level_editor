@@ -99,6 +99,12 @@ func _ready() -> void:
 	if Global.level_to_load != "":
 		current_save_path = Global.level_to_load # Makes sure to save to this file later
 		load_level(current_save_path)
+		
+func _exit_tree() -> void:
+	# This intercepts the scene closure and forces the engine 
+	# to wait for the background thread to safely finish saving.
+	if save_thread and save_thread.is_started():
+		save_thread.wait_to_finish()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not paused:
