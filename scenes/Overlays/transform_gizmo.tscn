@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://cshpi4x7dmqd2"]
+
+[ext_resource type="Script" uid="uid://dkxli4ch2ioxu" path="res://scripts/Overlays/transform_gizmo.gd" id="1_1cw00"]
+[ext_resource type="Texture2D" uid="uid://bxoiok8wa1hc2" path="res://Resources/handle.png" id="1_v2tj4"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1cw00"]
+radius = 13.038404
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_jtxpn"]
+radius = 13.0
+
+[node name="TransformGizmo" type="Node2D" unique_id=653064811]
+z_index = 1000
+script = ExtResource("1_1cw00")
+
+[node name="ScaleHandle" type="Area2D" parent="." unique_id=811936714]
+
+[node name="Sprite2D" type="Sprite2D" parent="ScaleHandle" unique_id=1952338740]
+texture = ExtResource("1_v2tj4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ScaleHandle" unique_id=1544299266]
+shape = SubResource("CircleShape2D_1cw00")
+
+[node name="RotateHandle" type="Area2D" parent="." unique_id=2045809538]
+
+[node name="Sprite2D" type="Sprite2D" parent="RotateHandle" unique_id=637988018]
+texture = ExtResource("1_v2tj4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RotateHandle" unique_id=1859216703]
+shape = SubResource("CircleShape2D_jtxpn")

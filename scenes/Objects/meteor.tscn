@@ -6,8 +6,9 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_cyiuj"]
 radius = 42.047592
 
-[node name="SolidMeteor" type="StaticBody2D" unique_id=888763138]
+[node name="Meteor" type="StaticBody2D" unique_id=888763138]
 script = ExtResource("1_6jvxm")
+spin_speed = 150.0
 metadata/_custom_type_script = "uid://dgwjjvf5qi2ki"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=249990255]

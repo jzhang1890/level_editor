@@ -6,7 +6,7 @@ extends Node2D
 # The room where you put the objects
 @onready var room_canvas: Node2D = $Foreground/RoomCanvas
 
-@onready var camera: Camera2D = $Camera2D 
+@onready var camera: Camera2D = $Camera2D
 
 # Grab the container instead of the individual button
 @onready var selection_menu: Control = $EditorUI/SelectionMenu
@@ -48,7 +48,7 @@ var current_bg_path: String = "res://Resources/Backgrounds/background1.png"
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
-var drag_threshold: float = 25.0 
+var drag_threshold: float = 25.0
 
 # Track for dragging object
 var is_dragging_objects: bool = false
@@ -94,8 +94,8 @@ func _ready() -> void:
 		selection_menu.visible = false
 	if pause_menu:
 		pause_menu.visible = false
-	
-	# If the global script has a level queued up, load it immediately
+		
+		# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
 		current_save_path = Global.level_to_load # Makes sure to save to this file later
 		load_level(current_save_path)
@@ -153,7 +153,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				previous_mouse_pos = current_mouse_pos
 				
 				# Kill the input so the camera script never sees it 
-				get_viewport().set_input_as_handled() 
+				get_viewport().set_input_as_handled()
+				
+				# Tell the gizmo to follow the newly moved objects
+				if has_node("Foreground/TransformGizmo"):
+					$Foreground/TransformGizmo._calculate_bounding_box()
+					
 				return # Stop processing in this script
 				
 			# Box Selection Dragging 
@@ -179,7 +184,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.pressed:
 				mouse_down_screen_pos = event.position
 				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
-				is_dragging = false 
+				is_dragging = false
 				
 				# --- FIX A: Freeze camera instantly if preparing to draw a box ---
 				if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
@@ -378,6 +383,10 @@ func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) ->
 	# 3. Show the UI menu if at least one object is selected
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
+		
+	# --- THE FIX: Update this path to Foreground/TransformGizmo ---
+	if has_node("Foreground/TransformGizmo"):
+		$Foreground/TransformGizmo.update_selection(selected_objects)
 
 # Placement logic
 func place_object(pos: Vector2) -> void:
@@ -817,6 +826,10 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 							
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
+		
+	# --- NEW: Tell the Gizmo about the newly box-selected objects! ---
+	if has_node("Foreground/TransformGizmo"):
+		$Foreground/TransformGizmo.update_selection(selected_objects)
 
 # Godot's built-in drawing engine
 func _draw() -> void:

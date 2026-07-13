@@ -12,8 +12,5 @@ func _process(_delta: float) -> void:
 	# Get the exact time the game has been running in seconds
 	var current_time = Time.get_ticks_msec() / 1000.0
 	
-	# Read the meta dynamically so editor Nudges update it instantly 
-	var current_base = get_meta("base_rotation", start_rotation)
-	
 	# Calculate the exact deterministic rotation
-	$Sprite2D.rotation_degrees = current_base + (current_time * spin_speed)
+	$Sprite2D.rotation_degrees = start_rotation + (current_time * spin_speed)
