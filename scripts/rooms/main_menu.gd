@@ -11,10 +11,9 @@ func _process(_delta: float) -> void:
 	pass
 
 
-func _on_start_button_pressed() -> void:
-	# Replace the path below with the actual path to your game's first level
-	get_tree().change_scene_to_file("res://scenes/level/level.tscn")
-
-
 func _on_quit_button_pressed() -> void:
 	get_tree().quit()
+
+
+func _on_level_editor_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/rooms/level_browser.tscn")

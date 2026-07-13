@@ -24,6 +24,9 @@ extends Node2D
 # Layer label in LayerContainer 
 @onready var layer_label: Label = $EditorUI/LayerContainer/LayerLabel
 
+# Threading variables
+var save_thread: Thread
+
 # Chunking variables
 const CHUNK_HEIGHT: float = 1024.0
 var level_chunks: Dictionary = {}
@@ -552,8 +555,13 @@ func _on_save_button_pressed() -> void:
 	if not DirAccess.dir_exists_absolute("user://Levels"):
 		DirAccess.make_dir_absolute("user://Levels")
 
+	# 1. Clean up the thread if the user spams the save button
+	if save_thread and save_thread.is_started():
+		save_thread.wait_to_finish()
+
 	var items_to_save = []
 	
+	# 2. Gather data on the MAIN thread (This is extremely fast)
 	for object in room_canvas.get_children():
 		if object is CollisionObject2D:
 			var item_data = {
@@ -568,19 +576,17 @@ func _on_save_button_pressed() -> void:
 			}
 			items_to_save.append(item_data)
 			
-	# Wraps everything into a dictionary
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"background": current_bg_path, 
 		"items": items_to_save
 	}
 			
-	var file = FileAccess.open(current_save_path, FileAccess.WRITE)
-	if file:
-		var json_string = JSON.stringify(save_dict, "\t") 
-		file.store_string(json_string)
-		file.close()
-		print("Level saved to: ", current_save_path)
+	# 3. Spin up the background thread!
+	save_thread = Thread.new()
+	
+	# .bind() attaches our dictionary and file path to the function call securely
+	save_thread.start(_write_save_data_to_disk.bind(save_dict, current_save_path))
 	
 func _on_save_and_quit_button_pressed() -> void:
 	# Just combines save and quit logic
@@ -690,19 +696,24 @@ func refresh_layer_visibility() -> void:
 			else:
 				child.modulate.a = 0.07 # Transparent
 
-# Copy and Paste Logic
+# COPY AND PASTE LOGIC
 
 func copy_selection() -> void:
 	# Clear the old clipboard
 	clipboard.clear()
 	
-	# --- FIX: Sort chronologically using Godot's internal spawn order ---
-	var sorted_selection = selected_objects.duplicate()
-	sorted_selection.sort_custom(func(a, b): return a.get_instance_id() < b.get_instance_id())
+	# Filter out any deleted/freed objects before sorting
+	var sorted_selection = []
+	for obj in selected_objects:
+		if is_instance_valid(obj):
+			sorted_selection.append(obj)
+	
+	# --- FIX: Sort by visual tree index instead of creation ID ---
+	sorted_selection.sort_custom(func(a, b): return a.get_index() < b.get_index())
 	
 	# Save the exact state of every selected object using the sorted timeline
 	for obj in sorted_selection:
-		if is_instance_valid(obj) and obj.scene_file_path != "":
+		if obj.scene_file_path != "":
 			var item_data = {
 				"scene_path": obj.scene_file_path,
 				"global_position": obj.global_position,
@@ -736,7 +747,7 @@ func paste_clipboard() -> void:
 			new_object.rotation_degrees = item["rotation_degrees"]
 			new_object.scale = item["scale"]
 			
-			# Apply metadata and depth sorting
+			# Apply metadata and layer sorting
 			new_object.set_meta("base_rotation", item["base_rotation"])
 			new_object.set_meta("layer", item["layer"])
 			new_object.z_index = -item["layer"]
@@ -763,7 +774,7 @@ func paste_clipboard() -> void:
 			
 			new_selection.append(new_object)
 			
-			# UPDATE the clipboard item's position so pasting again moves it another 2 blocks!
+			# Update the clipboard item's position so pasting again moves it another 2 blocks
 			item["global_position"] = new_pos
 			
 	# 3. Automatically select the newly pasted objects
@@ -775,7 +786,7 @@ func paste_clipboard() -> void:
 		var pasted_state = serialize_objects(new_selection)
 		commit_action("place", [], pasted_state)
 		
-# Box selection logic
+# BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	var pos = Vector2(min(start_p.x, end_p.x), min(start_p.y, end_p.y))
 	var size = Vector2(abs(start_p.x - end_p.x), abs(start_p.y - end_p.y))
@@ -841,18 +852,26 @@ func update_editor_chunks(center_chunk: int) -> void:
 
 # 1. Takes an array of objects and converts them to pure dictionary data
 func serialize_objects(objects: Array) -> Array:
-	var data_array = []
+	# Filter out freed objects and sort them chronologically 
+	var valid_objects = []
 	for obj in objects:
 		if is_instance_valid(obj) and obj.scene_file_path != "":
-			data_array.append({
-				"scene_path": obj.scene_file_path,
-				"global_position": obj.global_position,
-				"rotation_degrees": obj.rotation_degrees,
-				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
-				"scale": obj.scale,
-				"layer": obj.get_meta("layer", 1),
-				"unique_id": obj.get_meta("unique_id", "")
-			})
+			valid_objects.append(obj)
+			
+	valid_objects.sort_custom(func(a, b): return a.get_index() < b.get_index())
+	
+	var data_array = []
+	for obj in valid_objects:
+		data_array.append({
+			"scene_path": obj.scene_file_path,
+			"global_position": obj.global_position,
+			"rotation_degrees": obj.rotation_degrees,
+			"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
+			"scale": obj.scale,
+			"layer": obj.get_meta("layer", 1),
+			"unique_id": obj.get_meta("unique_id", ""),
+			"tree_index": obj.get_index() # Memorize its exact Z-layer order
+		})
 	return data_array
 
 # 2. Pushes a new action to the history and clears the Redo timeline
@@ -897,7 +916,7 @@ func _on_undo_button_pressed() -> void:
 func _on_redo_button_pressed() -> void:
 	redo_action()
 
-# --- UNDO/REDO HELPER FUNCTIONS ---
+# UNDO/REDO HELPER FUNCTIONS
 
 func find_object_by_id(target_id: String) -> CollisionObject2D:
 	for chunk_id in level_chunks:
@@ -939,6 +958,11 @@ func recreate_objects(data_array: Array) -> void:
 
 			# Add to canvas for perfect chronological layering
 			room_canvas.add_child(new_object)
+			
+			# --- FIX: Move it back to its exact original rendering spot! ---
+			if item.has("tree_index"):
+				room_canvas.move_child(new_object, item["tree_index"])
+			
 			level_chunks[chunk_id].append(new_object)
 			
 			# Sleep immediately if chunk is inactive
@@ -961,3 +985,16 @@ func apply_object_state(data_array: Array) -> void:
 			obj.set_meta("base_rotation", item["base_rotation"])
 			obj.set_meta("layer", item["layer"])
 			obj.z_index = -item["layer"]
+			
+# Background Worker Function for saving data
+func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
+	# This heavy stringification now happens on a different CPU core!
+	var json_string = JSON.stringify(save_dict, "\t") 
+	
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		file.store_string(json_string)
+		file.close()
+		
+	# Print statements from background threads are perfectly safe
+	print("Background thread complete! Level safely saved to: ", path)

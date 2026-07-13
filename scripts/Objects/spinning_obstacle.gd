@@ -16,4 +16,4 @@ func _process(_delta: float) -> void:
 	var current_base = get_meta("base_rotation", start_rotation)
 	
 	# Calculate the exact deterministic rotation
-	rotation_degrees = current_base + (current_time * spin_speed)
+	$Sprite2D.rotation_degrees = current_base + (current_time * spin_speed)

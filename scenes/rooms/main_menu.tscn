@@ -37,12 +37,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer" unique_id=613897124]
+[node name="HBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1770607378]
 layout_mode = 2
 
-[node name="StartButton" type="Button" parent="CenterContainer/HBoxContainer" unique_id=293340843]
+[node name="PlayButton" type="Button" parent="CenterContainer/HBoxContainer" unique_id=293340843]
 layout_mode = 2
-text = "Start Game
+text = "Play
+"
+
+[node name="LevelEditorButton" type="Button" parent="CenterContainer/HBoxContainer" unique_id=2074917344]
+layout_mode = 2
+text = "Level Editor
 "
 
 [node name="QuitButton" type="Button" parent="CenterContainer/HBoxContainer" unique_id=731556297]
@@ -50,5 +55,5 @@ layout_mode = 2
 text = "Quit
 "
 
-[connection signal="pressed" from="CenterContainer/HBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/LevelEditorButton" to="." method="_on_level_editor_button_pressed"]
 [connection signal="pressed" from="CenterContainer/HBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

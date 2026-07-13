@@ -42,7 +42,7 @@ func _ready() -> void:
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
 	
-	# 2. (Optional) Set the player's starting position based on level data if you add spawn points later!
+	# 2.  FOR LATER: Set the player's starting position based on level data for spawn points
 
 # Loading level function
 func load_level(target_path: String) -> void:
@@ -53,7 +53,7 @@ func load_level(target_path: String) -> void:
 	for child in level_canvas.get_children():
 		child.queue_free()
 	
-	# --- NEW: Clear chunks before loading ---
+	# Clear chunks before loading
 	level_chunks.clear()
 	active_chunks.clear()
 	last_calculated_chunk = -999
@@ -146,7 +146,7 @@ func _on_player_player_died() -> void:
 	camera.global_position = spawn_position 
 	camera.target_x = spawn_position.x 
 	
-	# --- NEW: Force the chunks to reset instantly on respawn ---
+	# Force the chunks to reset instantly on respawn 
 	last_calculated_chunk = -999 
 	
 	# Optimization
@@ -155,7 +155,7 @@ func _on_player_player_died() -> void:
 		if is_instance_valid(obj):
 			obj.reset()
 	
-	# --- FIX: Clear the list so it doesn't cause a memory leak freeze! ---
+	# Clear the list so it doesn't cause a memory leak freeze
 	modified_objects.clear()
 	
 func _on_resume_button_pressed() -> void:
@@ -186,14 +186,14 @@ func _on_quit_button_pressed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
 	
-# Chunk manager
+# CHUNK MANAGER
 func update_chunks(center_chunk: int) -> void:
-	# Widen the active buffer to 5 chunks
-	var needed_chunks = [center_chunk - 2, center_chunk - 1, center_chunk, center_chunk + 1, center_chunk + 2]
+	# Need 2 chunks before, current chunk, and 2 chunks after
+	var needed_chunks = [center_chunk - 1, center_chunk, center_chunk + 1]
 
 	# Always keep the spawn chunks loaded to prevent blinking 
 	var current_spawn_chunk = int(floor(spawn_position.y / CHUNK_HEIGHT))
-	var spawn_chunks = [current_spawn_chunk - 2, current_spawn_chunk - 1, current_spawn_chunk, current_spawn_chunk + 1, current_spawn_chunk + 2]
+	var spawn_chunks = [current_spawn_chunk - 1, current_spawn_chunk, current_spawn_chunk + 1]
 	
 	for c in spawn_chunks:
 		if not needed_chunks.has(c):
