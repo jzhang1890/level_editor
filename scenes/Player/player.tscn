@@ -25,6 +25,3 @@ texture = ExtResource("4_tuyoq")
 
 [node name="Hitbox" type="CollisionPolygon2D" parent="." unique_id=487485815]
 polygon = PackedVector2Array(-26, 28, 25, 28, 0, -36)
-
-[node name="Muzzle" type="Marker2D" parent="." unique_id=1551757348]
-position = Vector2(0, -36)

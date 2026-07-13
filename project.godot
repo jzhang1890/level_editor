@@ -18,7 +18,6 @@ config/icon="res://Resources/icon.svg"
 [autoload]
 
 Global="*uid://dc2hre24eopif"
-SpinningManager="*uid://c3fjmy23gblja"
 
 [display]
 

@@ -63,16 +63,16 @@ func _calculate_bounding_box() -> void:
 
 	for obj in target_objects:
 		var local_pos = to_local(obj.global_position)
-		if local_pos.x < min_x: min_x = local_pos.x
-		if local_pos.x > max_x: max_x = local_pos.x
-		if local_pos.y < min_y: min_y = local_pos.y
-		if local_pos.y > max_y: max_y = local_pos.y
-
-	var padding = 32.0
-	min_x -= padding
-	max_x += padding
-	min_y -= padding
-	max_y += padding
+		
+		# --- FIX: Calculate padding dynamically based on the block's current scale ---
+		var padding_x = 32.0 * abs(obj.scale.x)
+		var padding_y = 32.0 * abs(obj.scale.y)
+		
+		# Apply the dynamic padding directly to the min/max checks
+		if local_pos.x - padding_x < min_x: min_x = local_pos.x - padding_x
+		if local_pos.x + padding_x > max_x: max_x = local_pos.x + padding_x
+		if local_pos.y - padding_y < min_y: min_y = local_pos.y - padding_y
+		if local_pos.y + padding_y > max_y: max_y = local_pos.y + padding_y
 
 	var box_width = max_x - min_x
 	var box_height = max_y - min_y
@@ -88,7 +88,6 @@ func _calculate_bounding_box() -> void:
 	rotate_handle.position = Vector2(local_center_x, min_y - 32.0)
 
 	queue_redraw()
-
 func _draw() -> void:
 	if target_objects.is_empty():
 		return
@@ -104,20 +103,30 @@ func _draw() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	# If the user lets go of the mouse, stop all dragging
 	if event is InputEventMouseButton and not event.pressed:
-		is_scaling = false
-		is_rotating = false
 		
-		# --- NEW: Unlock the camera ---
-		var cam = get_viewport().get_camera_2d()
-		if cam:
-			cam.set_process_unhandled_input(true)
-			cam.set_process_input(true)
-			cam.set_process(true)
+		# ONLY trigger the release logic if we were actually using the gizmo
+		if is_scaling or is_rotating:
+			# --- FIX: Stop the release click from reaching the Editor Root! ---
+			get_viewport().set_input_as_handled()
+			
+			is_scaling = false
+			is_rotating = false
+			
+			# Unlock the camera
+			var cam = get_viewport().get_camera_2d()
+			if cam:
+				cam.set_process_unhandled_input(true)
+				cam.set_process_input(true)
+				cam.set_process(true)
 		
 	if event is InputEventMouseMotion:
 		if is_scaling:
+			# Stop the drag motion from reaching the Editor Root
+			get_viewport().set_input_as_handled()
 			_apply_scale()
 		elif is_rotating:
+			# Stop the drag motion from reaching the Editor Root
+			get_viewport().set_input_as_handled()
 			_apply_rotation()
 
 func _apply_scale() -> void:
