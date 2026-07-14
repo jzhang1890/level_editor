@@ -579,16 +579,28 @@ func _on_save_button_pressed() -> void:
 	# 2. Gather data on the MAIN thread (This is extremely fast)
 	for object in room_canvas.get_children():
 		if object is CollisionObject2D:
+			# Always save the required base data, but snap floats to 3 decimal places
 			var item_data = {
-				"x": object.global_position.x,
-				"y": object.global_position.y,
+				"x": snapped(object.global_position.x, 0.001),
+				"y": snapped(object.global_position.y, 0.001),
 				"scene_path": object.scene_file_path,
-				"rotation": object.rotation_degrees,
-				"scale_x": object.scale.x,
-				"scale_y": object.scale.y,
-				"id": object.get_meta("unique_id", ""),
-				"layer": object.get_meta("layer", 1)
+				"id": object.get_meta("unique_id", "")
 			}
+			
+			# Only save rotation if it is NOT 0.0
+			if not is_zero_approx(object.rotation_degrees):
+				item_data["rotation"] = snapped(object.rotation_degrees, 0.001)
+				
+			# Only save scale if it is NOT exactly (1.0, 1.0)
+			if not object.scale.is_equal_approx(Vector2.ONE):
+				item_data["scale_x"] = snapped(object.scale.x, 0.001)
+				item_data["scale_y"] = snapped(object.scale.y, 0.001)
+				
+			# Only save layer if it is NOT 1
+			var layer = object.get_meta("layer", 1)
+			if layer != 1:
+				item_data["layer"] = layer
+				
 			items_to_save.append(item_data)
 			
 	var save_dict: Dictionary = {
@@ -1007,13 +1019,12 @@ func apply_object_state(data_array: Array) -> void:
 			
 # Background Worker Function for saving data
 func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
-	# This heavy stringification now happens on a different CPU core!
-	var json_string = JSON.stringify(save_dict, "\t") 
+	# --- FIX: Removed the "\t" argument to minify the JSON into a single dense line ---
+	var json_string = JSON.stringify(save_dict) 
 	
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file:
 		file.store_string(json_string)
 		file.close()
 		
-	# Print statements from background threads are perfectly safe
 	print("Background thread complete! Level safely saved to: ", path)
