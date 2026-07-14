@@ -67,18 +67,19 @@ func get_object_count_fast(target_path: String) -> int:
 	var file = FileAccess.open(target_path, FileAccess.READ)
 	if not file: return 0
 	
-	var count = 0
-	
-	# Read the file line-by-line using zero RAM
-	while not file.eof_reached():
-		var line = file.get_line()
-		
-		# Every object you save contains this exact key, so we just tally them up!
-		if '"scene_path"' in line:
-			count += 1
-			
+	var raw_text = file.get_as_text()
 	file.close()
-	return count	
+	
+	# Parse the JSON string to access the items dictionary key
+	var level_data = JSON.parse_string(raw_text)
+	if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
+		var items_str = level_data["items"]
+		if items_str.is_empty():
+			return 0
+		# Semicolons separate each item, so count them to get the total objects!
+		return items_str.count(";") + 1
+		
+	return 0
 
 # Button logic
 func _on_edit_button_pressed() -> void:

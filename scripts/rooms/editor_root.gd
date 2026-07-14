@@ -486,55 +486,83 @@ func load_level(target_path: String) -> void:
 				if loaded_texture:
 					bg_rect.texture = loaded_texture
 			
-			# Loop through the items array tucked inside the dictionary
-			for item in level_data["items"]:
-				var resource = load(item["scene_path"])
-				if resource:
-					var new_object = resource.instantiate()
-					# Position of object
-					new_object.global_position = Vector2(item["x"], item["y"])
-					
-					# Apply rotation (defaults to 0.0)
-					var loaded_rot = item.get("rotation", 0.0)
-					new_object.rotation_degrees = loaded_rot
-					
-					# Save that rotation into the metadata
-					new_object.set_meta("base_rotation", loaded_rot)
-					
-					# Apply scale (defaults to 1.0)
-					var s_x = item.get("scale_x", 1.0)
-					var s_y = item.get("scale_y", 1.0)
-					new_object.scale = Vector2(s_x, s_y)
-					
-					# Apply the saved ID, or create a new one if it's missing
-					var loaded_id = item.get("id", str(Time.get_ticks_usec()))
-					new_object.set_meta("unique_id", loaded_id)
-					
-					# Load the layer data and apply it
-					var loaded_layer = item.get("layer", 1)
-					new_object.set_meta("layer", loaded_layer)
-					
-					# Z-index so the object is behind objects of higher layers
-					new_object.z_index = -loaded_layer
-					
-					# Expand the max_layer limit so the right arrow button knows how far to go
-					if loaded_layer > max_layer:
-						max_layer = loaded_layer
+			var items_raw = level_data["items"]
+			if typeof(items_raw) == TYPE_STRING:
+				var item_strings = items_raw.split(";")
+				
+				for item_str in item_strings:
+					if item_str.is_empty():
+						continue
 						
-					var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
-
-					# Create an empty array if the chunk doesn't exist
-					if not level_chunks.has(chunk_id):
-						level_chunks[chunk_id] = []
-
-					# Add to canvas for perfect chronological layering
-					room_canvas.add_child(new_object)
-					level_chunks[chunk_id].append(new_object)
+					var data = item_str.split(",")
+					if data.size() < 2:
+						continue
+						
+					# Setup our baseline default values
+					var item_dict = {
+						"rotation": 0.0,
+						"scale_x": 1.0,
+						"scale_y": 1.0,
+						"layer": 1
+					}
 					
-					# Sleep immediately if chunk is inactive
-					if chunk_id not in active_chunks:
-						new_object.process_mode = Node.PROCESS_MODE_DISABLED
-						new_object.visible = false
+					# Read through array in pairs (key, value)
+					for i in range(0, data.size(), 2):
+						if i + 1 >= data.size():
+							break
+						var key = data[i]
+						var val = data[i+1]
+						
+						match key:
+							"1": item_dict["id"] = val
+							"2": item_dict["scene_path"] = val
+							"3": item_dict["x"] = val.to_float()
+							"4": item_dict["y"] = val.to_float()
+							"5": item_dict["rotation"] = val.to_float()
+							"6": item_dict["scale_x"] = val.to_float()
+							"7": item_dict["scale_y"] = val.to_float()
+							"8": item_dict["layer"] = val.to_int()
+							
+					# Instantiate the object exactly like before using our parsed dict!
+					var resource = load(item_dict["scene_path"])
+					if resource:
+						var new_object = resource.instantiate()
+						new_object.global_position = Vector2(item_dict["x"], item_dict["y"])
+						
+						# Apply rotation
+						var loaded_rot = item_dict["rotation"]
+						new_object.rotation_degrees = loaded_rot
+						new_object.set_meta("base_rotation", loaded_rot)
+						
+						# Apply scale
+						new_object.scale = Vector2(item_dict["scale_x"], item_dict["scale_y"])
+						
+						# Apply saved ID
+						new_object.set_meta("unique_id", item_dict["id"])
+						
+						# Apply layer data
+						var loaded_layer = item_dict["layer"]
+						new_object.set_meta("layer", loaded_layer)
+						new_object.z_index = -loaded_layer
+						
+						# Expand the max_layer limit
+						if loaded_layer > max_layer:
+							max_layer = loaded_layer
+							
+						var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+
+						# Create an empty array if the chunk doesn't exist
+						if not level_chunks.has(chunk_id):
+							level_chunks[chunk_id] = []
+
+						# Add to canvas
+						room_canvas.add_child(new_object)
+						level_chunks[chunk_id].append(new_object)
+						
+						# Sleep immediately if chunk is inactive
+						if chunk_id not in active_chunks:
+							new_object.process_mode = Node.PROCESS_MODE_DISABLED
+							new_object.visible = false
 					
 # Called when the user picks a new background
 func change_background(new_path: String) -> void:
@@ -574,45 +602,59 @@ func _on_save_button_pressed() -> void:
 	if save_thread and save_thread.is_started():
 		save_thread.wait_to_finish()
 
-	var items_to_save = []
+	var items_string_builder: Array[String] = []
 	
 	# 2. Gather data on the MAIN thread (This is extremely fast)
 	for object in room_canvas.get_children():
 		if object is CollisionObject2D:
-			# Always save the required base data, but snap floats to 3 decimal places
-			var item_data = {
-				"x": snapped(object.global_position.x, 0.001),
-				"y": snapped(object.global_position.y, 0.001),
-				"scene_path": object.scene_file_path,
-				"id": object.get_meta("unique_id", "")
-			}
+			var obj_parts: Array[String] = []
 			
-			# Only save rotation if it is NOT 0.0
+			# 1: ID
+			obj_parts.append("1")
+			obj_parts.append(object.get_meta("unique_id", ""))
+			
+			# 2: Scene Path
+			obj_parts.append("2")
+			obj_parts.append(object.scene_file_path)
+			
+			# 3 & 4: Snapped Coordinates
+			obj_parts.append("3")
+			obj_parts.append(str(snapped(object.global_position.x, 0.001)))
+			obj_parts.append("4")
+			obj_parts.append(str(snapped(object.global_position.y, 0.001)))
+			
+			# 5: Rotation (only if non-zero)
 			if not is_zero_approx(object.rotation_degrees):
-				item_data["rotation"] = snapped(object.rotation_degrees, 0.001)
+				obj_parts.append("5")
+				obj_parts.append(str(snapped(object.rotation_degrees, 0.001)))
 				
-			# Only save scale if it is NOT exactly (1.0, 1.0)
+			# 6 & 7: Scale (only if non-one)
 			if not object.scale.is_equal_approx(Vector2.ONE):
-				item_data["scale_x"] = snapped(object.scale.x, 0.001)
-				item_data["scale_y"] = snapped(object.scale.y, 0.001)
+				obj_parts.append("6")
+				obj_parts.append(str(snapped(object.scale.x, 0.001)))
+				obj_parts.append("7")
+				obj_parts.append(str(snapped(object.scale.y, 0.001)))
 				
-			# Only save layer if it is NOT 1
+			# 8: Layer (only if non-one)
 			var layer = object.get_meta("layer", 1)
 			if layer != 1:
-				item_data["layer"] = layer
+				obj_parts.append("8")
+				obj_parts.append(str(layer))
 				
-			items_to_save.append(item_data)
+			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
+			items_string_builder.append(",".join(obj_parts))
+			
+	# Join all objects with semicolons
+	var compressed_items_string = ";".join(items_string_builder)
 			
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"background": current_bg_path, 
-		"items": items_to_save
+		"items": compressed_items_string # Now a single optimized string!
 	}
 			
 	# 3. Spin up the background thread!
 	save_thread = Thread.new()
-	
-	# .bind() attaches our dictionary and file path to the function call securely
 	save_thread.start(_write_save_data_to_disk.bind(save_dict, current_save_path))
 	
 func _on_save_and_quit_button_pressed() -> void:
@@ -1028,3 +1070,4 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 		file.close()
 		
 	print("Background thread complete! Level safely saved to: ", path)
+	

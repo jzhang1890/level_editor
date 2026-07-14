@@ -79,48 +79,84 @@ func load_level(target_path: String) -> void:
 				level_name = level_data["level_name"]
 				level_name_label.text = level_name
 			
-			# Loop through the items array inside library and loads them using their properties
-			for item in level_data["items"]:
-				var resource = load(item["scene_path"])
-				if resource:
-					var new_object = resource.instantiate()
-					# Position of object
-					new_object.global_position = Vector2(item["x"], item["y"])
-					
-					# Apply rotation (defaults to 0.0)
-					var loaded_rot = item.get("rotation", 0.0)
-					new_object.rotation_degrees = loaded_rot
-					
-					# Apply scale (defaults to 1.0)
-					var s_x = item.get("scale_x", 1.0)
-					var s_y = item.get("scale_y", 1.0)
-					new_object.scale = Vector2(s_x, s_y)
-					
-					# Apply the saved ID, or create a new one if it's missing
-					var loaded_id = item.get("id", str(Time.get_ticks_usec()))
-					new_object.set_meta("unique_id", loaded_id)
-					
-					# Use the layer to determine z-index
-					var loaded_layer = item.get("layer", 1)
-					# Z-index so the object is behind objects of higher layers
-					new_object.z_index = -loaded_layer
-					
-					var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
-					
-					# 1. Create an empty array for this chunk if it doesn't exist yet
-					if not level_chunks.has(chunk_id):
-						level_chunks[chunk_id] = []
+			var items_raw = level_data["items"]
+			
+			# Ensure we are reading the new compressed string format
+			if typeof(items_raw) == TYPE_STRING:
+				var item_strings = items_raw.split(";")
+				
+				# Loop through the objects in the compressed string
+				for item_str in item_strings:
+					if item_str.is_empty():
+						continue
 						
-					# 2. Add the object to the main canvas to preserve chronological layering!
-					level_canvas.add_child(new_object)
-					level_chunks[chunk_id].append(new_object)
+					var data = item_str.split(",")
+					if data.size() < 2:
+						continue
+						
+					# Setup our baseline default values
+					var item_dict = {
+						"rotation": 0.0,
+						"scale_x": 1.0,
+						"scale_y": 1.0,
+						"layer": 1
+					}
 					
-					# 3. Sleep the object immediately if it's not in an active chunk
-					if chunk_id not in active_chunks:
-						new_object.process_mode = Node.PROCESS_MODE_DISABLED
-						new_object.visible = false
+					# Read through array in pairs (key, value)
+					for i in range(0, data.size(), 2):
+						if i + 1 >= data.size():
+							break
+						var key = data[i]
+						var val = data[i+1]
+						
+						match key:
+							"1": item_dict["id"] = val
+							"2": item_dict["scene_path"] = val
+							"3": item_dict["x"] = val.to_float()
+							"4": item_dict["y"] = val.to_float()
+							"5": item_dict["rotation"] = val.to_float()
+							"6": item_dict["scale_x"] = val.to_float()
+							"7": item_dict["scale_y"] = val.to_float()
+							"8": item_dict["layer"] = val.to_int()
+							
+					# Instantiate the object directly
+					var resource = load(item_dict["scene_path"])
+					if resource:
+						var new_object = resource.instantiate()
+						
+						# Position of object
+						new_object.global_position = Vector2(item_dict["x"], item_dict["y"])
+						
+						# Apply rotation and store base_rotation for SpinningObstacles
+						var loaded_rot = item_dict["rotation"]
+						new_object.rotation_degrees = loaded_rot
+						new_object.set_meta("base_rotation", loaded_rot)
+						
+						# Apply scale
+						new_object.scale = Vector2(item_dict["scale_x"], item_dict["scale_y"])
+						
+						# Apply the saved ID
+						new_object.set_meta("unique_id", item_dict["id"])
+						
+						# Use the layer to determine z-index
+						var loaded_layer = item_dict["layer"]
+						new_object.z_index = -loaded_layer
+						
+						var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
+						
+						# 1. Create an empty array for this chunk if it doesn't exist yet
+						if not level_chunks.has(chunk_id):
+							level_chunks[chunk_id] = []
+							
+						# 2. Add the object to the main canvas to preserve chronological layering!
+						level_canvas.add_child(new_object)
+						level_chunks[chunk_id].append(new_object)
+						
+						# 3. Sleep the object immediately if it's not in an active chunk
+						if chunk_id not in active_chunks:
+							new_object.process_mode = Node.PROCESS_MODE_DISABLED
+							new_object.visible = false
 					
-
 func _process(_delta: float) -> void:
 	if paused:
 		return
