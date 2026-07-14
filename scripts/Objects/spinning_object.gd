@@ -6,7 +6,7 @@ extends Sprite2D
 @export var spin_speed: float = 360.0
 var start_rotation: float = 0.0
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	# Get the exact time the game has been running in seconds
 	var current_time = Time.get_ticks_msec() / 1000.0
 	

@@ -159,6 +159,12 @@ offset_right = 1238.0
 offset_bottom = 60.0
 text = "Pause"
 
+[node name="VSlider" type="VSlider" parent="EditorUI" unique_id=125145340]
+offset_left = 1196.0
+offset_top = 224.0
+offset_right = 1227.0
+offset_bottom = 433.0
+
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 anchors_preset = 15
 anchor_right = 1.0
@@ -225,6 +231,7 @@ text = "Save and Quit"
 [connection signal="pressed" from="EditorUI/ZoomContainer/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomContainer/ZoomInButton" to="." method="_on_zoom_in_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

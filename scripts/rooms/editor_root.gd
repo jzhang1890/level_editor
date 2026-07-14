@@ -24,11 +24,13 @@ extends Node2D
 # Layer label in LayerContainer 
 @onready var layer_label: Label = $EditorUI/LayerContainer/LayerLabel
 
+@onready var scrollbar: VSlider = $EditorUI/VSlider
+
 # Threading variables
 var save_thread: Thread
 
 # Chunking variables
-const CHUNK_HEIGHT: float = 1024.0
+const CHUNK_HEIGHT: float = 256.0
 var level_chunks: Dictionary = {}
 var active_chunks: Array = []
 var last_calculated_chunk: int = -999
@@ -278,6 +280,12 @@ func _process(_delta: float) -> void:
 	if current_camera_chunk != last_calculated_chunk:
 		update_editor_chunks(current_camera_chunk)
 		last_calculated_chunk = current_camera_chunk
+		
+	# If we are NOT clicking the slider, make the slider follow the camera
+	if scrollbar and not scrollbar.has_focus():
+		# Apply the exact same flip formula in reverse to keep them synced
+		var inverted_val = scrollbar.max_value + scrollbar.min_value - camera.global_position.y
+		scrollbar.set_value_no_signal(inverted_val)
 
 # Zoom logic
 func apply_zoom(target_zoom: float) -> void:
@@ -432,6 +440,8 @@ func place_object(pos: Vector2) -> void:
 		
 		var placed_state = serialize_objects([new_object])
 		commit_action("place", [], placed_state)
+		
+		update_scrollbar_bounds()
 
 # Deletion logic
 func delete_selected_object() -> void:
@@ -447,6 +457,8 @@ func delete_selected_object() -> void:
 			
 	# Passing null without Ctrl pressed automatically clears the array and hides the menu
 	change_selection(null)
+	
+	update_scrollbar_bounds()
 
 func _on_delete_button_pressed() -> void:
 	delete_selected_object()
@@ -563,6 +575,8 @@ func load_level(target_path: String) -> void:
 						if chunk_id not in active_chunks:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
+							
+	update_scrollbar_bounds()
 					
 # Called when the user picks a new background
 func change_background(new_path: String) -> void:
@@ -899,7 +913,15 @@ func _draw() -> void:
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 
 func update_editor_chunks(center_chunk: int) -> void:
-	var needed_chunks = [center_chunk - 1, center_chunk, center_chunk + 1]
+	var needed_chunks = [center_chunk - 4,
+						center_chunk - 3,
+						center_chunk - 2,
+						center_chunk - 1, 
+						center_chunk, 
+						center_chunk + 1,
+						center_chunk + 2,
+						center_chunk + 3,
+						center_chunk + 4]
 
 	# 1. Sleep chunks that went off-screen
 	for chunk_id in active_chunks:
@@ -1071,3 +1093,28 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 		
 	print("Background thread complete! Level safely saved to: ", path)
 	
+func _on_v_slider_value_changed(value: float) -> void:
+	# Only move the camera if the user is actually clicking/dragging the slider
+	if scrollbar.has_focus():
+		# Mathematically flip the value so "up" on the slider is "up" in the world!
+		var inverted_y = scrollbar.max_value + scrollbar.min_value - value
+		camera.global_position.y = inverted_y
+
+func update_scrollbar_bounds() -> void:
+	if not scrollbar: return
+	
+	# Start with a baseline assuming the level starts near 0
+	var top_y: float = 0.0
+	var bottom_y: float = 0.0
+	
+	# Loop through all your active and sleeping chunks
+	for chunk_id in level_chunks:
+		for obj in level_chunks[chunk_id]:
+			if is_instance_valid(obj):
+				# Find the absolute highest and lowest coordinates
+				top_y = min(top_y, obj.global_position.y)
+				bottom_y = max(bottom_y, obj.global_position.y)
+				
+	# Add some "padding" so the camera doesn't slam into a hard wall at the very edge
+	scrollbar.min_value = top_y - (CHUNK_HEIGHT / 2)
+	scrollbar.max_value = bottom_y + (CHUNK_HEIGHT / 2)

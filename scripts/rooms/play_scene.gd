@@ -12,7 +12,7 @@ extends Node2D
 @onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
 
 # --- CHUNKING VARIABLES ---
-const CHUNK_HEIGHT: float = 256.0 # Screen height
+const CHUNK_HEIGHT: float = 512.0 # Screen height
 var level_chunks: Dictionary = {} 
 var active_chunks: Array = [] 
 var last_calculated_chunk: int = -999
@@ -224,34 +224,26 @@ func _on_quit_button_pressed() -> void:
 	
 # CHUNK MANAGER
 func update_chunks(center_chunk: int) -> void:
-	# Need 2 chunks before, current chunk, and 2 chunks after
-	var needed_chunks = [center_chunk - 4,
-						center_chunk - 3,
-						center_chunk - 2,
-						center_chunk - 1, 
-						center_chunk, 
-						center_chunk + 1,
-						center_chunk + 2,
-						center_chunk + 3,
-						center_chunk + 4]
+	# How many chunks up and down to load. 
+	# A radius of 4 means 4 above, 4 below, and the center (9 total).
+	var render_radius: int = 2
+	
+	var needed_chunks: Array[int] = []
+	for i in range(-render_radius, render_radius + 1):
+		needed_chunks.append(center_chunk + i)
 
 	# Always keep the spawn chunks loaded to prevent blinking 
 	var current_spawn_chunk = int(floor(spawn_position.y / CHUNK_HEIGHT))
-	var spawn_chunks = [current_spawn_chunk - 4,
-						current_spawn_chunk - 3,
-						current_spawn_chunk - 2,
-						current_spawn_chunk - 1, 
-						current_spawn_chunk, 
-						current_spawn_chunk + 1,
-						current_spawn_chunk + 2,
-						current_spawn_chunk + 3,
-						current_spawn_chunk + 4]
+	
+	var spawn_chunks: Array[int] = []
+	for i in range(-render_radius, render_radius + 1):
+		spawn_chunks.append(current_spawn_chunk + i)
 	
 	for c in spawn_chunks:
 		if not needed_chunks.has(c):
 			needed_chunks.append(c)
 
-	# Put old chunks to sleep
+	# 1. Sleep chunks that went off-screen
 	for chunk_id in active_chunks:
 		if chunk_id not in needed_chunks:
 			if level_chunks.has(chunk_id):
@@ -260,14 +252,13 @@ func update_chunks(center_chunk: int) -> void:
 						obj.process_mode = Node.PROCESS_MODE_DISABLED
 						obj.visible = false
 
-	# Wake up the new chunks
+	# 2. Wake up chunks coming on-screen
 	for chunk_id in needed_chunks:
 		if chunk_id not in active_chunks:
 			if level_chunks.has(chunk_id):
 				for obj in level_chunks[chunk_id]:
 					if is_instance_valid(obj):
-						obj.process_mode = Node.PROCESS_MODE_INHERIT 
+						obj.process_mode = Node.PROCESS_MODE_INHERIT
 						obj.visible = true
 
-	# Update the tracking array so we remember what is currently awake
 	active_chunks = needed_chunks
