@@ -1,7 +1,11 @@
 [gd_scene format=3 uid="uid://bjgevyjq3cifm"]
 
 [ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/Objects/obstacle.gd" id="1_3h408"]
-[ext_resource type="Texture2D" uid="uid://dg32wvqgxdu5r" path="res://Resources/Obstacles/block1.png" id="2_pwoxv"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://Resources/Obstacles/gamesheet.png" id="2_k616y"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4g0po"]
+atlas = ExtResource("2_k616y")
+region = Rect2(0, 0, 64, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
 size = Vector2(56, 56)
@@ -12,7 +16,7 @@ script = ExtResource("1_3h408")
 metadata/_custom_type_script = "uid://sk3rn71awo6r"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
-texture = ExtResource("2_pwoxv")
+texture = SubResource("AtlasTexture_4g0po")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
 shape = SubResource("RectangleShape2D_als3r")

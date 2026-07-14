@@ -12,7 +12,7 @@ extends Node2D
 @onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
 
 # --- CHUNKING VARIABLES ---
-const CHUNK_HEIGHT: float = 1024.0 # Screen height
+const CHUNK_HEIGHT: float = 256.0 # Screen height
 var level_chunks: Dictionary = {} 
 var active_chunks: Array = [] 
 var last_calculated_chunk: int = -999
@@ -225,11 +225,27 @@ func _on_quit_button_pressed() -> void:
 # CHUNK MANAGER
 func update_chunks(center_chunk: int) -> void:
 	# Need 2 chunks before, current chunk, and 2 chunks after
-	var needed_chunks = [center_chunk - 1, center_chunk, center_chunk + 1]
+	var needed_chunks = [center_chunk - 4,
+						center_chunk - 3,
+						center_chunk - 2,
+						center_chunk - 1, 
+						center_chunk, 
+						center_chunk + 1,
+						center_chunk + 2,
+						center_chunk + 3,
+						center_chunk + 4]
 
 	# Always keep the spawn chunks loaded to prevent blinking 
 	var current_spawn_chunk = int(floor(spawn_position.y / CHUNK_HEIGHT))
-	var spawn_chunks = [current_spawn_chunk - 1, current_spawn_chunk, current_spawn_chunk + 1]
+	var spawn_chunks = [current_spawn_chunk - 4,
+						current_spawn_chunk - 3,
+						current_spawn_chunk - 2,
+						current_spawn_chunk - 1, 
+						current_spawn_chunk, 
+						current_spawn_chunk + 1,
+						current_spawn_chunk + 2,
+						current_spawn_chunk + 3,
+						current_spawn_chunk + 4]
 	
 	for c in spawn_chunks:
 		if not needed_chunks.has(c):
