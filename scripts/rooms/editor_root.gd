@@ -30,7 +30,7 @@ extends Node2D
 var save_thread: Thread
 
 # Chunking variables
-const CHUNK_HEIGHT: float = 256.0
+const CHUNK_HEIGHT: float = 512.0
 var level_chunks: Dictionary = {}
 var active_chunks: Array = []
 var last_calculated_chunk: int = -999
@@ -913,15 +913,12 @@ func _draw() -> void:
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 
 func update_editor_chunks(center_chunk: int) -> void:
-	var needed_chunks = [center_chunk - 4,
-						center_chunk - 3,
-						center_chunk - 2,
-						center_chunk - 1, 
-						center_chunk, 
-						center_chunk + 1,
-						center_chunk + 2,
-						center_chunk + 3,
-						center_chunk + 4]
+	# A radius of 4 (2048 pixels) ensures objects don't sleep while zoomed out!
+	var render_radius: int = 4
+	
+	var needed_chunks: Array[int] = []
+	for i in range(-render_radius, render_radius + 1):
+		needed_chunks.append(center_chunk + i)
 
 	# 1. Sleep chunks that went off-screen
 	for chunk_id in active_chunks:

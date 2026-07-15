@@ -50,7 +50,7 @@ offset_left = 1183.0
 offset_top = 29.0
 offset_right = 1247.0
 offset_bottom = 60.0
-text = "Pause"
+text = "ESC"
 
 [node name="PauseMenu" type="ColorRect" parent="GameOverlay" unique_id=404580758]
 anchors_preset = 15

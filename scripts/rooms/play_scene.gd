@@ -12,7 +12,7 @@ extends Node2D
 @onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
 
 # --- CHUNKING VARIABLES ---
-const CHUNK_HEIGHT: float = 512.0 # Screen height
+const CHUNK_HEIGHT: float = 256.0 # Screen height
 var level_chunks: Dictionary = {} 
 var active_chunks: Array = [] 
 var last_calculated_chunk: int = -999
@@ -42,7 +42,21 @@ func _ready() -> void:
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
 	
+	# --- THE FIX ---
+	# Lock and hide the mouse so it stops generating motion events
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Tell the engine to completely stop checking the mouse against collision objects
+	get_viewport().physics_object_picking = false
+	
 	# 2.  FOR LATER: Set the player's starting position based on level data for spawn points
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Check if the player pressed ESC
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if paused:
+			_on_resume_button_pressed()
+		else:
+			_on_pause_button_pressed()
 
 # Loading level function
 func load_level(target_path: String) -> void:
@@ -194,15 +208,6 @@ func _on_player_player_died() -> void:
 	# Clear the list so it doesn't cause a memory leak freeze
 	modified_objects.clear()
 	
-func _on_resume_button_pressed() -> void:
-	# Hide the menu to resume game
-	if pause_menu:
-		pause_menu.visible = false
-	paused = false	
-	
-	get_tree().paused = false
-	
-# Pause Menu logic
 func _on_pause_button_pressed() -> void:
 	# Shows name of level
 	if level_name_label:
@@ -213,9 +218,23 @@ func _on_pause_button_pressed() -> void:
 		pause_menu.visible = true
 	paused = true
 	
+	# Bring the mouse back so the user can click the menu buttons!
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	
 	# Pauses the game
-	# GameOverlay node set process mode set to "Always" so it always runs
 	get_tree().paused = true
+
+
+func _on_resume_button_pressed() -> void:
+	# Hide the menu to resume game
+	if pause_menu:
+		pause_menu.visible = false
+	paused = false	
+	
+	# Lock and hide the mouse again for gameplay!
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	
+	get_tree().paused = false
 	
 func _on_quit_button_pressed() -> void:
 	# Return to Level Browser scene
@@ -226,7 +245,7 @@ func _on_quit_button_pressed() -> void:
 func update_chunks(center_chunk: int) -> void:
 	# How many chunks up and down to load. 
 	# A radius of 4 means 4 above, 4 below, and the center (9 total).
-	var render_radius: int = 2
+	var render_radius: int = 3
 	
 	var needed_chunks: Array[int] = []
 	for i in range(-render_radius, render_radius + 1):
