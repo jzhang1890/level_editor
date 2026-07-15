@@ -291,7 +291,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				is_dragging = false
 
 func _process(_delta: float) -> void:
-	# Track your editor camera's Y position
+	# Track editor's camera's Y position
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
 	
 	if current_camera_chunk != last_calculated_chunk:

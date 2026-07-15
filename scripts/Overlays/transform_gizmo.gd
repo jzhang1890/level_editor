@@ -7,6 +7,8 @@ signal transform_ended
 var target_objects: Array[CollisionObject2D] = []
 var is_scaling: bool = false
 var is_rotating: bool = false
+var is_scaling_x: bool = false
+var is_scaling_y: bool = false
 
 var group_center: Vector2 = Vector2.ZERO
 var initial_mouse_pos: Vector2 = Vector2.ZERO
@@ -21,11 +23,18 @@ var bounding_rect: Rect2
 
 @onready var scale_handle: Area2D = $ScaleHandle
 @onready var rotate_handle: Area2D = $RotateHandle
+@onready var scale_x_handle: Area2D = $ScaleXHandle
+@onready var scale_y_handle: Area2D = $ScaleYHandle
 
 func _ready() -> void:
 	# Connect the handles to detect mouse clicks
 	scale_handle.input_event.connect(_on_scale_handle_input)
 	rotate_handle.input_event.connect(_on_rotate_handle_input)
+	
+	# Connect our directional handles
+	scale_x_handle.input_event.connect(_on_scale_x_handle_input)
+	scale_y_handle.input_event.connect(_on_scale_y_handle_input)
+	
 	visible = false
 
 # This is called by your main script whenever selection changes
@@ -68,9 +77,19 @@ func _calculate_bounding_box() -> void:
 	for obj in target_objects:
 		var local_pos = to_local(obj.global_position)
 		
-		# FIX: Calculate padding dynamically based on the block's current scale
-		var padding_x = 32.0 * abs(obj.scale.x)
-		var padding_y = 32.0 * abs(obj.scale.y)
+		# Dynamically find the real size of the object's Sprite
+		var base_extents = Vector2(32.0, 32.0) # Includes safe fallback just in case
+		
+		# Search inside the collision object for its visual sprite
+		for child in obj.get_children():
+			if child is Sprite2D and child.texture:
+				# Get the true dimensions of the image, account for any sprite-level scaling, and cut it in half for the radius
+				base_extents = (child.texture.get_size() * child.scale) / 2.0
+				break
+		
+		# Apply the dynamic padding using the newly measured extents
+		var padding_x = base_extents.x * abs(obj.scale.x)
+		var padding_y = base_extents.y * abs(obj.scale.y)
 		
 		# Apply the dynamic padding directly to the min/max checks
 		if local_pos.x - padding_x < min_x: min_x = local_pos.x - padding_x
@@ -87,9 +106,15 @@ func _calculate_bounding_box() -> void:
 	# 4. Position scale handle at UPPER-RIGHT corner
 	scale_handle.position = Vector2(max_x, min_y)
 
-	# 5. Position rotate handle Top-Center, offset 32px above the box
+	# 5. Position rotate handle Top-Center, offset 48px above the box
 	var local_center_x = (min_x + max_x) / 2.0
-	rotate_handle.position = Vector2(local_center_x, min_y - 32.0)
+	rotate_handle.position = Vector2(local_center_x, min_y - 48.0)
+	
+	# 6. Position X handle at RIGHT-MIDDLE
+	scale_x_handle.position = Vector2(max_x, (min_y + max_y) / 2.0)
+	
+	# 7. Position Y handle at TOP-MIDDLE
+	scale_y_handle.position = Vector2(local_center_x, min_y)
 
 	queue_redraw()
 func _draw() -> void:
@@ -109,15 +134,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and not event.pressed:
 		
 		# ONLY trigger the release logic if we were actually using the gizmo
-		if is_scaling or is_rotating:
-			# FIX: Stop the release click from reaching the Editor Root
+		if is_scaling or is_rotating or is_scaling_x or is_scaling_y:
 			get_viewport().set_input_as_handled()
 			
-			# Tell the Editor Root to save the final state for undo/redo
 			transform_ended.emit()
 			
 			is_scaling = false
 			is_rotating = false
+			is_scaling_x = false
+			is_scaling_y = false
 			
 			# Unlock the camera
 			var cam = get_viewport().get_camera_2d()
@@ -128,11 +153,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 	if event is InputEventMouseMotion:
 		if is_scaling:
-			# Stop the drag motion from reaching the Editor Root
 			get_viewport().set_input_as_handled()
 			_apply_scale()
+		elif is_scaling_x:
+			get_viewport().set_input_as_handled()
+			_apply_scale_x()
+		elif is_scaling_y:
+			get_viewport().set_input_as_handled()
+			_apply_scale_y()
 		elif is_rotating:
-			# Stop the drag motion from reaching the Editor Root
 			get_viewport().set_input_as_handled()
 			_apply_rotation()
 
@@ -242,4 +271,91 @@ func _on_rotate_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int
 			for obj in target_objects:
 				initial_rotations.append(obj.rotation_degrees)
 				initial_positions.append(obj.global_position)
+				
+func _apply_scale_x() -> void:
+	var current_mouse_pos = get_global_mouse_position()
+	
+	# Project the vector onto the gizmo's local axes by undoing its rotation
+	var initial_vec = (initial_mouse_pos - initial_group_center).rotated(-global_rotation)
+	var current_vec = (current_mouse_pos - initial_group_center).rotated(-global_rotation)
+	
+	# Prevent dividing by zero
+	if abs(initial_vec.x) > 0.01:
+		var ratio = current_vec.x / initial_vec.x
+		var scale_ratio = Vector2(ratio, 1.0) # Stretch X, lock Y
+		
+		for i in range(target_objects.size()):
+			var obj = target_objects[i]
+			obj.scale = initial_scales[i] * scale_ratio
+			
+			# Update position based on scale change
+			var obj_initial_offset = initial_positions[i] - initial_group_center
+			var local_offset = obj_initial_offset.rotated(-global_rotation)
+			obj.global_position = initial_group_center + (local_offset * scale_ratio).rotated(global_rotation)
+			
+	_calculate_bounding_box()
+
+func _apply_scale_y() -> void:
+	var current_mouse_pos = get_global_mouse_position()
+	
+	# Project the vector onto the gizmo's local axes by undoing its rotation
+	var initial_vec = (initial_mouse_pos - initial_group_center).rotated(-global_rotation)
+	var current_vec = (current_mouse_pos - initial_group_center).rotated(-global_rotation)
+	
+	# Prevent dividing by zero
+	if abs(initial_vec.y) > 0.01:
+		var ratio = current_vec.y / initial_vec.y
+		var scale_ratio = Vector2(1.0, ratio) # Lock X, stretch Y
+		
+		for i in range(target_objects.size()):
+			var obj = target_objects[i]
+			obj.scale = initial_scales[i] * scale_ratio
+			
+			var obj_initial_offset = initial_positions[i] - initial_group_center
+			var local_offset = obj_initial_offset.rotated(-global_rotation)
+			obj.global_position = initial_group_center + (local_offset * scale_ratio).rotated(global_rotation)
+			
+	_calculate_bounding_box()
+
+func _on_scale_x_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		get_viewport().set_input_as_handled() 
+		transform_started.emit()
+		
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			cam.set_process_unhandled_input(false)
+			cam.set_process_input(false)
+			cam.set_process(false)
+			
+		is_scaling_x = true
+		initial_group_center = group_center
+		initial_mouse_pos = get_global_mouse_position()
+		
+		initial_scales.clear()
+		initial_positions.clear()
+		for obj in target_objects:
+			initial_scales.append(obj.scale)
+			initial_positions.append(obj.global_position)
+
+func _on_scale_y_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		get_viewport().set_input_as_handled() 
+		transform_started.emit()
+		
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			cam.set_process_unhandled_input(false)
+			cam.set_process_input(false)
+			cam.set_process(false)
+			
+		is_scaling_y = true
+		initial_group_center = group_center
+		initial_mouse_pos = get_global_mouse_position()
+		
+		initial_scales.clear()
+		initial_positions.clear()
+		for obj in target_objects:
+			initial_scales.append(obj.scale)
+			initial_positions.append(obj.global_position)
 				
