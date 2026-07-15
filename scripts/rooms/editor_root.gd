@@ -110,7 +110,13 @@ func _exit_tree() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not paused:
-	# Backspace for deletion
+		# --- THE SCROLLBAR FIX ---
+		# If the user clicks, drags, or zooms in the level, force the scrollbar to let go!
+		if event is InputEventMouseButton and event.is_pressed():
+			if scrollbar and scrollbar.has_focus():
+				scrollbar.release_focus()
+		
+		# Backspace for deletion
 		if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
 			delete_selected_object()
 			return # Stop processing this event
