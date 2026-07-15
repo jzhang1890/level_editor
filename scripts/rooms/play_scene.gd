@@ -141,7 +141,7 @@ func load_level(target_path: String) -> void:
 						# Position of object
 						new_object.global_position = Vector2(item_dict["x"], item_dict["y"])
 						
-						# Apply rotation and store base_rotation for SpinningObstacles
+						# Apply rotation and store base_rotation for spinning objects
 						var loaded_rot = item_dict["rotation"]
 						new_object.rotation_degrees = loaded_rot
 						new_object.set_meta("base_rotation", loaded_rot)
@@ -162,7 +162,7 @@ func load_level(target_path: String) -> void:
 						if not level_chunks.has(chunk_id):
 							level_chunks[chunk_id] = []
 							
-						# 2. Add the object to the main canvas to preserve chronological layering!
+						# 2. Add the object to the main canvas to preserve chronological layering
 						level_canvas.add_child(new_object)
 						level_chunks[chunk_id].append(new_object)
 						
@@ -178,7 +178,7 @@ func _process(_delta: float) -> void:
 	# Check where the camera currently is on the Y-axis
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
 	
-	# If we crossed into a new chunk, run the update!
+	# If we crossed into a new chunk, run the update
 	if current_camera_chunk != last_calculated_chunk:
 		update_chunks(current_camera_chunk)
 		last_calculated_chunk = current_camera_chunk
@@ -218,7 +218,7 @@ func _on_pause_button_pressed() -> void:
 		pause_menu.visible = true
 	paused = true
 	
-	# Bring the mouse back so the user can click the menu buttons!
+	# Bring the mouse back so the user can click the menu buttons
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Pauses the game
@@ -231,7 +231,7 @@ func _on_resume_button_pressed() -> void:
 		pause_menu.visible = false
 	paused = false	
 	
-	# Lock and hide the mouse again for gameplay!
+	# Lock and hide the mouse again for gameplay because of lag
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
 	get_tree().paused = false

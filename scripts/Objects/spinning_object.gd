@@ -1,8 +1,5 @@
 extends Sprite2D
 
-# Exporting it lets you change the speed in the Inspector for different objects!
-# 360.0 means it does one full rotation every second. 
-# Use a negative number to spin counter-clockwise.
 @export var spin_speed: float = 360.0
 var start_rotation: float = 0.0
 

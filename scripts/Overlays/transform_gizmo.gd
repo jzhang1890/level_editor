@@ -1,5 +1,9 @@
 extends Node2D
 
+# Custom signals to tell editor something was transformed for undo/redo
+signal transform_started
+signal transform_ended
+
 var target_objects: Array[CollisionObject2D] = []
 var is_scaling: bool = false
 var is_rotating: bool = false
@@ -64,7 +68,7 @@ func _calculate_bounding_box() -> void:
 	for obj in target_objects:
 		var local_pos = to_local(obj.global_position)
 		
-		# --- FIX: Calculate padding dynamically based on the block's current scale ---
+		# FIX: Calculate padding dynamically based on the block's current scale
 		var padding_x = 32.0 * abs(obj.scale.x)
 		var padding_y = 32.0 * abs(obj.scale.y)
 		
@@ -106,8 +110,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 		# ONLY trigger the release logic if we were actually using the gizmo
 		if is_scaling or is_rotating:
-			# --- FIX: Stop the release click from reaching the Editor Root! ---
+			# FIX: Stop the release click from reaching the Editor Root
 			get_viewport().set_input_as_handled()
+			
+			# Tell the Editor Root to save the final state for undo/redo
+			transform_ended.emit()
 			
 			is_scaling = false
 			is_rotating = false
@@ -158,7 +165,7 @@ func _apply_rotation() -> void:
 	var current_angle = (current_mouse_pos - initial_group_center).angle()
 	var angle_diff = current_angle - initial_angle
 	
-	# NEW: Spin the Gizmo and its handles instantly!
+	# Spin the Gizmo and its handles instantly
 	global_rotation = initial_gizmo_rotation + angle_diff
 	
 	for i in range(target_objects.size()):
@@ -178,10 +185,13 @@ func _apply_rotation() -> void:
 func _on_scale_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			# --- FIX: Stop the click from reaching the Editor Root! ---
+			# Stop the click from reaching the Editor Root
 			get_viewport().set_input_as_handled() 
 			
-			# --- NEW: Lock the camera ---
+			# Tell the Editor Root to take a snapshot so it can be undid and redone
+			transform_started.emit()
+			
+			# Lock the camera 
 			var cam = get_viewport().get_camera_2d()
 			if cam:
 				cam.set_process_unhandled_input(false)
@@ -190,7 +200,7 @@ func _on_scale_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int)
 			
 			is_scaling = true
 			
-			# --- NEW: Lock the anchor point so it cannot drift during math ---
+			# Lock the anchor point so it cannot drift during math
 			initial_group_center = group_center
 			
 			initial_mouse_pos = get_global_mouse_position()
@@ -208,6 +218,9 @@ func _on_rotate_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int
 		if event.pressed:
 			get_viewport().set_input_as_handled() 
 			
+			# Tell the Editor Root to take a snapshot so it can be undid and redone
+			transform_started.emit()
+			
 			var cam = get_viewport().get_camera_2d()
 			if cam:
 				cam.set_process_unhandled_input(false)
@@ -216,12 +229,12 @@ func _on_rotate_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int
 				
 			is_rotating = true
 			
-			# --- NEW: Lock the anchor point so it cannot drift during math ---
+			# Lock the anchor point so it cannot drift during math
 			initial_group_center = group_center
 			
 			initial_mouse_pos = get_global_mouse_position()
 			
-			# NEW: Snapshot the Gizmo's rotation
+			# Snapshot the Gizmo's rotation
 			initial_gizmo_rotation = global_rotation
 			
 			initial_rotations.clear()
@@ -229,3 +242,4 @@ func _on_rotate_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int
 			for obj in target_objects:
 				initial_rotations.append(obj.rotation_degrees)
 				initial_positions.append(obj.global_position)
+				

@@ -2,7 +2,7 @@ extends Control
 
 @onready var name_edit: LineEdit = $NameEdit
 
-# --- NEW: Reference to your counter label ---
+# Reference to object counter label
 @onready var count_label: Label = $ObjectCountLabel
 
 func _ready() -> void:
@@ -12,7 +12,7 @@ func _ready() -> void:
 		var total_objects = get_object_count_fast(Global.level_to_load)
 		count_label.text = "Total Objects: " + str(total_objects)
 
-# --- LIGHTNING FAST READING (End of File Seek) ---
+# Look at level name by looking at last few characters of the file
 func get_level_name_fast(target_path: String) -> String:
 	var file = FileAccess.open(target_path, FileAccess.READ)
 	if not file: return "Unknown Level"
@@ -76,7 +76,7 @@ func get_object_count_fast(target_path: String) -> int:
 		var items_str = level_data["items"]
 		if items_str.is_empty():
 			return 0
-		# Semicolons separate each item, so count them to get the total objects!
+		# Semicolons separate each item, so count them to get the total objects
 		return items_str.count(";") + 1
 		
 	return 0

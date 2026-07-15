@@ -97,10 +97,20 @@ func _ready() -> void:
 	if pause_menu:
 		pause_menu.visible = false
 		
+	# Turn the editor mouse features back on from when they were turned off during play_scene
+	get_viewport().physics_object_picking = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		
 		# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
 		current_save_path = Global.level_to_load # Makes sure to save to this file later
 		load_level(current_save_path)
+		
+	# --- NEW: Connect to the Gizmo's broadcasts ---
+	if has_node("Foreground/TransformGizmo"):
+		var gizmo = $Foreground/TransformGizmo
+		gizmo.transform_started.connect(_on_gizmo_transform_started)
+		gizmo.transform_ended.connect(_on_gizmo_transform_ended)
 		
 func _exit_tree() -> void:
 	# This intercepts the scene closure and forces the engine 
@@ -110,8 +120,7 @@ func _exit_tree() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not paused:
-		# --- THE SCROLLBAR FIX ---
-		# If the user clicks, drags, or zooms in the level, force the scrollbar to let go!
+		# Scrollbar fix: If the user clicks, drags, or zooms in the level, force the scrollbar to let go
 		if event is InputEventMouseButton and event.is_pressed():
 			if scrollbar and scrollbar.has_focus():
 				scrollbar.release_focus()
@@ -194,13 +203,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
 				is_dragging = false
 				
-				# --- FIX A: Freeze camera instantly if preparing to draw a box ---
+				# Freeze camera if preparing to draw a box
 				if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
 					camera.set_process_unhandled_input(false)
 					camera.set_process_input(false)
 					camera.set_process(false)
 				
-				# Check if we are grabbing a selected object 
+				# Check if user is grabbing a selected object 
 				if current_mode == EditorMode.EDIT:
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos)
@@ -225,7 +234,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			# The user let go of event
 			elif not event.pressed:
 				
-				# --- FIX B: Unconditionally unfreeze the camera on release ---
+				# Fix: Unfreeze the camera on release
 				camera.set_process_unhandled_input(true)
 				camera.set_process_input(true)
 				camera.set_process(true)
@@ -256,6 +265,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				
 				# Not dragging so it's a click
 				if not is_dragging:
+					
+					# Get clicked position and clicked object if there is one
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos)
 					
@@ -287,7 +298,7 @@ func _process(_delta: float) -> void:
 		update_editor_chunks(current_camera_chunk)
 		last_calculated_chunk = current_camera_chunk
 		
-	# If we are NOT clicking the slider, make the slider follow the camera
+	# If user is NOT clicking the slider, make the slider follow the camera
 	if scrollbar and not scrollbar.has_focus():
 		# Apply the exact same flip formula in reverse to keep them synced
 		var inverted_val = scrollbar.max_value + scrollbar.min_value - camera.global_position.y
@@ -398,7 +409,7 @@ func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) ->
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
 		
-	# --- THE FIX: Update this path to Foreground/TransformGizmo ---
+	# Update the transform gizmo
 	if has_node("Foreground/TransformGizmo"):
 		$Foreground/TransformGizmo.update_selection(selected_objects)
 
@@ -428,14 +439,14 @@ func place_object(pos: Vector2) -> void:
 		new_object.set_meta("layer", assigned_layer)
 		new_object.z_index = -assigned_layer
 		
-		# --- CHUNKING PLACEMENT ---
+		# CHUNKING PLACEMENT
 		var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 
 		# Create an empty array if the chunk doesn't exist
 		if not level_chunks.has(chunk_id):
 			level_chunks[chunk_id] = []
 
-		# Add to canvas for perfect chronological layering
+		# Add to canvas for chronological layering
 		room_canvas.add_child(new_object)
 		level_chunks[chunk_id].append(new_object)
 		
@@ -624,7 +635,7 @@ func _on_save_button_pressed() -> void:
 
 	var items_string_builder: Array[String] = []
 	
-	# 2. Gather data on the MAIN thread (This is extremely fast)
+	# 2. Gather data on the MAIN thread (extremely fast)
 	for object in room_canvas.get_children():
 		if object is CollisionObject2D:
 			var obj_parts: Array[String] = []
@@ -670,10 +681,10 @@ func _on_save_button_pressed() -> void:
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"background": current_bg_path, 
-		"items": compressed_items_string # Now a single optimized string!
+		"items": compressed_items_string # Now a single optimized string
 	}
 			
-	# 3. Spin up the background thread!
+	# 3. Spin up the background thread
 	save_thread = Thread.new()
 	save_thread.start(_write_save_data_to_disk.bind(save_dict, current_save_path))
 	
@@ -797,7 +808,7 @@ func copy_selection() -> void:
 		if is_instance_valid(obj):
 			sorted_selection.append(obj)
 	
-	# --- FIX: Sort by visual tree index instead of creation ID ---
+	# Fix: Sort by visual tree index instead of creation ID
 	sorted_selection.sort_custom(func(a, b): return a.get_index() < b.get_index())
 	
 	# Save the exact state of every selected object using the sorted timeline
@@ -1054,10 +1065,10 @@ func recreate_objects(data_array: Array) -> void:
 			if not level_chunks.has(chunk_id):
 				level_chunks[chunk_id] = []
 
-			# Add to canvas for perfect chronological layering
+			# Add to canvas for chronological layering
 			room_canvas.add_child(new_object)
 			
-			# --- FIX: Move it back to its exact original rendering spot! ---
+			# Move it back to its exact original rendering spot
 			if item.has("tree_index"):
 				room_canvas.move_child(new_object, item["tree_index"])
 			
@@ -1084,9 +1095,9 @@ func apply_object_state(data_array: Array) -> void:
 			obj.set_meta("layer", item["layer"])
 			obj.z_index = -item["layer"]
 			
-# Background Worker Function for saving data
+# Background worker function for saving data
 func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
-	# --- FIX: Removed the "\t" argument to minify the JSON into a single dense line ---
+	# Removed the "\t" argument to minify the JSON into a single dense line 
 	var json_string = JSON.stringify(save_dict) 
 	
 	var file = FileAccess.open(path, FileAccess.WRITE)
@@ -1099,7 +1110,7 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 func _on_v_slider_value_changed(value: float) -> void:
 	# Only move the camera if the user is actually clicking/dragging the slider
 	if scrollbar.has_focus():
-		# Mathematically flip the value so "up" on the slider is "up" in the world!
+		# Mathematically flip the value so "up" on the slider is "up" in the world
 		var inverted_y = scrollbar.max_value + scrollbar.min_value - value
 		camera.global_position.y = inverted_y
 
@@ -1121,3 +1132,13 @@ func update_scrollbar_bounds() -> void:
 	# Add some "padding" so the camera doesn't slam into a hard wall at the very edge
 	scrollbar.min_value = top_y - (CHUNK_HEIGHT / 2)
 	scrollbar.max_value = bottom_y + (CHUNK_HEIGHT / 2)
+	
+# GIZMO UNDO/REDO HANDLERS
+func _on_gizmo_transform_started() -> void:
+	# Overwrite the global drag_start_state with the object's current scale/rotation
+	drag_start_state = serialize_objects(selected_objects)
+
+func _on_gizmo_transform_ended() -> void:
+	# Capture the final state and commit the action to the stack
+	var drag_end_state = serialize_objects(selected_objects)
+	commit_action("edit", drag_start_state, drag_end_state)

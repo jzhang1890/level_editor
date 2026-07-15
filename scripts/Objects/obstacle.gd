@@ -1,4 +1,3 @@
-# Saved as Obstacle.gd
 extends StaticBody2D
 class_name Obstacle
 
