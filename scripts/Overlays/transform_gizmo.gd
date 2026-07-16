@@ -10,6 +10,7 @@ var is_rotating: bool = false
 var is_scaling_x: bool = false
 var is_scaling_y: bool = false
 var is_skewing: bool = false
+var is_skewing_y: bool = false
 
 var group_center: Vector2 = Vector2.ZERO
 var initial_mouse_pos: Vector2 = Vector2.ZERO
@@ -17,6 +18,8 @@ var initial_scales: Array[Vector2] = []
 var initial_rotations: Array[float] = []
 var initial_positions: Array[Vector2] = []
 var initial_skews: Array[float] = []
+# Godot doesn't have y skew so this is data for multiple transformations to fake Y skew
+var initial_transforms: Array[Transform2D] = []
 
 var initial_group_center: Vector2 = Vector2.ZERO
 
@@ -28,17 +31,20 @@ var bounding_rect: Rect2
 @onready var scale_x_handle: Area2D = $ScaleXHandle
 @onready var scale_y_handle: Area2D = $ScaleYHandle
 @onready var skew_handle: Area2D = $SkewHandle
+@onready var skew_y_handle: Area2D = $SkewYHandle
 
 func _ready() -> void:
 	# Connect the handles to detect mouse clicks
 	scale_handle.input_event.connect(_on_scale_handle_input)
 	rotate_handle.input_event.connect(_on_rotate_handle_input)
 	
-	# Connect our directional handles
+	# Connect directional handles
 	scale_x_handle.input_event.connect(_on_scale_x_handle_input)
 	scale_y_handle.input_event.connect(_on_scale_y_handle_input)
 	
+	# Connect skewers
 	skew_handle.input_event.connect(_on_skew_handle_input)
+	skew_y_handle.input_event.connect(_on_skew_y_handle_input)
 	
 	visible = false
 
@@ -123,6 +129,9 @@ func _calculate_bounding_box() -> void:
 	
 	# 8. Position Skew handle offset from Top-Center
 	skew_handle.position = Vector2(local_center_x + 48.0, min_y - 48.0)
+	
+	# 9. Position vertical Skew handle offset from Right-Middle
+	skew_y_handle.position = Vector2(max_x + 48.0, (min_y + max_y) / 2.0 - 48.0)
 
 	queue_redraw()
 func _draw() -> void:
@@ -141,7 +150,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and not event.pressed:
 		
 		# ONLY trigger the release logic if we were actually using the gizmo
-		if is_scaling or is_rotating or is_scaling_x or is_scaling_y or is_skewing:
+		if is_scaling or is_rotating or is_scaling_x or is_scaling_y or is_skewing or is_skewing_y:
 			get_viewport().set_input_as_handled()
 			
 			transform_ended.emit()
@@ -151,6 +160,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			is_scaling_x = false
 			is_scaling_y = false
 			is_skewing = false
+			is_skewing_y = false
 			
 			# Unlock the camera
 			var cam = get_viewport().get_camera_2d()
@@ -176,6 +186,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif is_skewing:
 			get_viewport().set_input_as_handled()
 			_apply_skew()
+		elif is_skewing_y: # Route the motion to the new function
+			get_viewport().set_input_as_handled()
+			_apply_skew_y()
 
 func _apply_scale() -> void:
 	var current_mouse_pos = get_global_mouse_position()
@@ -406,4 +419,69 @@ func _on_skew_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int) 
 		initial_skews.clear()
 		for obj in target_objects:
 			initial_skews.append(obj.skew)
+			
+func _apply_skew_y() -> void:
+	var current_mouse_pos = get_global_mouse_position()
+	
+	var local_initial = (initial_mouse_pos - initial_group_center).rotated(-global_rotation)
+	var local_current = (current_mouse_pos - initial_group_center).rotated(-global_rotation)
+	
+	# Calculate the vertical drag offset
+	var skew_diff = (local_current.y - local_initial.y) * 0.01
+	
+	# Build the vertical shear matrix
+	var shear_matrix = Transform2D(Vector2(1, skew_diff), Vector2(0, 1), Vector2.ZERO)
+	
+	# Build the matrices to convert to and from the Gizmo's rotated local space
+	var gizmo_rot_matrix = Transform2D(global_rotation, Vector2.ZERO)
+	var inv_gizmo_rot = Transform2D(-global_rotation, Vector2.ZERO)
+	
+	for i in range(target_objects.size()):
+		var obj = target_objects[i]
+		
+		# 1. Take initial transform and remove the origin (position)
+		var t = initial_transforms[i]
+		t.origin = Vector2.ZERO
+		
+		# 2. Apply the matrix multiplication: GizmoRot * Shear * InvGizmoRot * ObjectTransform
+		t = gizmo_rot_matrix * shear_matrix * inv_gizmo_rot * t
+		
+		# 3. Push the auto-decomposed properties back to Godot
+		obj.rotation = t.get_rotation()
+		obj.scale = t.get_scale()
+		obj.skew = t.get_skew()
+		
+		# 4. Adjust the visual position offset so groups slide together correctly
+		var obj_initial_offset = initial_positions[i] - initial_group_center
+		var local_offset = obj_initial_offset.rotated(-global_rotation)
+		
+		local_offset.y += local_offset.x * skew_diff
+		
+		obj.global_position = initial_group_center + local_offset.rotated(global_rotation)
+		
+	_calculate_bounding_box()
+
+func _on_skew_y_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		get_viewport().set_input_as_handled() 
+		transform_started.emit()
+		
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			cam.set_process_unhandled_input(false)
+			cam.set_process_input(false)
+			cam.set_process(false)
+			
+		is_skewing_y = true
+		initial_group_center = group_center
+		initial_mouse_pos = get_global_mouse_position()
+		
+		initial_transforms.clear()
+		initial_positions.clear()
+		for obj in target_objects:
+			# Capture the pure transform without the coordinate position
+			var t = obj.global_transform
+			t.origin = Vector2.ZERO
+			initial_transforms.append(t)
+			initial_positions.append(obj.global_position)
 				

@@ -132,6 +132,7 @@ func load_level(target_path: String) -> void:
 							"6": item_dict["scale_x"] = val.to_float()
 							"7": item_dict["scale_y"] = val.to_float()
 							"8": item_dict["layer"] = val.to_int()
+							"9": item_dict["skew"] = val.to_float()
 							
 					# Instantiate the object directly
 					var resource = load(item_dict["scene_path"])
@@ -148,6 +149,9 @@ func load_level(target_path: String) -> void:
 						
 						# Apply scale
 						new_object.scale = Vector2(item_dict["scale_x"], item_dict["scale_y"])
+						
+						# Apply skew
+						new_object.skew = item_dict.get("skew", 0.0)
 						
 						# Apply the saved ID
 						new_object.set_meta("unique_id", item_dict["id"])

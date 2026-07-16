@@ -829,6 +829,7 @@ func copy_selection() -> void:
 				"rotation_degrees": obj.rotation_degrees,
 				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
 				"scale": obj.scale,
+				"skew": obj.skew,
 				"layer": obj.get_meta("layer", 1)
 			}
 			clipboard.append(item_data)
@@ -855,6 +856,7 @@ func paste_clipboard() -> void:
 			# Apply visual transforms
 			new_object.rotation_degrees = item["rotation_degrees"]
 			new_object.scale = item["scale"]
+			new_object.skew = item.get("skew", 0.0)
 			
 			# Apply metadata and layer sorting
 			new_object.set_meta("base_rotation", item["base_rotation"])
