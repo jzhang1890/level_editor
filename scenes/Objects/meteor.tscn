@@ -12,6 +12,8 @@ region = Rect2(65, 0, 191, 192)
 radius = 84.0
 
 [node name="Meteor" type="StaticBody2D" unique_id=888763138]
+collision_layer = 2
+collision_mask = 0
 script = ExtResource("1_cyiuj")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=249990255]

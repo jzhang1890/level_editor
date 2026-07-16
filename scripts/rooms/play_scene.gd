@@ -11,6 +11,8 @@ extends Node2D
 
 @onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
 
+@export var hitboxes_on := false
+
 # --- CHUNKING VARIABLES ---
 const CHUNK_HEIGHT: float = 256.0 # Screen height
 var level_chunks: Dictionary = {} 

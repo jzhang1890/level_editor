@@ -23,5 +23,10 @@ texture = ExtResource("3_qlg0r")
 [node name="Outline" type="Sprite2D" parent="Sprite2D" unique_id=565256926]
 texture = ExtResource("4_tuyoq")
 
-[node name="Hitbox" type="CollisionPolygon2D" parent="." unique_id=487485815]
+[node name="Hitbox" type="Area2D" parent="." unique_id=1529693991]
+collision_mask = 2
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hitbox" unique_id=487485815]
 polygon = PackedVector2Array(-26, 28, 25, 28, 0, -36)
+
+[connection signal="body_entered" from="Hitbox" to="." method="_on_hitbox_body_entered"]
