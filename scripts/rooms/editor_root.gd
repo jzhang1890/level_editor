@@ -83,7 +83,7 @@ var current_level_name: String = "Untitled"
 const GRID_SIZE: float = 64.0
 
 # Zoom settings
-var min_zoom: float = 0.35  # How far out you can see
+var min_zoom: float = 0.30  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
@@ -551,6 +551,7 @@ func load_level(target_path: String) -> void:
 							"6": item_dict["scale_x"] = val.to_float()
 							"7": item_dict["scale_y"] = val.to_float()
 							"8": item_dict["layer"] = val.to_int()
+							"9": item_dict["skew"] = val.to_float() # --- NEW ---
 							
 					# Instantiate the object exactly like before using our parsed dict!
 					var resource = load(item_dict["scene_path"])
@@ -568,6 +569,9 @@ func load_level(target_path: String) -> void:
 						
 						# Apply saved ID
 						new_object.set_meta("unique_id", item_dict["id"])
+						
+						# Apply skew (with a safe fallback to 0.0 for older saves)
+						new_object.skew = item_dict.get("skew", 0.0)
 						
 						# Apply layer data
 						var loaded_layer = item_dict["layer"]
@@ -1081,8 +1085,20 @@ func recreate_objects(data_array: Array) -> void:
 
 			newly_created.append(new_object)
 			
+	# --- THE FIX: BATCH SELECTION ---
+	# Silently add all objects to the selection array without triggering the Gizmo
 	for obj in newly_created:
-		change_selection(obj, true)
+		selected_objects.append(obj)
+		if obj.has_method("set_highlight"):
+			obj.set_highlight(true)
+			
+	# Show the UI menu if needed
+	if selection_menu:
+		selection_menu.visible = selected_objects.size() > 0
+		
+	# Update the Transform Gizmo exactly ONE time at the very end!
+	if has_node("Foreground/TransformGizmo"):
+		$Foreground/TransformGizmo.update_selection(selected_objects)
 
 func apply_object_state(data_array: Array) -> void:
 	for item in data_array:

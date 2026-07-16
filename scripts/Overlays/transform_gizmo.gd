@@ -121,8 +121,7 @@ func _draw() -> void:
 	if target_objects.is_empty():
 		return
 		
-	# Draw the fill and outline using the saved local rect
-	draw_rect(bounding_rect, Color(0.2, 0.6, 1.0, 0.2), true)
+	# Draw outline using the saved local rect
 	draw_rect(bounding_rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 	
 	# Draw the line up to the rotate handle
