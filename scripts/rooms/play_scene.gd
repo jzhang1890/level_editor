@@ -13,6 +13,8 @@ extends Node2D
 
 @export var hitboxes_on := false
 
+var restart_button_pressed = false
+
 # --- CHUNKING VARIABLES ---
 const CHUNK_HEIGHT: float = 256.0 # Screen height
 var level_chunks: Dictionary = {} 
@@ -189,7 +191,8 @@ func _process(_delta: float) -> void:
 		last_calculated_chunk = current_camera_chunk
 
 func _on_player_player_died() -> void:
-	await get_tree().create_timer(respawn_time, false).timeout
+	if not restart_button_pressed:
+		await get_tree().create_timer(respawn_time, false).timeout
 	
 	# Reset player
 	$Player/Sprite2D.rotation = 0
@@ -212,6 +215,7 @@ func _on_player_player_died() -> void:
 	
 	# Clear the list so it doesn't cause a memory leak freeze
 	modified_objects.clear()
+	restart_button_pressed = false
 	
 func _on_pause_button_pressed() -> void:
 	# Shows name of level
@@ -240,6 +244,11 @@ func _on_resume_button_pressed() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
 	get_tree().paused = false
+	
+func _on_restart_button_pressed() -> void:
+	restart_button_pressed = true
+	_on_resume_button_pressed()
+	_on_player_player_died()
 	
 func _on_quit_button_pressed() -> void:
 	# Return to Level Browser scene

@@ -27,6 +27,6 @@ texture = ExtResource("4_tuyoq")
 collision_mask = 2
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hitbox" unique_id=487485815]
-polygon = PackedVector2Array(-26, 28, 25, 28, 0, -36)
+polygon = PackedVector2Array(-27, 32, 26, 32, 0, -36)
 
 [connection signal="body_entered" from="Hitbox" to="." method="_on_hitbox_body_entered"]

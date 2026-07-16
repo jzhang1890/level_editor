@@ -7,7 +7,6 @@
 
 [node name="PlayScene" type="Node2D" unique_id=621862255]
 script = ExtResource("1_x1qvo")
-hitboxes_on = true
 
 [node name="Player" parent="." unique_id=1001688488 instance=ExtResource("2_qf7ku")]
 
@@ -95,6 +94,11 @@ grow_vertical = 2
 layout_mode = 2
 text = "Resume"
 
+[node name="RestartButton" type="Button" parent="GameOverlay/PauseMenu/VBoxContainer" unique_id=983778937]
+layout_mode = 2
+text = "Restart
+"
+
 [node name="QuitButton" type="Button" parent="GameOverlay/PauseMenu/VBoxContainer" unique_id=1939317235]
 layout_mode = 2
 text = "Quit"
@@ -102,6 +106,7 @@ text = "Quit"
 [connection signal="player_died" from="Player" to="." method="_on_player_player_died"]
 [connection signal="pressed" from="GameOverlay/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="GameOverlay/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="GameOverlay/PauseMenu/VBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
 [connection signal="pressed" from="GameOverlay/PauseMenu/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
 
 [editable path="Player"]

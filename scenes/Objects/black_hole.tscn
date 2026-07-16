@@ -28,12 +28,13 @@ script = ExtResource("3_87fpj")
 spin_speed = -45.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=34475592]
+visible = false
 position = Vector2(1, 0)
 shape = SubResource("CircleShape2D_r8fna")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=887538334]
 visible = false
 z_index = 101
-position = Vector2(0.75140095, 0.25140634)
-scale = Vector2(0.6933703, 0.69727665)
+position = Vector2(0.74999857, 0.25000146)
+scale = Vector2(0.6972656, 0.69726557)
 texture = SubResource("AtlasTexture_kos6l")

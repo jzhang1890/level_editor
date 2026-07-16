@@ -90,6 +90,8 @@ var zoom_step: float = 0.2 # How much the buttons zoom per click
 # Game state
 var paused = false
 
+@export var hitboxes_on := false
+
 func _ready() -> void:
 	# Hide the entire contextual menu at the start
 	if selection_menu:
@@ -965,6 +967,10 @@ func update_editor_chunks(center_chunk: int) -> void:
 					if is_instance_valid(obj):
 						obj.process_mode = Node.PROCESS_MODE_INHERIT
 						obj.visible = true
+						
+						var hitbox = obj.get_node_or_null("HitboxSprite")
+						if hitbox:
+							hitbox.visible = hitboxes_on
 
 	active_chunks = needed_chunks
 	
