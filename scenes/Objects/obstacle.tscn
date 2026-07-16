@@ -8,3 +8,6 @@ script = ExtResource("1_uyqu4")
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1588573939]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=962689870]
+
+[node name="HitboxSprite" type="Sprite2D" parent="." unique_id=2040147480]
+z_index = 101

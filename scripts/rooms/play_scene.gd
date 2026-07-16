@@ -44,7 +44,6 @@ func _ready() -> void:
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
 	
-	# --- THE FIX ---
 	# Lock and hide the mouse so it stops generating motion events
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# Tell the engine to completely stop checking the mouse against collision objects
@@ -285,5 +284,9 @@ func update_chunks(center_chunk: int) -> void:
 					if is_instance_valid(obj):
 						obj.process_mode = Node.PROCESS_MODE_INHERIT
 						obj.visible = true
+						
+						var hitbox = obj.get_node_or_null("HitboxSprite")
+						if hitbox:
+							hitbox.visible = hitboxes_on
 
 	active_chunks = needed_chunks
