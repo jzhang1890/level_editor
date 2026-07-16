@@ -44,3 +44,11 @@ texture = ExtResource("1_v2tj4")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ScaleYHandle" unique_id=622339328]
 shape = SubResource("CircleShape2D_jtxpn")
+
+[node name="SkewHandle" type="Area2D" parent="." unique_id=1209243931]
+
+[node name="Sprite2D" type="Sprite2D" parent="SkewHandle" unique_id=785613087]
+texture = ExtResource("1_v2tj4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SkewHandle" unique_id=78060887]
+shape = SubResource("CircleShape2D_jtxpn")

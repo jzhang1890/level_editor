@@ -9,12 +9,14 @@ var is_scaling: bool = false
 var is_rotating: bool = false
 var is_scaling_x: bool = false
 var is_scaling_y: bool = false
+var is_skewing: bool = false
 
 var group_center: Vector2 = Vector2.ZERO
 var initial_mouse_pos: Vector2 = Vector2.ZERO
 var initial_scales: Array[Vector2] = []
 var initial_rotations: Array[float] = []
 var initial_positions: Array[Vector2] = []
+var initial_skews: Array[float] = []
 
 var initial_group_center: Vector2 = Vector2.ZERO
 
@@ -25,6 +27,7 @@ var bounding_rect: Rect2
 @onready var rotate_handle: Area2D = $RotateHandle
 @onready var scale_x_handle: Area2D = $ScaleXHandle
 @onready var scale_y_handle: Area2D = $ScaleYHandle
+@onready var skew_handle: Area2D = $SkewHandle
 
 func _ready() -> void:
 	# Connect the handles to detect mouse clicks
@@ -34,6 +37,8 @@ func _ready() -> void:
 	# Connect our directional handles
 	scale_x_handle.input_event.connect(_on_scale_x_handle_input)
 	scale_y_handle.input_event.connect(_on_scale_y_handle_input)
+	
+	skew_handle.input_event.connect(_on_skew_handle_input)
 	
 	visible = false
 
@@ -115,6 +120,9 @@ func _calculate_bounding_box() -> void:
 	
 	# 7. Position Y handle at TOP-MIDDLE
 	scale_y_handle.position = Vector2(local_center_x, min_y)
+	
+	# 8. Position Skew handle offset from Top-Center
+	skew_handle.position = Vector2(local_center_x + 48.0, min_y - 48.0)
 
 	queue_redraw()
 func _draw() -> void:
@@ -133,7 +141,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and not event.pressed:
 		
 		# ONLY trigger the release logic if we were actually using the gizmo
-		if is_scaling or is_rotating or is_scaling_x or is_scaling_y:
+		if is_scaling or is_rotating or is_scaling_x or is_scaling_y or is_skewing:
 			get_viewport().set_input_as_handled()
 			
 			transform_ended.emit()
@@ -142,6 +150,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			is_rotating = false
 			is_scaling_x = false
 			is_scaling_y = false
+			is_skewing = false
 			
 			# Unlock the camera
 			var cam = get_viewport().get_camera_2d()
@@ -150,6 +159,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				cam.set_process_input(true)
 				cam.set_process(true)
 		
+	# Start the transofrm
 	if event is InputEventMouseMotion:
 		if is_scaling:
 			get_viewport().set_input_as_handled()
@@ -163,6 +173,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif is_rotating:
 			get_viewport().set_input_as_handled()
 			_apply_rotation()
+		elif is_skewing:
+			get_viewport().set_input_as_handled()
+			_apply_skew()
 
 func _apply_scale() -> void:
 	var current_mouse_pos = get_global_mouse_position()
@@ -357,4 +370,40 @@ func _on_scale_y_handle_input(_viewport: Node, event: InputEvent, _shape_idx: in
 		for obj in target_objects:
 			initial_scales.append(obj.scale)
 			initial_positions.append(obj.global_position)
+			
+func _apply_skew() -> void:
+	var current_mouse_pos = get_global_mouse_position()
+	
+	# Convert the mouse movement into the Gizmo's local rotated space
+	var local_initial = (initial_mouse_pos - initial_group_center).rotated(-global_rotation)
+	var local_current = (current_mouse_pos - initial_group_center).rotated(-global_rotation)
+	
+	# Calculate horizontal difference and apply a sensitivity multiplier
+	var skew_diff = (local_current.x - local_initial.x) * 0.01 
+	
+	for i in range(target_objects.size()):
+		var obj = target_objects[i]
+		# Apply the skew
+		obj.skew = initial_skews[i] + skew_diff
+			
+	_calculate_bounding_box()
+
+func _on_skew_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		get_viewport().set_input_as_handled() 
+		transform_started.emit()
+		
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			cam.set_process_unhandled_input(false)
+			cam.set_process_input(false)
+			cam.set_process(false)
+			
+		is_skewing = true
+		initial_group_center = group_center
+		initial_mouse_pos = get_global_mouse_position()
+		
+		initial_skews.clear()
+		for obj in target_objects:
+			initial_skews.append(obj.skew)
 				

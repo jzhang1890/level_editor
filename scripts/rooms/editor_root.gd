@@ -675,7 +675,12 @@ func _on_save_button_pressed() -> void:
 			if layer != 1:
 				obj_parts.append("8")
 				obj_parts.append(str(layer))
-				
+			
+			# 9: Skew (only if non-zero)
+			if not is_zero_approx(object.skew):
+				obj_parts.append("9")
+				obj_parts.append(str(snapped(object.skew, 0.001)))
+			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))
 			
@@ -981,6 +986,7 @@ func serialize_objects(objects: Array) -> Array:
 			"rotation_degrees": obj.rotation_degrees,
 			"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
 			"scale": obj.scale,
+			"skew": obj.skew,
 			"layer": obj.get_meta("layer", 1),
 			"unique_id": obj.get_meta("unique_id", ""),
 			"tree_index": obj.get_index() # Memorize its exact Z-layer order
@@ -1058,6 +1064,7 @@ func recreate_objects(data_array: Array) -> void:
 			new_object.global_position = item["global_position"]
 			new_object.rotation_degrees = item["rotation_degrees"]
 			new_object.scale = item["scale"]
+			new_object.skew = item.get("skew", 0.0)
 			new_object.set_meta("base_rotation", item["base_rotation"])
 			new_object.set_meta("layer", item["layer"])
 			new_object.z_index = -item["layer"]
@@ -1107,6 +1114,7 @@ func apply_object_state(data_array: Array) -> void:
 			obj.global_position = item["global_position"]
 			obj.rotation_degrees = item["rotation_degrees"]
 			obj.scale = item["scale"]
+			obj.skew = item.get("skew", 0.0)
 			obj.set_meta("base_rotation", item["base_rotation"])
 			obj.set_meta("layer", item["layer"])
 			obj.z_index = -item["layer"]
