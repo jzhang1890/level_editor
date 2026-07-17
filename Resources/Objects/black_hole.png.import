@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dwrcgteta61b5"
-path="res://.godot/imported/meteor.png-729548cdbdbe1bb80ee5e3e2f68ade26.ctex"
+uid="uid://dncnoccwfdt1t"
+path="res://.godot/imported/black_hole.png-596edbf128b828ad7202dc6ff4f44de4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Obstacles/meteor.png"
-dest_files=["res://.godot/imported/meteor.png-729548cdbdbe1bb80ee5e3e2f68ade26.ctex"]
+source_file="res://Resources/Objects/black_hole.png"
+dest_files=["res://.godot/imported/black_hole.png-596edbf128b828ad7202dc6ff4f44de4.ctex"]
 
 [params]
 

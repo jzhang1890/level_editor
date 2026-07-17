@@ -5,6 +5,8 @@ signal edit_action_requested(action_name: String)
 
 # The build tab items
 @onready var obstacles_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles
+@onready var deco_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration
+
 
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
@@ -26,6 +28,9 @@ var item_database: Dictionary = {
 			"icon": preload("res://Resources/Icons/block1.svg"), 
 			"scene_path": "res://scenes/objects/block.tscn"
 		}
+	],
+	"deco": [
+		
 	]
 }
 
@@ -44,6 +49,7 @@ var selected_scene_path: String = ""
 
 func _ready() -> void:
 	populate_object_list(obstacles_list, item_database["obstacles"])
+	populate_object_list(deco_list, item_database["deco"])
 	populate_actions_tab()
 
 func populate_object_list(target_list: ItemList, item_array: Array) -> void:

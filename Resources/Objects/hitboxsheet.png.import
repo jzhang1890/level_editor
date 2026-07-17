@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dncnoccwfdt1t"
-path="res://.godot/imported/black_hole.png-6a84a5fed7e7237b39a7601a80aefd9b.ctex"
+uid="uid://dinaflq0y8njs"
+path="res://.godot/imported/hitboxsheet.png-f174acfaa47eb7a14616aff31e5ffe7e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Obstacles/black_hole.png"
-dest_files=["res://.godot/imported/black_hole.png-6a84a5fed7e7237b39a7601a80aefd9b.ctex"]
+source_file="res://Resources/Objects/hitboxsheet.png"
+dest_files=["res://.godot/imported/hitboxsheet.png-f174acfaa47eb7a14616aff31e5ffe7e.ctex"]
 
 [params]
 

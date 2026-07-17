@@ -1,30 +1,30 @@
 [gd_scene format=3 uid="uid://dewt8ss8unwj2"]
 
-[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/Objects/obstacle.gd" id="1_8d80p"]
-[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://Resources/Obstacles/gamesheet.png" id="2_8d80p"]
-[ext_resource type="Script" uid="uid://bj65afvy2h2b2" path="res://scripts/Objects/spinning_object.gd" id="3_87fpj"]
-[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Obstacles/hitboxsheet.png" id="4_scepj"]
+[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/Objects/obstacle.gd" id="1_scepj"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://Resources/Objects/gamesheet.png" id="2_kos6l"]
+[ext_resource type="Script" uid="uid://bj65afvy2h2b2" path="res://scripts/Objects/spinning_object.gd" id="3_vgvd8"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Objects/hitboxsheet.png" id="4_278f1"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_87fpj"]
-atlas = ExtResource("2_8d80p")
+atlas = ExtResource("2_kos6l")
 region = Rect2(256, 0, 256, 256)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r8fna"]
 radius = 86.023254
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kos6l"]
-atlas = ExtResource("4_scepj")
+atlas = ExtResource("4_278f1")
 region = Rect2(128, 0, 256, 256)
 
 [node name="Blackhole" type="StaticBody2D" unique_id=2067773606]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("1_8d80p")
+script = ExtResource("1_scepj")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=276152179]
 position = Vector2(3, 0)
 texture = SubResource("AtlasTexture_87fpj")
-script = ExtResource("3_87fpj")
+script = ExtResource("3_vgvd8")
 spin_speed = -45.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=34475592]

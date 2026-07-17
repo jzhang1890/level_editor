@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dinaflq0y8njs"
-path="res://.godot/imported/hitboxsheet.png-5f0ce8718891e1d86d67e5ed2e626ffd.ctex"
+uid="uid://dvipfb50ambu2"
+path="res://.godot/imported/meteor256.png-9e60171bb739ad6857ddb650e675cf3e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Obstacles/hitboxsheet.png"
-dest_files=["res://.godot/imported/hitboxsheet.png-5f0ce8718891e1d86d67e5ed2e626ffd.ctex"]
+source_file="res://Resources/Objects/meteor256.png"
+dest_files=["res://.godot/imported/meteor256.png-9e60171bb739ad6857ddb650e675cf3e.ctex"]
 
 [params]
 
