@@ -102,6 +102,10 @@ func load_level(target_path: String) -> void:
 			if typeof(items_raw) == TYPE_STRING:
 				var item_strings = items_raw.split(";")
 				
+				# --- NEW: Setup our caches ---
+				var scene_cache: Dictionary = {}
+				var deco_batches: Dictionary = {}
+				
 				# Loop through the objects in the compressed string
 				for item_str in item_strings:
 					if item_str.is_empty():
@@ -137,8 +141,52 @@ func load_level(target_path: String) -> void:
 							"8": item_dict["layer"] = val.to_int()
 							"9": item_dict["skew"] = val.to_float()
 							
-					# Instantiate the object directly
-					var resource = load(item_dict["scene_path"])
+					# --- THE FILTER INTERCEPT ---
+					var path = item_dict["scene_path"]
+					
+					# Check if the path contains our new Deco folder
+					if "/deco/" in path.to_lower():
+						# Group them by path AND layer so depth sorting still works
+						var layer = item_dict.get("layer", 1)
+						var batch_key = path + "_" + str(layer)
+						
+						if not deco_batches.has(batch_key):
+							deco_batches[batch_key] = {
+								"path": path,
+								"layer": layer,
+								"transforms": []
+							}
+							
+						# Build the raw math matrix (Transform2D) for the GPU
+						var rot_rad = deg_to_rad(item_dict.get("rotation", 0.0))
+						var pos = Vector2(item_dict.get("x", 0.0), item_dict.get("y", 0.0))
+						var obj_scale = Vector2(item_dict.get("scale_x", 1.0), item_dict.get("scale_y", 1.0))
+
+						# 1. Grab the skew from the dictionary (defaults to 0.0 if not found)
+						var obj_skew = item_dict.get("skew", 0.0) 
+
+						# 2. Invert the local Y scale to counteract the QuadMesh 3D axis flip
+						obj_scale.y *= -1.0 
+
+						# 3. Use the Godot 4 master constructor: Transform2D(rotation, scale, skew, origin)
+						# Feed it Vector2.ZERO for the origin first so it flips and skews locally!
+						var gpu_transform = Transform2D(rot_rad, obj_scale, obj_skew, Vector2.ZERO)
+
+						# 4. Add the position in AFTER the transform is built
+						gpu_transform.origin = pos
+
+						# Add it to the array and skip instantiation completely
+						deco_batches[batch_key]["transforms"].append(gpu_transform)
+						continue # Skip the rest of the loop so it doesn't become a node
+
+					# ONLY HAZARDS AND TRIGGERS MAKE IT PAST THE CONTINUE
+					
+					# Check cache before hitting the hard drive
+					if not scene_cache.has(path):
+						scene_cache[path] = load(path)
+						
+					# Instantiate the object using the cache
+					var resource = scene_cache[path]
 					if resource:
 						var new_object = resource.instantiate()
 						
@@ -177,6 +225,46 @@ func load_level(target_path: String) -> void:
 						if chunk_id not in active_chunks:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
+				
+				# BATCH GENERATE THE MULTIMESHES ONCE THE LOOP IS DONE
+				for batch_key in deco_batches:
+					var batch_data = deco_batches[batch_key]
+					var deco_path = batch_data["path"]
+					var transforms = batch_data["transforms"]
+					
+					# Load the scene ONCE to steal its texture
+					var dummy_scene = load(deco_path).instantiate()
+					var tex = null
+					
+					# Grab the texture whether it's on the root node or a Sprite2D child
+					if "texture" in dummy_scene and dummy_scene.texture != null:
+						tex = dummy_scene.texture
+					elif dummy_scene.has_node("Sprite2D"):
+						tex = dummy_scene.get_node("Sprite2D").texture
+						
+					dummy_scene.queue_free()
+					
+					if tex:
+						# Create the GPU mesh matched to the image size
+						var quad = QuadMesh.new()
+						quad.size = tex.get_size()
+						
+						var mm = MultiMesh.new()
+						mm.mesh = quad
+						mm.use_colors = false
+						mm.instance_count = transforms.size()
+						
+						# Dump all the coordinates into the GPU buffer natively
+						for i in range(transforms.size()):
+							mm.set_instance_transform_2d(i, transforms[i])
+							
+						var mm_inst = MultiMeshInstance2D.new()
+						mm_inst.multimesh = mm
+						mm_inst.texture = tex
+						mm_inst.z_index = -batch_data["layer"]
+						
+						# Add the single MultiMesh to the canvas
+						level_canvas.add_child(mm_inst)
 					
 func _process(_delta: float) -> void:
 	if paused:

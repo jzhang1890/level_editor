@@ -9,6 +9,7 @@
 script = ExtResource("1_x1qvo")
 
 [node name="Player" parent="." unique_id=1001688488 instance=ExtResource("2_qf7ku")]
+noclip = true
 
 [node name="Body" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="0" unique_id=202774480]
 modulate = Color(0, 0, 0, 1)

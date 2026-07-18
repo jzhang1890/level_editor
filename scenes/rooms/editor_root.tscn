@@ -10,7 +10,6 @@
 
 [node name="EditorRoot" type="Node2D" unique_id=134942868]
 script = ExtResource("1_eufpp")
-hitboxes_on = true
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1900298284]
 position = Vector2(0, -360)
@@ -231,7 +230,7 @@ text = "Save and Quit"
 [connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_object_item_selected"]
-[connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration" to="EditorUI" method="_on_object_item_selected"]
+[connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration" to="EditorUI" method="_on_decoration_item_selected"]
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Edit/Actions" to="EditorUI" method="_on_actions_item_selected"]
 [connection signal="pressed" from="EditorUI/SelectionMenu/DeleteButton" to="." method="_on_delete_button_pressed"]
 [connection signal="pressed" from="EditorUI/LayerContainer/LeftArrowButton" to="." method="_on_left_arrow_button_pressed"]

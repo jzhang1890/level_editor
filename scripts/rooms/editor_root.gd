@@ -62,7 +62,12 @@ var mouse_down_world_pos: Vector2 = Vector2.ZERO
 var box_current_pos: Vector2 = Vector2.ZERO
 
 # Tracking for selection
-var selected_objects: Array[CollisionObject2D] = []
+var selected_objects: Array[Node2D] = []
+
+# Tracking for Selection Cycling
+var last_click_pos: Vector2 = Vector2.ZERO
+var click_cycle_index: int = 0
+var clicked_objects_cache: Array[Node2D] = []
 
 # Clipboard for Copy/Paste 
 var clipboard: Array[Dictionary] = []
@@ -205,19 +210,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
 				is_dragging = false
 				
-				# Freeze camera if preparing to draw a box
-				if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
-					camera.set_process_unhandled_input(false)
-					camera.set_process_input(false)
-					camera.set_process(false)
-				
-				# Check if user is grabbing a selected object 
-				if current_mode == EditorMode.EDIT:
+				# Run the object check for BOTH Edit and Delete modes to update the cache
+				if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
 					var click_pos = get_global_mouse_position()
-					var clicked_obj = check_for_object_at(click_pos)
+					var clicked_obj = check_for_object_at(click_pos, true) # TRUE = Mouse Down!
 					
-					# If user clicked something that's already selected, grab it.
-					if clicked_obj != null and selected_objects.has(clicked_obj):
+					# ONLY allow grabbing/dragging if we are specifically in EDIT mode
+					if current_mode == EditorMode.EDIT and clicked_obj != null and selected_objects.has(clicked_obj):
 						is_dragging_objects = true
 						previous_mouse_pos = click_pos
 						
@@ -270,7 +269,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					
 					# Get clicked position and clicked object if there is one
 					var click_pos = get_global_mouse_position()
-					var clicked_obj = check_for_object_at(click_pos)
+					var clicked_obj = check_for_object_at(click_pos, false) # FALSE = Mouse Up!
 					
 					# Mode-based click logic
 					match current_mode:
@@ -346,46 +345,66 @@ func _on_zoom_out_button_pressed() -> void:
 	# Subtract the step from our current zoom
 	apply_zoom(camera.zoom.x - zoom_step)
 	
-# Selection logic
-func check_for_object_at(pos: Vector2) -> CollisionObject2D:
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsPointQueryParameters2D.new()
-	query.position = pos
-	query.collide_with_bodies = true
-	query.collide_with_areas = true
+# Changed signature to accept the is_press flag
+func check_for_object_at(pos: Vector2, is_press: bool = false) -> Node2D:
 	
-	var results = space_state.intersect_point(query)
-	
-	var best_object: CollisionObject2D = null
-	var best_z_index: int = -999999
-	var best_tree_index: int = -1
-	
-	# Filter through all clicked objects to find the top-most one
-	for result in results:
-		var collider = result["collider"] as CollisionObject2D
-		if collider:
-			var obj_layer = collider.get_meta("layer", 1)
+	# Only update the math and advance the cycle when the mouse button goes DOWN
+	if is_press:
+		# If clicking in the same general spot, cycle to the next object in the array
+		if pos.distance_to(last_click_pos) < 5.0 and clicked_objects_cache.size() > 0:
+			click_cycle_index = (click_cycle_index + 1) % clicked_objects_cache.size()
+		else:
+			# Different spot! Clear the cache and find everything under the mouse
+			clicked_objects_cache.clear()
+			click_cycle_index = 0
+			last_click_pos = pos
 			
-			# Check if the object is on the active layer
-			if current_layer == 0 or current_layer == obj_layer:
-				
-				# 1. Compare Z-Index (Layer depth)
-				if collider.z_index > best_z_index:
-					best_object = collider
-					best_z_index = collider.z_index
-					best_tree_index = collider.get_index()
-					
-				# 2. Tie breaker: If they are on the exact same layer, pick the one drawn last
-				elif collider.z_index == best_z_index:
-					if collider.get_index() > best_tree_index:
-						best_object = collider
-						best_tree_index = collider.get_index()
-						
-	# Returns the absolute top-most object, or null if nothing was clicked
-	return best_object
+			for chunk_id in active_chunks:
+				if level_chunks.has(chunk_id):
+					for obj in level_chunks[chunk_id]:
+						if is_instance_valid(obj) and obj.visible:
+							var is_clicked = false
+							
+							# Precise Sprite Check
+							for child in obj.get_children():
+								if child is Sprite2D and child.texture:
+									var sprite_local_pos = child.to_local(pos)
+									if child.get_rect().has_point(sprite_local_pos):
+										is_clicked = true
+									break 
+									
+							# Fallback Box Check 
+							if not is_clicked:
+								var local_pos = obj.to_local(pos)
+								var half_size = GRID_SIZE / 2.0
+								var local_rect = Rect2(Vector2(-half_size, -half_size), Vector2(GRID_SIZE, GRID_SIZE))
+								if local_rect.has_point(local_pos):
+									is_clicked = true
+							
+							# If clicked, check the layer and add to the cache!
+							if is_clicked:
+								var obj_layer = obj.get_meta("layer", 1)
+								if current_layer == 0 or current_layer == obj_layer:
+									clicked_objects_cache.append(obj)
+									
+			# Sort the cached array so the visually highest objects are first
+			clicked_objects_cache.sort_custom(func(a, b):
+				if a.z_index != b.z_index:
+					return a.z_index > b.z_index # Sort by Z-Index first
+				return a.get_index() > b.get_index() # Tie breaker: Tree Index
+			)
+
+	# Return the currently active object in the cycle (applies to both Mouse Down and Mouse Up)
+	if clicked_objects_cache.size() > 0:
+		var obj = clicked_objects_cache[click_cycle_index]
+		# Safety check just in case the object was deleted via Backspace while selected
+		if is_instance_valid(obj):
+			return obj
+
+	return null
 
 # Change selected object
-func change_selection(clicked_obj: CollisionObject2D, is_multi: bool = false) -> void:
+func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
 	# 1. If the user is not holding Ctrl, clear everything first
 	if not is_multi:
 		for obj in selected_objects:
@@ -643,7 +662,7 @@ func _on_save_button_pressed() -> void:
 	
 	# 2. Gather data on the MAIN thread (extremely fast)
 	for object in room_canvas.get_children():
-		if object is CollisionObject2D:
+		if object is Node2D and object.has_meta("unique_id"):
 			var obj_parts: Array[String] = []
 			
 			# 1: ID
@@ -799,7 +818,7 @@ func update_layer_display() -> void:
 	
 func refresh_layer_visibility() -> void:
 	for child in room_canvas.get_children():
-		if child is CollisionObject2D:
+		if child is Node2D:
 			var obj_layer = child.get_meta("layer", 1)
 			
 			if current_layer == 0 or current_layer == obj_layer:
@@ -843,7 +862,7 @@ func paste_clipboard() -> void:
 	# 1. Drop the currently selected objects
 	change_selection(null, false)
 	
-	var new_selection: Array[CollisionObject2D] = []
+	var new_selection: Array[Node2D] = []
 	
 	# 2. Build the new objects from the clipboard data
 	for item in clipboard:
@@ -909,7 +928,7 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	for chunk_id in level_chunks:
 		for child in level_chunks[chunk_id]:
 			if is_instance_valid(child):
-				if child is CollisionObject2D:
+				if child is Node2D:
 					var obj_layer = child.get_meta("layer", 1)
 					
 					# Make sure we only grab objects on the active layer
@@ -1045,7 +1064,7 @@ func _on_redo_button_pressed() -> void:
 
 # UNDO/REDO HELPER FUNCTIONS
 
-func find_object_by_id(target_id: String) -> CollisionObject2D:
+func find_object_by_id(target_id: String) -> Node2D:
 	for chunk_id in level_chunks:
 		for child in level_chunks[chunk_id]:
 			if is_instance_valid(child):

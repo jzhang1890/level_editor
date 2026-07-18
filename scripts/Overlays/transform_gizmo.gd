@@ -4,7 +4,7 @@ extends Node2D
 signal transform_started
 signal transform_ended
 
-var target_objects: Array[CollisionObject2D] = []
+var target_objects: Array[Node2D] = []
 var is_scaling: bool = false
 var is_rotating: bool = false
 var is_scaling_x: bool = false
@@ -49,7 +49,7 @@ func _ready() -> void:
 	visible = false
 
 # This is called by your main script whenever selection changes
-func update_selection(selected: Array[CollisionObject2D]) -> void:
+func update_selection(selected: Array[Node2D]) -> void:
 	# Add .duplicate() to safely isolate the data
 	target_objects = selected.duplicate()
 	if target_objects.is_empty():

@@ -30,7 +30,11 @@ var item_database: Dictionary = {
 		}
 	],
 	"deco": [
-		
+		{
+			"name": "Star",
+			"icon": preload("res://Resources/Objects/star.png"),
+			"scene_path": "res://scenes/objects/deco/star.tscn"
+		},
 	]
 }
 
@@ -71,6 +75,10 @@ func _on_object_item_selected(index: int) -> void:
 	selected_scene_path = obstacles_list.get_item_metadata(index)
 	print("Ready to place object from path: ", selected_scene_path)
 	
+func _on_decoration_item_selected(index: int) -> void:
+	selected_scene_path = deco_list.get_item_metadata(index)
+	print("Ready to place object from path: ", selected_scene_path)
+
 func _on_actions_item_selected(index: int) -> void:
 	var action_name = actions_list.get_item_metadata(index)
 	
