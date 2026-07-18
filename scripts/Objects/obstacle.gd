@@ -13,6 +13,10 @@ func reset() -> void:
 # Turns the green selection tint on/off
 func set_highlight(active: bool) -> void:
 	if active:
-		modulate = Color(0.5, 1.5, 0.5) # Green highlight
+		modulate = Color(0.5, 1.5, 0.5) 
 	else:
-		modulate = Color.WHITE # Reset to normal
+		var current_channel = get_meta("color_channel", 0)
+		
+		# We don't need to do any math here anymore. 
+		# Global handles the checking and the fallback automatically!
+		modulate = Global.get_channel_color(current_channel)

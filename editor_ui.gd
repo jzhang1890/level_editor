@@ -7,9 +7,10 @@ signal edit_action_requested(action_name: String)
 @onready var obstacles_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles
 @onready var deco_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration
 
-
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
+
+var current_selected_objects: Array = []
 
 var item_database: Dictionary = {
 	"obstacles": [
@@ -87,3 +88,26 @@ func _on_actions_item_selected(index: int) -> void:
 	
 	# Instantly deselect the item so it acts like a clickable button instead of a toggle
 	actions_list.deselect_all()
+	
+func _on_edit_object_button_pressed() -> void:
+	$ColorChannelMenu.visible = true 
+	
+	if current_selected_objects:
+		for obj in current_selected_objects:
+			if obj.has_meta("color_channel"):
+				# 2. Grab the channel integer
+				var channel = obj.get_meta("color_channel")
+				
+				# 3. Construct the name of the button you want to press
+				var button_name = "Channel" + str(channel) + "Button"
+				
+				# 4. Grab the button node and force it down
+				var target_button = $ColorChannelMenu.get_node(button_name)
+				if target_button:
+					target_button.button_pressed = true
+	
+func _on_exit_button_pressed() -> void:
+	$ColorChannelMenu.visible = false
+
+func update_selected_target(target_node):
+	current_selected_objects = target_node

@@ -26,6 +26,10 @@ extends Node2D
 
 @onready var scrollbar: VSlider = $EditorUI/VSlider
 
+@onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorPickerButton
+var current_editing_channel: int = 1
+
+
 # Threading variables
 var save_thread: Thread
 
@@ -103,17 +107,26 @@ func _ready() -> void:
 		selection_menu.visible = false
 	if pause_menu:
 		pause_menu.visible = false
-		
+	
+	# Manually connect the buttons and bind their specific channel ID
+	$EditorUI/ColorChannelMenu/Channel0Button.pressed.connect(_on_color_channel_selected.bind(0))
+	$EditorUI/ColorChannelMenu/Channel1Button.pressed.connect(_on_color_channel_selected.bind(1))
+	$EditorUI/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
+	$EditorUI/ColorChannelMenu/Channel3Button.pressed.connect(_on_color_channel_selected.bind(3))
+	$EditorUI/ColorChannelMenu/Channel4Button.pressed.connect(_on_color_channel_selected.bind(4))
+	
+	color_picker_btn.color_changed.connect(_on_picker_color_changed)
+	
 	# Turn the editor mouse features back on from when they were turned off during play_scene
 	get_viewport().physics_object_picking = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		
-		# If the global script has a level queued up, load it immediately
+	
+	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
 		current_save_path = Global.level_to_load # Makes sure to save to this file later
 		load_level(current_save_path)
 		
-	# --- NEW: Connect to the Gizmo's broadcasts ---
+	# Connect to the Gizmo's broadcasts
 	if has_node("Foreground/TransformGizmo"):
 		var gizmo = $Foreground/TransformGizmo
 		gizmo.transform_started.connect(_on_gizmo_transform_started)
@@ -429,6 +442,9 @@ func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
 	# 3. Show the UI menu if at least one object is selected
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
+	
+	if ui_layer:
+		ui_layer.update_selected_target(selected_objects)
 		
 	# Update the transform gizmo
 	if has_node("Foreground/TransformGizmo"):
@@ -524,6 +540,10 @@ func load_level(target_path: String) -> void:
 		# Check if the data is the Dictionary format
 		if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
 			
+			# Pass the saved dictionary straight into your new function
+			if level_data.has("colors"):
+				apply_level_colors(level_data["colors"])
+			
 			# Grab the name to update the variable
 			if level_data.has("level_name"):
 				current_level_name = level_data["level_name"]
@@ -553,7 +573,8 @@ func load_level(target_path: String) -> void:
 						"rotation": 0.0,
 						"scale_x": 1.0,
 						"scale_y": 1.0,
-						"layer": 1
+						"layer": 1,
+						"color_channel": 0
 					}
 					
 					# Read through array in pairs (key, value)
@@ -572,7 +593,8 @@ func load_level(target_path: String) -> void:
 							"6": item_dict["scale_x"] = val.to_float()
 							"7": item_dict["scale_y"] = val.to_float()
 							"8": item_dict["layer"] = val.to_int()
-							"9": item_dict["skew"] = val.to_float() # --- NEW ---
+							"9": item_dict["skew"] = val.to_float() 
+							"10": item_dict["color_channel"] = val.to_int()
 							
 					# Instantiate the object exactly like before using our parsed dict!
 					var resource = load(item_dict["scene_path"])
@@ -598,6 +620,9 @@ func load_level(target_path: String) -> void:
 						var loaded_layer = item_dict["layer"]
 						new_object.set_meta("layer", loaded_layer)
 						new_object.z_index = -loaded_layer
+						
+						# Apply color channel data
+						new_object.set_meta("color_channel", item_dict["color_channel"])
 						
 						# Expand the max_layer limit
 						if loaded_layer > max_layer:
@@ -701,6 +726,12 @@ func _on_save_button_pressed() -> void:
 			if not is_zero_approx(object.skew):
 				obj_parts.append("9")
 				obj_parts.append(str(snapped(object.skew, 0.001)))
+				
+			# 10: Color Channel (only if non-zero)
+			var color_channel = object.get_meta("color_channel", 0)
+			if color_channel != 0:
+				obj_parts.append("10")
+				obj_parts.append(str(color_channel))
 			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))
@@ -708,10 +739,20 @@ func _on_save_button_pressed() -> void:
 	# Join all objects with semicolons
 	var compressed_items_string = ";".join(items_string_builder)
 			
+	# 1. Create a staging dictionary
+	var colors_as_hex: Dictionary = {}
+	
+	# 2. Set up a for loop to go through each key
+	for channel_id in Global.active_level_colors.keys():
+		# 3. Grab the color and convert it to a hex string
+		var raw_color: Color = Global.active_level_colors[channel_id]
+		colors_as_hex[channel_id] = raw_color.to_html()
+			
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"background": current_bg_path, 
-		"items": compressed_items_string # Now a single optimized string
+		"colors": colors_as_hex,
+		"items": compressed_items_string, # Now a single optimized string
 	}
 			
 	# 3. Spin up the background thread
@@ -724,6 +765,7 @@ func _on_save_and_quit_button_pressed() -> void:
 	_on_quit_button_pressed()
 	
 func _on_quit_button_pressed() -> void:
+	Global.reset_colors()
 	# Return to Level Browser scene
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
 	
@@ -944,7 +986,7 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
 		
-	# --- NEW: Tell the Gizmo about the newly box-selected objects! ---
+	# Tell the Gizmo about the newly box-selected objects
 	if has_node("Foreground/TransformGizmo"):
 		$Foreground/TransformGizmo.update_selection(selected_objects)
 
@@ -1119,7 +1161,7 @@ func recreate_objects(data_array: Array) -> void:
 
 			newly_created.append(new_object)
 			
-	# --- THE FIX: BATCH SELECTION ---
+	# BATCH SELECTION
 	# Silently add all objects to the selection array without triggering the Gizmo
 	for obj in newly_created:
 		selected_objects.append(obj)
@@ -1193,3 +1235,51 @@ func _on_gizmo_transform_ended() -> void:
 	# Capture the final state and commit the action to the stack
 	var drag_end_state = serialize_objects(selected_objects)
 	commit_action("edit", drag_start_state, drag_end_state)
+
+func _on_color_channel_selected(channel_id: int) -> void:
+	var start_state = serialize_objects(selected_objects)
+
+	for obj in selected_objects:
+		if is_instance_valid(obj):
+			obj.set_meta("color_channel", channel_id)
+			obj.set_highlight(true)
+
+	var end_state = serialize_objects(selected_objects)
+	commit_action("edit", start_state, end_state)
+	
+	# --- ADD THESE TWO LINES ---
+	# 1. Tell the editor which channel we are currently editing
+	current_editing_channel = channel_id
+	
+	# 2. Force the little color box to physically change to the correct color
+	color_picker_btn.color = Global.get_channel_color(channel_id)
+
+func apply_level_colors(json_color_data: Dictionary) -> void:
+	# 1. Wipe the colors from the previous level
+	Global.reset_colors()
+	
+	# 2. Loop through the new JSON data
+	for channel_id_str in json_color_data.keys():
+		
+		# JSON keys are always strings, so convert the ID back to an integer
+		var channel_id = int(channel_id_str) 
+		
+		# Grab the hex string associated with that ID
+		var color_hex = json_color_data[channel_id_str]
+		
+		# 3. Convert the hex string to a Godot Color and store it in Global
+		Global.active_level_colors[channel_id] = Color(color_hex)
+
+func _on_picker_color_changed(new_color: Color) -> void:
+	# 1. Save it to Global so it persists when you save the level
+	Global.active_level_colors[current_editing_channel] = new_color
+	
+	# 2. Sweep through all chunks and update the color live!
+	for chunk_id in level_chunks:
+		for obj in level_chunks[chunk_id]:
+			if is_instance_valid(obj):
+				# If the object is on this channel, update its tint
+				if obj.get_meta("color_channel", 0) == current_editing_channel:
+					# Keep the green highlight if it's currently selected, otherwise apply the new color
+					if not selected_objects.has(obj):
+						obj.modulate = new_color
