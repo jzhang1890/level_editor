@@ -55,6 +55,7 @@ var current_bg_path: String = "res://Resources/Backgrounds/background1.png"
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
 var drag_threshold: float = 25.0
+var last_acted_cell: Vector2 = Vector2(-9999, -9999) # Tracks the grid cell for continuous drawing
 
 # Track for dragging object
 var is_dragging_objects: bool = false
@@ -179,6 +180,57 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		# 1. Track dragging to protect camera panning
 		if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			# CONTINUOUS BRUSH (BUILD MODE CTRL PRESS)
+			if current_mode == EditorMode.BUILD and Input.is_key_pressed(KEY_CTRL):
+				if ui_layer.selected_scene_path != "":
+					var current_pos = get_global_mouse_position()
+					
+					# Calculate which grid cell the mouse is currently hovering over
+					var cell_x = floor(current_pos.x / GRID_SIZE)
+					var cell_y = floor(current_pos.y / GRID_SIZE)
+					var current_cell = Vector2(cell_x, cell_y)
+					
+					# Only trigger if the mouse entered a brand new grid cell
+					if current_cell != last_acted_cell:
+						place_object(current_pos)
+						last_acted_cell = current_cell
+						
+				get_viewport().set_input_as_handled()
+				return # Stop processing so the camera doesn't pan
+				
+			# BOX SELECTION (EDIT MODE CTRL PRESS)
+			if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+				if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+					is_box_selecting = true
+					box_current_pos = get_global_mouse_position()
+					
+					# Freeze the camera while drawing the box
+					camera.set_process_unhandled_input(false)
+					camera.set_process_input(false)
+					camera.set_process(false)
+					
+					queue_redraw() # Tells the engine to update our drawn rectangle
+					get_viewport().set_input_as_handled()
+					return
+				
+			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+				is_dragging = true
+				
+			# CONTINUOUS ERASER (DELETE MODE CTRL PRESS)
+			if current_mode == EditorMode.DELETE and Input.is_key_pressed(KEY_CTRL):
+				var current_pos = get_global_mouse_position()
+				
+				# Passing 'true' forces a fresh scan of the area exactly under the mouse pointer
+				var obj_to_delete = check_for_object_at(current_pos, true) 
+				
+				if obj_to_delete != null:
+					var deleted_state = serialize_objects([obj_to_delete])
+					commit_action("delete", deleted_state, [])
+					obj_to_delete.queue_free()
+					
+				get_viewport().set_input_as_handled()
+				return # Stop processing so the camera doesn't pan
+			
 			if is_dragging_objects:
 				var current_mouse_pos = get_global_mouse_position()
 				var mouse_delta = current_mouse_pos - previous_mouse_pos
@@ -197,24 +249,6 @@ func _unhandled_input(event: InputEvent) -> void:
 					$Foreground/TransformGizmo._calculate_bounding_box()
 					
 				return # Stop processing in this script
-				
-			# Box Selection Dragging 
-			if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
-				if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
-					is_box_selecting = true
-					box_current_pos = get_global_mouse_position()
-					
-					# Freeze the camera while drawing the box
-					camera.set_process_unhandled_input(false)
-					camera.set_process_input(false)
-					camera.set_process(false)
-					
-					queue_redraw() # Tells the engine to update our drawn rectangle
-					get_viewport().set_input_as_handled()
-					return
-				
-			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
-				is_dragging = true
 
 		# 2. Handle Mouse Clicks
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -222,9 +256,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				mouse_down_screen_pos = event.position
 				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
 				is_dragging = false
+				last_acted_cell = Vector2(-9999, -9999)
 				
 				# Freeze camera immediately if holding Ctrl so it cannot pan in the 25px deadzone
-				if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+				if Input.is_key_pressed(KEY_CTRL):
 					camera.set_process_unhandled_input(false)
 					camera.set_process_input(false)
 					camera.set_process(false)
