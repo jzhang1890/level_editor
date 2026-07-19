@@ -27,7 +27,7 @@ extends Node2D
 @onready var scrollbar: VSlider = $EditorUI/VSlider
 
 @onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorPickerButton
-var current_editing_channel: int = 1
+var current_editing_channel: int = 0
 
 
 # Threading variables
@@ -496,6 +496,7 @@ func place_object(pos: Vector2) -> void:
 		commit_action("place", [], placed_state)
 		
 		update_scrollbar_bounds()
+		
 
 # Deletion logic
 func delete_selected_object() -> void:
@@ -623,6 +624,8 @@ func load_level(target_path: String) -> void:
 						
 						# Apply color channel data
 						new_object.set_meta("color_channel", item_dict["color_channel"])
+						# Actually physically paints the object
+						new_object.modulate = Global.get_channel_color(item_dict["color_channel"])
 						
 						# Expand the max_layer limit
 						if loaded_layer > max_layer:
@@ -644,6 +647,9 @@ func load_level(target_path: String) -> void:
 							new_object.visible = false
 							
 	update_scrollbar_bounds()
+	
+	# Visually updates the color box when the level finishes loading
+	color_picker_btn.color = Global.get_channel_color(current_editing_channel)
 					
 # Called when the user picks a new background
 func change_background(new_path: String) -> void:
@@ -1246,8 +1252,7 @@ func _on_color_channel_selected(channel_id: int) -> void:
 
 	var end_state = serialize_objects(selected_objects)
 	commit_action("edit", start_state, end_state)
-	
-	# --- ADD THESE TWO LINES ---
+
 	# 1. Tell the editor which channel we are currently editing
 	current_editing_channel = channel_id
 	
@@ -1280,6 +1285,11 @@ func _on_picker_color_changed(new_color: Color) -> void:
 			if is_instance_valid(obj):
 				# If the object is on this channel, update its tint
 				if obj.get_meta("color_channel", 0) == current_editing_channel:
-					# Keep the green highlight if it's currently selected, otherwise apply the new color
-					if not selected_objects.has(obj):
+					
+					if selected_objects.has(obj):
+						# If it IS selected, trigger its highlight function to refresh the base color 
+						if obj.has_method("set_highlight"):
+							obj.set_highlight(true)
+					else:
+						# If it is NOT selected, apply the raw color directly
 						obj.modulate = new_color

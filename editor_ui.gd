@@ -105,6 +105,13 @@ func _on_edit_object_button_pressed() -> void:
 				var target_button = $ColorChannelMenu.get_node(button_name)
 				if target_button:
 					target_button.button_pressed = true
+					
+					# 1. Update the physical color box
+					$ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
+					
+					# 2. Tell the main editor script that the active channel has changed.
+					# Since editor_ui is a child of the root, we use get_parent() to reach the variable.
+					get_parent().current_editing_channel = channel
 	
 func _on_exit_button_pressed() -> void:
 	$ColorChannelMenu.visible = false
