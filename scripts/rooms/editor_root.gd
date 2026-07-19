@@ -223,13 +223,20 @@ func _unhandled_input(event: InputEvent) -> void:
 				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
 				is_dragging = false
 				
+				# Freeze camera immediately if holding Ctrl so it cannot pan in the 25px deadzone
+				if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+					camera.set_process_unhandled_input(false)
+					camera.set_process_input(false)
+					camera.set_process(false)
+					get_viewport().set_input_as_handled()
+			
 				# Run the object check for BOTH Edit and Delete modes to update the cache
 				if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos, true) # TRUE = Mouse Down!
 					
-					# ONLY allow grabbing/dragging if we are specifically in EDIT mode
-					if current_mode == EditorMode.EDIT and clicked_obj != null and selected_objects.has(clicked_obj):
+					# ONLY allow grabbing/dragging if we are specifically in EDIT mode and Ctrl is NOT held
+					if current_mode == EditorMode.EDIT and clicked_obj != null and selected_objects.has(clicked_obj) and not Input.is_key_pressed(KEY_CTRL):
 						is_dragging_objects = true
 						previous_mouse_pos = click_pos
 						
@@ -248,7 +255,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			# The user let go of event
 			elif not event.pressed:
 				
-				# Fix: Unfreeze the camera on release
+				# Unfreeze the camera on release
 				camera.set_process_unhandled_input(true)
 				camera.set_process_input(true)
 				camera.set_process(true)
@@ -418,6 +425,7 @@ func check_for_object_at(pos: Vector2, is_press: bool = false) -> Node2D:
 
 # Change selected object
 func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
+	
 	# 1. If the user is not holding Ctrl, clear everything first
 	if not is_multi:
 		for obj in selected_objects:
