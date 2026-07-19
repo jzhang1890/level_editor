@@ -92,9 +92,18 @@ func load_level(target_path: String) -> void:
 				if loaded_texture:
 					bg_rect.texture = loaded_texture
 					
+			# Apply the name
 			if level_data.has("level_name"):
 				level_name = level_data["level_name"]
 				level_name_label.text = level_name
+				
+			# 1. Load the color palette into Global
+			if level_data.has("colors"):
+				Global.reset_colors()
+				for channel_id_str in level_data["colors"].keys():
+					var channel_id = int(channel_id_str)
+					var color_hex = level_data["colors"][channel_id_str]
+					Global.active_level_colors[channel_id] = Color(color_hex)
 			
 			var items_raw = level_data["items"]
 			
@@ -102,7 +111,7 @@ func load_level(target_path: String) -> void:
 			if typeof(items_raw) == TYPE_STRING:
 				var item_strings = items_raw.split(";")
 				
-				# --- NEW: Setup our caches ---
+				# Setup cache
 				var scene_cache: Dictionary = {}
 				var deco_batches: Dictionary = {}
 				
@@ -120,7 +129,8 @@ func load_level(target_path: String) -> void:
 						"rotation": 0.0,
 						"scale_x": 1.0,
 						"scale_y": 1.0,
-						"layer": 1
+						"layer": 1,
+						"color_channel": 0
 					}
 					
 					# Read through array in pairs (key, value)
@@ -140,6 +150,7 @@ func load_level(target_path: String) -> void:
 							"7": item_dict["scale_y"] = val.to_float()
 							"8": item_dict["layer"] = val.to_int()
 							"9": item_dict["skew"] = val.to_float()
+							"10": item_dict["color_channel"] = val.to_int()
 							
 					# --- THE FILTER INTERCEPT ---
 					var path = item_dict["scene_path"]
@@ -154,7 +165,8 @@ func load_level(target_path: String) -> void:
 							deco_batches[batch_key] = {
 								"path": path,
 								"layer": layer,
-								"transforms": []
+								"transforms": [],
+								"colors": []
 							}
 							
 						# Build the raw math matrix (Transform2D) for the GPU
@@ -177,9 +189,15 @@ func load_level(target_path: String) -> void:
 
 						# Add it to the array and skip instantiation completely
 						deco_batches[batch_key]["transforms"].append(gpu_transform)
+						
+						# Capture color for this specific GPU instance
+						var channel = item_dict.get("color_channel", 0)
+						deco_batches[batch_key]["colors"].append(Global.get_channel_color(channel))
+						
 						continue # Skip the rest of the loop so it doesn't become a node
 
-					# ONLY HAZARDS AND TRIGGERS MAKE IT PAST THE CONTINUE
+					# ONLY HAZARDS AND TRIGGERS MAKE IT PAST THE CONTINUE 
+					# ACTUALLY INSTANTIATES INDIVIDUAL OBJECTS
 					
 					# Check cache before hitting the hard drive
 					if not scene_cache.has(path):
@@ -190,7 +208,7 @@ func load_level(target_path: String) -> void:
 					if resource:
 						var new_object = resource.instantiate()
 						
-						# Position of object
+						# Apply position of object
 						new_object.global_position = Vector2(item_dict["x"], item_dict["y"])
 						
 						# Apply rotation and store base_rotation for spinning objects
@@ -207,9 +225,14 @@ func load_level(target_path: String) -> void:
 						# Apply the saved ID
 						new_object.set_meta("unique_id", item_dict["id"])
 						
-						# Use the layer to determine z-index
+						# Apply z-index using the layer
 						var loaded_layer = item_dict["layer"]
 						new_object.z_index = -loaded_layer
+						
+						# Apply color channel data
+						var loaded_channel = item_dict["color_channel"]
+						new_object.set_meta("color_channel", loaded_channel)
+						new_object.modulate = Global.get_channel_color(loaded_channel)
 						
 						var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 						
@@ -251,12 +274,13 @@ func load_level(target_path: String) -> void:
 						
 						var mm = MultiMesh.new()
 						mm.mesh = quad
-						mm.use_colors = false
+						mm.use_colors = true # Switch this to TRUE
 						mm.instance_count = transforms.size()
 						
-						# Dump all the coordinates into the GPU buffer natively
+						# Dump all the coordinates and colors into the GPU buffer natively
 						for i in range(transforms.size()):
 							mm.set_instance_transform_2d(i, transforms[i])
+							mm.set_instance_color(i, batch_data["colors"][i])
 							
 						var mm_inst = MultiMeshInstance2D.new()
 						mm_inst.multimesh = mm

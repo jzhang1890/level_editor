@@ -907,7 +907,8 @@ func copy_selection() -> void:
 				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
 				"scale": obj.scale,
 				"skew": obj.skew,
-				"layer": obj.get_meta("layer", 1)
+				"layer": obj.get_meta("layer", 1),
+				"color_channel": obj.get_meta("color_channel", 0)
 			}
 			clipboard.append(item_data)
 
@@ -939,6 +940,11 @@ func paste_clipboard() -> void:
 			new_object.set_meta("base_rotation", item["base_rotation"])
 			new_object.set_meta("layer", item["layer"])
 			new_object.z_index = -item["layer"]
+			
+			# Apply Color Channel
+			var loaded_channel = item.get("color_channel", 0)
+			new_object.set_meta("color_channel", loaded_channel)
+			new_object.modulate = Global.get_channel_color(loaded_channel)
 			
 			# Generate a brand new unique ID for the clone
 			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
@@ -1072,7 +1078,8 @@ func serialize_objects(objects: Array) -> Array:
 			"skew": obj.skew,
 			"layer": obj.get_meta("layer", 1),
 			"unique_id": obj.get_meta("unique_id", ""),
-			"tree_index": obj.get_index() # Memorize its exact Z-layer order
+			"tree_index": obj.get_index(), # Don't forget the comma on the line above!
+			"color_channel": obj.get_meta("color_channel", 0)
 		})
 	return data_array
 
@@ -1120,17 +1127,17 @@ func _on_redo_button_pressed() -> void:
 
 # UNDO/REDO HELPER FUNCTIONS
 
-func find_object_by_id(target_id: String) -> Node2D:
+func remove_objects_by_id(data_array: Array) -> void:
+	# 1. Build a super-fast dictionary of every object in the level ONE time
+	var object_lookup = {}
 	for chunk_id in level_chunks:
 		for child in level_chunks[chunk_id]:
-			if is_instance_valid(child):
-				if child.has_meta("unique_id") and child.get_meta("unique_id") == target_id:
-					return child
-	return null
-
-func remove_objects_by_id(data_array: Array) -> void:
+			if is_instance_valid(child) and child.has_meta("unique_id"):
+				object_lookup[child.get_meta("unique_id")] = child
+				
+	# 2. Process the undo list instantly using the dictionary
 	for item in data_array:
-		var obj = find_object_by_id(item["unique_id"])
+		var obj = object_lookup.get(item["unique_id"])
 		if obj:
 			# Safety check so we don't hold a deleted object in selection
 			if selected_objects.has(obj): change_selection(obj, true) 
@@ -1149,8 +1156,14 @@ func recreate_objects(data_array: Array) -> void:
 			new_object.scale = item["scale"]
 			new_object.skew = item.get("skew", 0.0)
 			new_object.set_meta("base_rotation", item["base_rotation"])
+			# Restore layer
 			new_object.set_meta("layer", item["layer"])
 			new_object.z_index = -item["layer"]
+			# Restore Color Channel
+			var loaded_channel = item.get("color_channel", 0)
+			new_object.set_meta("color_channel", loaded_channel)
+			new_object.modulate = Global.get_channel_color(loaded_channel)
+			# Restore unique id
 			new_object.set_meta("unique_id", item["unique_id"])
 			
 			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
@@ -1191,16 +1204,29 @@ func recreate_objects(data_array: Array) -> void:
 		$Foreground/TransformGizmo.update_selection(selected_objects)
 
 func apply_object_state(data_array: Array) -> void:
+	# 1. Build a super-fast dictionary of every object in the level ONE time
+	var object_lookup = {}
+	for chunk_id in level_chunks:
+		for child in level_chunks[chunk_id]:
+			if is_instance_valid(child) and child.has_meta("unique_id"):
+				object_lookup[child.get_meta("unique_id")] = child
+
+	# 2. Process the undo list instantly using the dictionary
 	for item in data_array:
-		var obj = find_object_by_id(item["unique_id"])
+		var obj = object_lookup.get(item["unique_id"])
 		if obj:
 			obj.global_position = item["global_position"]
 			obj.rotation_degrees = item["rotation_degrees"]
 			obj.scale = item["scale"]
 			obj.skew = item.get("skew", 0.0)
 			obj.set_meta("base_rotation", item["base_rotation"])
+			# Restore layer
 			obj.set_meta("layer", item["layer"])
 			obj.z_index = -item["layer"]
+			# Restore Color Channel
+			var loaded_channel = item.get("color_channel", 0)
+			obj.set_meta("color_channel", loaded_channel)
+			obj.modulate = Global.get_channel_color(loaded_channel)
 			
 # Background worker function for saving data
 func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
