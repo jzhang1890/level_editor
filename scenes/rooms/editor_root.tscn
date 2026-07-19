@@ -293,6 +293,66 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_xxn6o")
 text = "4"
 
+[node name="Channel5Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1573993471]
+layout_mode = 0
+offset_left = 361.0
+offset_top = 116.0
+offset_right = 381.0
+offset_bottom = 146.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "5"
+
+[node name="Channel6Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1242377611]
+layout_mode = 0
+offset_left = 411.0
+offset_top = 115.0
+offset_right = 431.0
+offset_bottom = 145.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "6"
+
+[node name="Channel7Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1296480632]
+layout_mode = 0
+offset_left = 460.0
+offset_top = 114.0
+offset_right = 480.0
+offset_bottom = 144.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "7"
+
+[node name="Channel8Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=708063410]
+layout_mode = 0
+offset_left = 507.0
+offset_top = 113.0
+offset_right = 527.0
+offset_bottom = 143.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "8"
+
+[node name="Channel9Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1463585321]
+layout_mode = 0
+offset_left = 554.0
+offset_top = 114.0
+offset_right = 574.0
+offset_bottom = 144.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "9"
+
+[node name="Channel10Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=2064374537]
+layout_mode = 0
+offset_left = 601.0
+offset_top = 113.0
+offset_right = 631.0
+offset_bottom = 143.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "10"
+
 [node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelMenu" unique_id=1639325206]
 layout_mode = 0
 offset_left = 1127.0

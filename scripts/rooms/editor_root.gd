@@ -60,6 +60,7 @@ var last_acted_cell: Vector2 = Vector2(-9999, -9999) # Tracks the grid cell for 
 # Track for dragging object
 var is_dragging_objects: bool = false
 var previous_mouse_pos: Vector2 = Vector2.ZERO
+var drag_parent_node: Node2D = null
 
 # Tracking for Box Selection 
 var is_box_selecting: bool = false
@@ -115,6 +116,12 @@ func _ready() -> void:
 	$EditorUI/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
 	$EditorUI/ColorChannelMenu/Channel3Button.pressed.connect(_on_color_channel_selected.bind(3))
 	$EditorUI/ColorChannelMenu/Channel4Button.pressed.connect(_on_color_channel_selected.bind(4))
+	$EditorUI/ColorChannelMenu/Channel5Button.pressed.connect(_on_color_channel_selected.bind(5))
+	$EditorUI/ColorChannelMenu/Channel6Button.pressed.connect(_on_color_channel_selected.bind(6))
+	$EditorUI/ColorChannelMenu/Channel7Button.pressed.connect(_on_color_channel_selected.bind(7))
+	$EditorUI/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
+	$EditorUI/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
+	$EditorUI/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
 	
 	color_picker_btn.color_changed.connect(_on_picker_color_changed)
 	
@@ -235,9 +242,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				var current_mouse_pos = get_global_mouse_position()
 				var mouse_delta = current_mouse_pos - previous_mouse_pos
 				
-				for obj in selected_objects:
-					if is_instance_valid(obj):
-						obj.global_position += mouse_delta
+				# Moves objects as one instead of bunch of independent objects
+				if is_instance_valid(drag_parent_node):
+					drag_parent_node.global_position += mouse_delta
 						
 				previous_mouse_pos = current_mouse_pos
 				
@@ -275,6 +282,16 @@ func _unhandled_input(event: InputEvent) -> void:
 						is_dragging_objects = true
 						previous_mouse_pos = click_pos
 						
+						# Creates a temporary parent so the selected objects aren't dragging independently
+						drag_parent_node = Node2D.new()
+						room_canvas.add_child(drag_parent_node)
+						drag_parent_node.global_position = click_pos
+						
+						# Temporarily group them under the new node
+						for obj in selected_objects:
+							if is_instance_valid(obj):
+								obj.reparent(drag_parent_node)
+						
 						# Snapshot state before drag begins
 						drag_start_state = serialize_objects(selected_objects)
 						
@@ -295,9 +312,18 @@ func _unhandled_input(event: InputEvent) -> void:
 				camera.set_process_input(true)
 				camera.set_process(true)
 				
-				# Drop the objects
+				# Drop the objects if the user was dragging them
 				if is_dragging_objects:
 					is_dragging_objects = false
+					
+					# Separately the objects into independent ones again
+					if is_instance_valid(drag_parent_node):
+						for obj in selected_objects:
+							if is_instance_valid(obj):
+								obj.reparent(room_canvas)
+						
+						drag_parent_node.queue_free() # Clean parent node
+						drag_parent_node = null
 					
 					# Ending of the dragging object state
 					var drag_end_state = serialize_objects(selected_objects)
@@ -310,18 +336,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				# Finish Box Selection 
 				if is_box_selecting:
 					is_box_selecting = false
-					
 					queue_redraw() # Erases the blue box from the screen
 					
 					# Calculate what objects were inside the box
 					perform_box_selection(mouse_down_world_pos, get_global_mouse_position())
-					
+		
 					get_viewport().set_input_as_handled()
 					return
 				
 				# Not dragging so it's a click
 				if not is_dragging:
-					
 					# Get clicked position and clicked object if there is one
 					var click_pos = get_global_mouse_position()
 					var clicked_obj = check_for_object_at(click_pos, false) # FALSE = Mouse Up!
@@ -913,9 +937,11 @@ func refresh_layer_visibility() -> void:
 			var obj_layer = child.get_meta("layer", 1)
 			
 			if current_layer == 0 or current_layer == obj_layer:
-				child.modulate.a = 1.0  # Opaque
+				# Grab the original alpha from the object's assigned color channel
+				var channel = child.get_meta("color_channel", 0)
+				child.modulate.a = Global.get_channel_color(channel).a 
 			else:
-				child.modulate.a = 0.07 # Transparent
+				child.modulate.a = 0.05 # Faded out for inactive layers
 
 # COPY AND PASTE LOGIC
 
@@ -1234,7 +1260,7 @@ func recreate_objects(data_array: Array) -> void:
 	if selection_menu:
 		selection_menu.visible = selected_objects.size() > 0
 		
-	# Update the Transform Gizmo exactly ONE time at the very end!
+	# Update the Transform Gizmo 1 time at the very end
 	if has_node("Foreground/TransformGizmo"):
 		$Foreground/TransformGizmo.update_selection(selected_objects)
 
