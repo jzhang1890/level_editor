@@ -25,7 +25,7 @@ script = ExtResource("1_scepj")
 position = Vector2(3, 0)
 texture = SubResource("AtlasTexture_87fpj")
 script = ExtResource("3_vgvd8")
-spin_speed = -400.0
+spin_speed = -360.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=34475592]
 position = Vector2(1, 0)

@@ -1,11 +1,7 @@
 extends Sprite2D
 
-@export var spin_speed: float = 360.0
-var start_rotation: float = 0.0
+@export var spin_speed: float = 120
 
-func _process(_delta: float) -> void:
-	# Get the exact time the game has been running in seconds
-	var current_time = Time.get_ticks_msec() / 1000.0
-	
+func _process(delta: float) -> void:
 	# Calculate the exact deterministic rotation
-	rotation_degrees = start_rotation + (current_time * spin_speed)
+	rotation_degrees += spin_speed * delta

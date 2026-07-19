@@ -24,7 +24,7 @@ script = ExtResource("1_cyiuj")
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=249990255]
 texture = SubResource("AtlasTexture_cyiuj")
 script = ExtResource("3_sbkq2")
-spin_speed = 180.0
+spin_speed = 360.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1001671945]
 position = Vector2(-1, 2)

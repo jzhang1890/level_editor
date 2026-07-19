@@ -281,13 +281,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				# Run the object check for BOTH Edit and Delete modes to update the cache
 				if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
 					var click_pos = get_global_mouse_position()
-					var _clicked_obj = check_for_object_at(click_pos, true) # TRUE = Mouse Down!
+					var clicked_obj = check_for_object_at(click_pos, true) # TRUE = Mouse Down!
 					
-					# --- NEW: Check if the mouse is touching ANY currently selected object ---
-					var is_touching_selection = clicked_objects_cache.any(func(obj): return selected_objects.has(obj))
-
-					# Use our new variable instead of selected_objects.has(clicked_obj)
-					if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL):
+					# ONLY allow grabbing/dragging if we are specifically in EDIT mode and Ctrl is NOT held
+					if current_mode == EditorMode.EDIT and clicked_obj != null and selected_objects.has(clicked_obj) and not Input.is_key_pressed(KEY_CTRL):
 						is_dragging_objects = true
 						previous_mouse_pos = click_pos
 						
@@ -326,24 +323,22 @@ func _unhandled_input(event: InputEvent) -> void:
 				if is_dragging_objects:
 					is_dragging_objects = false
 					
-					# Separately the objects into independent ones again
+					# Separately the objects into independent ones again if they were in a parent node
 					if is_instance_valid(drag_parent_node):
 						for obj in selected_objects:
 							if is_instance_valid(obj):
 								obj.reparent(room_canvas)
 						
-						drag_parent_node.queue_free() # Clean parent node
+						drag_parent_node.queue_free()
 						drag_parent_node = null
 					
-					# --- NEW: Only commit the edit and stop processing if we ACTUALLY moved ---
-					if is_dragging:
-						# Ending of the dragging object state
-						var drag_end_state = serialize_objects(selected_objects)
-						commit_action("edit", drag_start_state, drag_end_state)
-						
-						# Kill the input so dropping doesn't trigger random camera jumps 
-						get_viewport().set_input_as_handled()
-						return
+					# Ending of the dragging object state
+					var drag_end_state = serialize_objects(selected_objects)
+					commit_action("edit", drag_start_state, drag_end_state)
+					
+					# Kill the input so dropping doesn't trigger random camera jumps 
+					get_viewport().set_input_as_handled()
+					return
 				
 				# Finish Box Selection 
 				if is_box_selecting:
@@ -438,16 +433,14 @@ func _on_zoom_out_button_pressed() -> void:
 	
 # Changed signature to accept the is_press flag
 func check_for_object_at(pos: Vector2, is_press: bool = false) -> Node2D:
+	
 	# Only update the math and advance the cycle when the mouse button goes DOWN
 	if is_press:
-		# Scales the click tolerance with the camera zoom 
-		var zoom_adjusted_tolerance = 20.0 / camera.zoom.x
-		
 		# If clicking in the same general spot, cycle to the next object in the array
-		if pos.distance_to(last_click_pos) < zoom_adjusted_tolerance and clicked_objects_cache.size() > 0:
+		if pos.distance_to(last_click_pos) < 5.0 and clicked_objects_cache.size() > 0:
 			click_cycle_index = (click_cycle_index + 1) % clicked_objects_cache.size()
 		else:
-			# Different spot, clear the cache and find everything under the mouse
+			# Different spot! Clear the cache and find everything under the mouse
 			clicked_objects_cache.clear()
 			click_cycle_index = 0
 			last_click_pos = pos
@@ -498,6 +491,7 @@ func check_for_object_at(pos: Vector2, is_press: bool = false) -> Node2D:
 
 # Change selected object
 func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
+	
 	# 1. If the user is not holding Ctrl, clear everything first
 	if not is_multi:
 		for obj in selected_objects:
@@ -1060,37 +1054,29 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	var size = Vector2(abs(start_p.x - end_p.x), abs(start_p.y - end_p.y))
 	var selection_rect = Rect2(pos, size)
 	
-	# Flag to track if we actually grabbed anything
-	var selection_changed: bool = false 
-	
-	# Loop through ACTIVE chunks only, not the whole level 
-	for chunk_id in active_chunks:
-		if level_chunks.has(chunk_id):
-			for child in level_chunks[chunk_id]:
-				if is_instance_valid(child):
-					if child is Node2D:
-						var obj_layer = child.get_meta("layer", 1)
-						
-						# Make sure we only grab objects on the active layer
-						if current_layer == 0 or current_layer == obj_layer:
-							# Check if the object's center point is inside our rectangle
-							if selection_rect.has_point(child.global_position):
-								# Add it to the group safely without deselecting others
-								if not selected_objects.has(child):
-									selected_objects.append(child)
-									if child.has_method("set_highlight"):
-										child.set_highlight(true)
-									
-									selection_changed = true 
+	# Loop through chunks, then loop through objects inside them
+	for chunk_id in level_chunks:
+		for child in level_chunks[chunk_id]:
+			if is_instance_valid(child):
+				if child is Node2D:
+					var obj_layer = child.get_meta("layer", 1)
+					
+					# Make sure we only grab objects on the active layer
+					if current_layer == 0 or current_layer == obj_layer:
+						# Check if the object's center point is inside our rectangle
+						if selection_rect.has_point(child.global_position):
+							# Add it to the group safely without deselecting others
+							if not selected_objects.has(child):
+								selected_objects.append(child)
+								if child.has_method("set_highlight"):
+									child.set_highlight(true)
 							
-	# Only force UI and Gizmo updates if we caught something new
-	if selection_changed:
-		if selection_menu:
-			selection_menu.visible = selected_objects.size() > 0
-			
-		# Tell the Gizmo about the newly box-selected objects
-		if has_node("Foreground/TransformGizmo"):
-			$Foreground/TransformGizmo.update_selection(selected_objects)
+	if selection_menu:
+		selection_menu.visible = selected_objects.size() > 0
+		
+	# Tell the Gizmo about the newly box-selected objects
+	if has_node("Foreground/TransformGizmo"):
+		$Foreground/TransformGizmo.update_selection(selected_objects)
 
 # Godot's built-in drawing engine
 func _draw() -> void:
@@ -1130,21 +1116,6 @@ func update_editor_chunks(center_chunk: int) -> void:
 					if is_instance_valid(obj):
 						obj.process_mode = Node.PROCESS_MODE_INHERIT
 						obj.visible = true
-						
-						# Refresh visuals on wake 
-						var channel = obj.get_meta("color_channel", 0)
-						var obj_layer = obj.get_meta("layer", 1)
-						var target_color = Global.get_channel_color(channel)
-						
-						# Apply the 5% fade if the object isn't on the active layer
-						if current_layer != 0 and current_layer != obj_layer:
-							target_color.a = 0.05
-							
-						obj.modulate = target_color
-						
-						# Ensure highlighted objects retain their glow if they were selected
-						if selected_objects.has(obj) and obj.has_method("set_highlight"):
-							obj.set_highlight(true)
 						
 						var hitbox = obj.get_node_or_null("HitboxSprite")
 						if hitbox:
@@ -1407,20 +1378,20 @@ func apply_level_colors(json_color_data: Dictionary) -> void:
 		Global.active_level_colors[channel_id] = Color(color_hex)
 
 func _on_picker_color_changed(new_color: Color) -> void:
+	# 1. Save it to Global so it persists when you save the level
 	Global.active_level_colors[current_editing_channel] = new_color
 	
-	# Sweep through ACTIVE chunks only
-	for chunk_id in active_chunks:
-		if level_chunks.has(chunk_id):
-			for obj in level_chunks[chunk_id]:
-				if is_instance_valid(obj):
-					# If the object is on this channel, update its tint
-					if obj.get_meta("color_channel", 0) == current_editing_channel:
-						
-						if selected_objects.has(obj):
-							# If it IS selected, trigger its highlight function to refresh the base color 
-							if obj.has_method("set_highlight"):
-								obj.set_highlight(true)
-						else:
-							# If it is NOT selected, apply the raw color directly
-							obj.modulate = new_color
+	# 2. Sweep through all chunks and update the color live!
+	for chunk_id in level_chunks:
+		for obj in level_chunks[chunk_id]:
+			if is_instance_valid(obj):
+				# If the object is on this channel, update its tint
+				if obj.get_meta("color_channel", 0) == current_editing_channel:
+					
+					if selected_objects.has(obj):
+						# If it IS selected, trigger its highlight function to refresh the base color 
+						if obj.has_method("set_highlight"):
+							obj.set_highlight(true)
+					else:
+						# If it is NOT selected, apply the raw color directly
+						obj.modulate = new_color
