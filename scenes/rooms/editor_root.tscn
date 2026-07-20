@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://b5d70mqbd8735" path="res://editor_ui.gd" id="5_b4iia"]
 [ext_resource type="PackedScene" uid="uid://cshpi4x7dmqd2" path="res://scenes/Overlays/transform_gizmo.tscn" id="5_xxn6o"]
 [ext_resource type="Theme" uid="uid://cl0g3cwxl3k38" path="res://Theme/new_theme.tres" id="6_5dt4k"]
+[ext_resource type="Script" uid="uid://bp8i1hrufqta7" path="res://scripts/Editor/undo_redo_manager.gd" id="8_uank4"]
+[ext_resource type="Script" uid="uid://co0q6xvm301gg" path="res://scripts/Editor/save_load_manager.gd" id="9_b4iia"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_xxn6o"]
 
@@ -369,6 +371,12 @@ offset_right = 1245.0
 offset_bottom = 81.0
 text = "X"
 
+[node name="UndoRedoManager" type="Node" parent="." unique_id=677643816]
+script = ExtResource("8_uank4")
+
+[node name="SaveLoadManager" type="Node" parent="." unique_id=1914157495]
+script = ExtResource("9_b4iia")
+
 [connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_object_item_selected"]
@@ -385,7 +393,7 @@ text = "X"
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
-[connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
-[connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="." method="_on_save_and_quit_button_pressed"]
+[connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]
+[connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]
+[connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="SaveLoadManager" method="_on_save_and_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]

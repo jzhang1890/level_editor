@@ -29,10 +29,6 @@ extends Node2D
 @onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorPickerButton
 var current_editing_channel: int = 0
 
-
-# Threading variables
-var save_thread: Thread
-
 # Chunking variables
 const CHUNK_HEIGHT: float = 512.0
 var level_chunks: Dictionary = {}
@@ -47,9 +43,6 @@ var max_layer: int = 1
 enum EditorMode { BUILD, EDIT, DELETE }
 # On build tab at start
 var current_mode: EditorMode = EditorMode.BUILD
-
-# Default background path
-var current_bg_path: String = "res://Resources/Backgrounds/background1.png"
 
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
@@ -78,17 +71,10 @@ var clicked_objects_cache: Array[Node2D] = []
 # Clipboard for Copy/Paste 
 var clipboard: Array[Dictionary] = []
 
-# Undo/Redo variables
-var undo_stack: Array[Dictionary] = []
-var redo_stack: Array[Dictionary] = []
-const MAX_UNDO_STEPS: int = 100
-var drag_start_state: Array = []
-
-# Save path
-var current_save_path: String = "user://Levels/my_new_level.json"
-
-# Gives it untitled if it doesnt have a name
-var current_level_name: String = "Untitled"
+# Undo/Redo manager
+@onready var undo_manager: Node = $UndoRedoManager
+# Save and load manager
+@onready var save_manager: Node = $SaveLoadManager
 
 # Current size of one grid
 const GRID_SIZE: float = 64.0
@@ -131,8 +117,8 @@ func _ready() -> void:
 	
 	# If the global script has a level queued up, load it immediately
 	if Global.level_to_load != "":
-		current_save_path = Global.level_to_load # Makes sure to save to this file later
-		load_level(current_save_path)
+		save_manager.current_save_path = Global.level_to_load # Makes sure to save to this file later
+		save_manager.load_level(save_manager.current_save_path)
 		
 	# Connect to the Gizmo's broadcasts
 	if has_node("Foreground/TransformGizmo"):
@@ -141,10 +127,10 @@ func _ready() -> void:
 		gizmo.transform_ended.connect(_on_gizmo_transform_ended)
 		
 func _exit_tree() -> void:
-	# This intercepts the scene closure and forces the engine 
-	# to wait for the background thread to safely finish saving.
-	if save_thread and save_thread.is_started():
-		save_thread.wait_to_finish()
+	# Intercepts the scene closure and forces the engine 
+	# to wait for the background thread to finish saving.
+	if save_manager.save_thread and save_manager.save_thread.is_started():
+		save_manager.save_thread.wait_to_finish()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not paused:
@@ -170,12 +156,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			
 		# Undo (Ctrl + Z)
 		if event is InputEventKey and event.pressed and event.keycode == KEY_Z and Input.is_key_pressed(KEY_CTRL):
-			undo_action()
+			undo_manager.undo_action()
 			return
 			
 		# Redo (Ctrl + Y)
 		if event is InputEventKey and event.pressed and event.keycode == KEY_Y and Input.is_key_pressed(KEY_CTRL):
-			redo_action()
+			undo_manager.redo_action()
 			return
 
 		# Zoom by scrolling
@@ -231,8 +217,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				var obj_to_delete = check_for_object_at(current_pos, true) 
 				
 				if obj_to_delete != null:
-					var deleted_state = serialize_objects([obj_to_delete])
-					commit_action("delete", deleted_state, [])
+					var deleted_state = undo_manager.serialize_objects([obj_to_delete])
+					undo_manager.commit_action("delete", deleted_state, [])
 					obj_to_delete.queue_free()
 					
 				get_viewport().set_input_as_handled()
@@ -317,7 +303,7 @@ func _unhandled_input(event: InputEvent) -> void:
 									obj.reparent(drag_parent_node)
 						
 						# Snapshot state before drag begins
-						drag_start_state = serialize_objects(selected_objects)
+						undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
 						
 						# Freeze the camera so it cannot steal the input
 						camera.set_process_unhandled_input(false)
@@ -349,11 +335,11 @@ func _unhandled_input(event: InputEvent) -> void:
 						drag_parent_node.queue_free() # Clean parent node
 						drag_parent_node = null
 					
-					# --- NEW: Only commit the edit and stop processing if we ACTUALLY moved ---
+					# Only commit the edit and stop processing if actually moved 
 					if is_dragging:
 						# Ending of the dragging object state
-						var drag_end_state = serialize_objects(selected_objects)
-						commit_action("edit", drag_start_state, drag_end_state)
+						var drag_end_state = undo_manager.serialize_objects(selected_objects)
+						undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
 						
 						# Kill the input so dropping doesn't trigger random camera jumps 
 						get_viewport().set_input_as_handled()
@@ -389,8 +375,8 @@ func _unhandled_input(event: InputEvent) -> void:
 						EditorMode.DELETE:
 							if clicked_obj != null:
 								# Snapshot the single object before deleting
-								var deleted_state = serialize_objects([clicked_obj])
-								commit_action("delete", deleted_state, [])
+								var deleted_state = undo_manager.serialize_objects([clicked_obj])
+								undo_manager.commit_action("delete", deleted_state, [])
 								
 								clicked_obj.queue_free()
 				
@@ -586,8 +572,8 @@ func place_object(pos: Vector2) -> void:
 			new_object.process_mode = Node.PROCESS_MODE_DISABLED
 			new_object.visible = false
 		
-		var placed_state = serialize_objects([new_object])
-		commit_action("place", [], placed_state)
+		var placed_state = undo_manager.serialize_objects([new_object])
+		undo_manager.commit_action("place", [], placed_state)
 		
 		update_scrollbar_bounds()
 		
@@ -596,8 +582,8 @@ func place_object(pos: Vector2) -> void:
 func delete_selected_object() -> void:
 	
 	if not selected_objects.is_empty():
-		var deleted_state = serialize_objects(selected_objects)
-		commit_action("delete", deleted_state, [])
+		var deleted_state = undo_manager.serialize_objects(selected_objects)
+		undo_manager.commit_action("delete", deleted_state, [])
 	
 	# Loop through all selected objects and delete them
 	for obj in selected_objects:
@@ -612,145 +598,13 @@ func delete_selected_object() -> void:
 func _on_delete_button_pressed() -> void:
 	delete_selected_object()
 
-# Load Logic
-
-# Loading level function
-func load_level(target_path: String) -> void:
-	if not FileAccess.file_exists(target_path):
-		print("No save file found at: ", target_path)
-		return
-		
-	change_selection(null)
-	
-	for child in room_canvas.get_children():
-		child.queue_free()
-		
-	var file = FileAccess.open(target_path, FileAccess.READ)
-	if file:
-		var json_string = file.get_as_text()
-		file.close()
-		
-		var level_data = JSON.parse_string(json_string)
-		
-		# Check if the data is the Dictionary format
-		if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
-			
-			# Pass the saved dictionary straight into your new function
-			if level_data.has("colors"):
-				apply_level_colors(level_data["colors"])
-			
-			# Grab the name to update the variable
-			if level_data.has("level_name"):
-				current_level_name = level_data["level_name"]
-				print("Loading level: ", current_level_name)
-			
-			# Load and apply the background
-			if level_data.has("background"):
-				current_bg_path = level_data["background"]
-				var loaded_texture = load(current_bg_path)
-				if loaded_texture:
-					bg_rect.texture = loaded_texture
-			
-			var items_raw = level_data["items"]
-			if typeof(items_raw) == TYPE_STRING:
-				var item_strings = items_raw.split(";")
-				
-				for item_str in item_strings:
-					if item_str.is_empty():
-						continue
-						
-					var data = item_str.split(",")
-					if data.size() < 2:
-						continue
-						
-					# Setup our baseline default values
-					var item_dict = {
-						"rotation": 0.0,
-						"scale_x": 1.0,
-						"scale_y": 1.0,
-						"layer": 1,
-						"color_channel": 0
-					}
-					
-					# Read through array in pairs (key, value)
-					for i in range(0, data.size(), 2):
-						if i + 1 >= data.size():
-							break
-						var key = data[i]
-						var val = data[i+1]
-						
-						match key:
-							"1": item_dict["id"] = val
-							"2": item_dict["scene_path"] = val
-							"3": item_dict["x"] = val.to_float()
-							"4": item_dict["y"] = val.to_float()
-							"5": item_dict["rotation"] = val.to_float()
-							"6": item_dict["scale_x"] = val.to_float()
-							"7": item_dict["scale_y"] = val.to_float()
-							"8": item_dict["layer"] = val.to_int()
-							"9": item_dict["skew"] = val.to_float() 
-							"10": item_dict["color_channel"] = val.to_int()
-							
-					# Instantiate the object exactly like before using our parsed dict!
-					var resource = load(item_dict["scene_path"])
-					if resource:
-						var new_object = resource.instantiate()
-						new_object.global_position = Vector2(item_dict["x"], item_dict["y"])
-						
-						# Apply rotation
-						var loaded_rot = item_dict["rotation"]
-						new_object.rotation_degrees = loaded_rot
-						new_object.set_meta("base_rotation", loaded_rot)
-						
-						# Apply scale
-						new_object.scale = Vector2(item_dict["scale_x"], item_dict["scale_y"])
-						
-						# Apply saved ID
-						new_object.set_meta("unique_id", item_dict["id"])
-						
-						# Apply skew (with a safe fallback to 0.0 for older saves)
-						new_object.skew = item_dict.get("skew", 0.0)
-						
-						# Apply layer data
-						var loaded_layer = item_dict["layer"]
-						new_object.set_meta("layer", loaded_layer)
-						new_object.z_index = -loaded_layer
-						
-						# Apply color channel data
-						new_object.set_meta("color_channel", item_dict["color_channel"])
-						# Actually physically paints the object
-						new_object.modulate = Global.get_channel_color(item_dict["color_channel"])
-						
-						# Expand the max_layer limit
-						if loaded_layer > max_layer:
-							max_layer = loaded_layer
-							
-						var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
-
-						# Create an empty array if the chunk doesn't exist
-						if not level_chunks.has(chunk_id):
-							level_chunks[chunk_id] = []
-
-						# Add to canvas
-						room_canvas.add_child(new_object)
-						level_chunks[chunk_id].append(new_object)
-						
-						# Sleep immediately if chunk is inactive
-						if chunk_id not in active_chunks:
-							new_object.process_mode = Node.PROCESS_MODE_DISABLED
-							new_object.visible = false
-							
-	update_scrollbar_bounds()
-	
-	# Visually updates the color box when the level finishes loading
-	color_picker_btn.color = Global.get_channel_color(current_editing_channel)
 					
 # Called when the user picks a new background
 func change_background(new_path: String) -> void:
 	var new_texture = load(new_path)
 	if new_texture:
 		bg_rect.texture = new_texture
-		current_bg_path = new_path # Update the variable so it saves correctly later
+		save_manager.current_bg_path = new_path # Update the variable so it saves correctly later
 
 # Tab switching logic
 func _on_main_tab_container_tab_changed(tab: int) -> void:
@@ -761,7 +615,7 @@ func _on_main_tab_container_tab_changed(tab: int) -> void:
 func _on_pause_button_pressed() -> void:
 	# Shows name of level
 	if level_name_label:
-		level_name_label.text = current_level_name
+		level_name_label.text = save_manager.current_level_name
 		
 	# Reveal the menu
 	if pause_menu:
@@ -774,104 +628,9 @@ func _on_resume_button_pressed() -> void:
 		pause_menu.visible = false
 	paused = false
 	
-# Saving Level function
-func _on_save_button_pressed() -> void:
-	if not DirAccess.dir_exists_absolute("user://Levels"):
-		DirAccess.make_dir_absolute("user://Levels")
-
-	# 1. Clean up the thread if the user spams the save button
-	if save_thread and save_thread.is_started():
-		save_thread.wait_to_finish()
-
-	var items_string_builder: Array[String] = []
-	
-	# 2. Gather data on the MAIN thread (extremely fast)
-	for object in room_canvas.get_children():
-		if object is Node2D and object.has_meta("unique_id"):
-			var obj_parts: Array[String] = []
-			
-			# 1: ID
-			obj_parts.append("1")
-			obj_parts.append(object.get_meta("unique_id", ""))
-			
-			# 2: Scene Path
-			obj_parts.append("2")
-			obj_parts.append(object.scene_file_path)
-			
-			# 3 & 4: Snapped Coordinates
-			obj_parts.append("3")
-			obj_parts.append(str(snapped(object.global_position.x, 0.001)))
-			obj_parts.append("4")
-			obj_parts.append(str(snapped(object.global_position.y, 0.001)))
-			
-			# 5: Rotation (only if non-zero)
-			if not is_zero_approx(object.rotation_degrees):
-				obj_parts.append("5")
-				obj_parts.append(str(snapped(object.rotation_degrees, 0.001)))
-				
-			# 6 & 7: Scale (only if non-one)
-			if not object.scale.is_equal_approx(Vector2.ONE):
-				obj_parts.append("6")
-				obj_parts.append(str(snapped(object.scale.x, 0.001)))
-				obj_parts.append("7")
-				obj_parts.append(str(snapped(object.scale.y, 0.001)))
-				
-			# 8: Layer (only if non-one)
-			var layer = object.get_meta("layer", 1)
-			if layer != 1:
-				obj_parts.append("8")
-				obj_parts.append(str(layer))
-			
-			# 9: Skew (only if non-zero)
-			if not is_zero_approx(object.skew):
-				obj_parts.append("9")
-				obj_parts.append(str(snapped(object.skew, 0.001)))
-				
-			# 10: Color Channel (only if non-zero)
-			var color_channel = object.get_meta("color_channel", 0)
-			if color_channel != 0:
-				obj_parts.append("10")
-				obj_parts.append(str(color_channel))
-			
-			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
-			items_string_builder.append(",".join(obj_parts))
-			
-	# Join all objects with semicolons
-	var compressed_items_string = ";".join(items_string_builder)
-			
-	# 1. Create a staging dictionary
-	var colors_as_hex: Dictionary = {}
-	
-	# 2. Set up a for loop to go through each key
-	for channel_id in Global.active_level_colors.keys():
-		# 3. Grab the color and convert it to a hex string
-		var raw_color: Color = Global.active_level_colors[channel_id]
-		colors_as_hex[channel_id] = raw_color.to_html()
-			
-	var save_dict: Dictionary = {
-		"level_name": current_level_name,
-		"background": current_bg_path, 
-		"colors": colors_as_hex,
-		"items": compressed_items_string, # Now a single optimized string
-	}
-			
-	# 3. Spin up the background thread
-	save_thread = Thread.new()
-	save_thread.start(_write_save_data_to_disk.bind(save_dict, current_save_path))
-	
-func _on_save_and_quit_button_pressed() -> void:
-	# Just combines save and quit logic
-	_on_save_button_pressed()
-	_on_quit_button_pressed()
-	
-func _on_quit_button_pressed() -> void:
-	Global.reset_colors()
-	# Return to Level Browser scene
-	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
-	
 func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 	
-	var start_state = serialize_objects(selected_objects)
+	var start_state = undo_manager.serialize_objects(selected_objects)
 	
 	# Make sure the array isn't empty before performing edit action
 	if selected_objects.is_empty():
@@ -928,8 +687,8 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
 				
-	var end_state = serialize_objects(selected_objects)
-	commit_action("edit", start_state, end_state)
+	var end_state = undo_manager.serialize_objects(selected_objects)
+	undo_manager.commit_action("edit", start_state, end_state)
 
 func _on_left_arrow_button_pressed() -> void:
 	# Deselects objects when changing layers
@@ -1065,8 +824,8 @@ func paste_clipboard() -> void:
 		change_selection(obj, true)
 		
 	if not new_selection.is_empty():
-		var pasted_state = serialize_objects(new_selection)
-		commit_action("place", [], pasted_state)
+		var pasted_state = undo_manager.serialize_objects(new_selection)
+		undo_manager.commit_action("place", [], pasted_state)
 		
 # BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -1165,191 +924,13 @@ func update_editor_chunks(center_chunk: int) -> void:
 							hitbox.visible = hitboxes_on
 
 	active_chunks = needed_chunks
-	
-# UNDO/REDO ENGINE 
-
-# 1. Takes an array of objects and converts them to pure dictionary data
-func serialize_objects(objects: Array) -> Array:
-	# Filter out freed objects and sort them chronologically 
-	var valid_objects = []
-	for obj in objects:
-		if is_instance_valid(obj) and obj.scene_file_path != "":
-			valid_objects.append(obj)
-			
-	valid_objects.sort_custom(func(a, b): return a.get_index() < b.get_index())
-	
-	var data_array = []
-	for obj in valid_objects:
-		data_array.append({
-			"scene_path": obj.scene_file_path,
-			"global_position": obj.global_position,
-			"rotation_degrees": obj.rotation_degrees,
-			"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
-			"scale": obj.scale,
-			"skew": obj.skew,
-			"layer": obj.get_meta("layer", 1),
-			"unique_id": obj.get_meta("unique_id", ""),
-			"tree_index": obj.get_index(), # Don't forget the comma on the line above!
-			"color_channel": obj.get_meta("color_channel", 0)
-		})
-	return data_array
-
-# 2. Pushes a new action to the history and clears the Redo timeline
-func commit_action(action_type: String, old_data: Array, new_data: Array) -> void:
-	undo_stack.append({
-		"type": action_type,
-		"old_data": old_data,
-		"new_data": new_data
-	})
-	
-	if undo_stack.size() > MAX_UNDO_STEPS:
-		undo_stack.pop_front()
-		
-	redo_stack.clear()
-
-# 3. Undo Logic
-func undo_action() -> void:
-	if undo_stack.is_empty(): return
-	var action = undo_stack.pop_back()
-	redo_stack.append(action)
-	
-	match action["type"]:
-		"place": remove_objects_by_id(action["new_data"])
-		"delete": recreate_objects(action["old_data"])
-		"edit": apply_object_state(action["old_data"])
-
-# 4. Redo Logic
-func redo_action() -> void:
-	if redo_stack.is_empty(): return
-	var action = redo_stack.pop_back()
-	undo_stack.append(action)
-	
-	match action["type"]:
-		"place": recreate_objects(action["new_data"])
-		"delete": remove_objects_by_id(action["old_data"])
-		"edit": apply_object_state(action["new_data"])
 
 # 5. UI Button Hooks
 func _on_undo_button_pressed() -> void:
-	undo_action()
+	undo_manager.undo_action()
 
 func _on_redo_button_pressed() -> void:
-	redo_action()
-
-# UNDO/REDO HELPER FUNCTIONS
-
-func remove_objects_by_id(data_array: Array) -> void:
-	# 1. Build a super-fast dictionary of every object in the level ONE time
-	var object_lookup = {}
-	for chunk_id in level_chunks:
-		for child in level_chunks[chunk_id]:
-			if is_instance_valid(child) and child.has_meta("unique_id"):
-				object_lookup[child.get_meta("unique_id")] = child
-				
-	# 2. Process the undo list instantly using the dictionary
-	for item in data_array:
-		var obj = object_lookup.get(item["unique_id"])
-		if obj:
-			# Safety check so we don't hold a deleted object in selection
-			if selected_objects.has(obj): change_selection(obj, true) 
-			obj.queue_free()
-
-func recreate_objects(data_array: Array) -> void:
-	change_selection(null, false)
-	var newly_created = []
-	
-	for item in data_array:
-		var resource = load(item["scene_path"])
-		if resource:
-			var new_object = resource.instantiate()
-			new_object.global_position = item["global_position"]
-			new_object.rotation_degrees = item["rotation_degrees"]
-			new_object.scale = item["scale"]
-			new_object.skew = item.get("skew", 0.0)
-			new_object.set_meta("base_rotation", item["base_rotation"])
-			# Restore layer
-			new_object.set_meta("layer", item["layer"])
-			new_object.z_index = -item["layer"]
-			# Restore Color Channel
-			var loaded_channel = item.get("color_channel", 0)
-			new_object.set_meta("color_channel", loaded_channel)
-			new_object.modulate = Global.get_channel_color(loaded_channel)
-			# Restore unique id
-			new_object.set_meta("unique_id", item["unique_id"])
-			
-			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
-
-			# Create an empty array if the chunk doesn't exist
-			if not level_chunks.has(chunk_id):
-				level_chunks[chunk_id] = []
-
-			# Add to canvas for chronological layering
-			room_canvas.add_child(new_object)
-			
-			# Move it back to its exact original rendering spot
-			if item.has("tree_index"):
-				room_canvas.move_child(new_object, item["tree_index"])
-			
-			level_chunks[chunk_id].append(new_object)
-			
-			# Sleep immediately if chunk is inactive
-			if chunk_id not in active_chunks:
-				new_object.process_mode = Node.PROCESS_MODE_DISABLED
-				new_object.visible = false
-
-			newly_created.append(new_object)
-			
-	# BATCH SELECTION
-	# Silently add all objects to the selection array without triggering the Gizmo
-	for obj in newly_created:
-		selected_objects.append(obj)
-		if obj.has_method("set_highlight"):
-			obj.set_highlight(true)
-			
-	# Show the UI menu if needed
-	if selection_menu:
-		selection_menu.visible = selected_objects.size() > 0
-		
-	# Update the Transform Gizmo 1 time at the very end
-	if has_node("Foreground/TransformGizmo"):
-		$Foreground/TransformGizmo.update_selection(selected_objects)
-
-func apply_object_state(data_array: Array) -> void:
-	# 1. Build a super-fast dictionary of every object in the level ONE time
-	var object_lookup = {}
-	for chunk_id in level_chunks:
-		for child in level_chunks[chunk_id]:
-			if is_instance_valid(child) and child.has_meta("unique_id"):
-				object_lookup[child.get_meta("unique_id")] = child
-
-	# 2. Process the undo list instantly using the dictionary
-	for item in data_array:
-		var obj = object_lookup.get(item["unique_id"])
-		if obj:
-			obj.global_position = item["global_position"]
-			obj.rotation_degrees = item["rotation_degrees"]
-			obj.scale = item["scale"]
-			obj.skew = item.get("skew", 0.0)
-			obj.set_meta("base_rotation", item["base_rotation"])
-			# Restore layer
-			obj.set_meta("layer", item["layer"])
-			obj.z_index = -item["layer"]
-			# Restore Color Channel
-			var loaded_channel = item.get("color_channel", 0)
-			obj.set_meta("color_channel", loaded_channel)
-			obj.modulate = Global.get_channel_color(loaded_channel)
-			
-# Background worker function for saving data
-func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
-	# Removed the "\t" argument to minify the JSON into a single dense line 
-	var json_string = JSON.stringify(save_dict) 
-	
-	var file = FileAccess.open(path, FileAccess.WRITE)
-	if file:
-		file.store_string(json_string)
-		file.close()
-		
-	print("Background thread complete! Level safely saved to: ", path)
+	undo_manager.redo_action()
 	
 func _on_v_slider_value_changed(value: float) -> void:
 	# Only move the camera if the user is actually clicking/dragging the slider
@@ -1380,23 +961,23 @@ func update_scrollbar_bounds() -> void:
 # GIZMO UNDO/REDO HANDLERS
 func _on_gizmo_transform_started() -> void:
 	# Overwrite the global drag_start_state with the object's current scale/rotation
-	drag_start_state = serialize_objects(selected_objects)
+	undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
 
 func _on_gizmo_transform_ended() -> void:
 	# Capture the final state and commit the action to the stack
-	var drag_end_state = serialize_objects(selected_objects)
-	commit_action("edit", drag_start_state, drag_end_state)
+	var drag_end_state = undo_manager.serialize_objects(selected_objects)
+	undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
 
 func _on_color_channel_selected(channel_id: int) -> void:
-	var start_state = serialize_objects(selected_objects)
+	var start_state = undo_manager.serialize_objects(selected_objects)
 
 	for obj in selected_objects:
 		if is_instance_valid(obj):
 			obj.set_meta("color_channel", channel_id)
 			obj.set_highlight(true)
 
-	var end_state = serialize_objects(selected_objects)
-	commit_action("edit", start_state, end_state)
+	var end_state = undo_manager.serialize_objects(selected_objects)
+	undo_manager.commit_action("edit", start_state, end_state)
 
 	# 1. Tell the editor which channel we are currently editing
 	current_editing_channel = channel_id
