@@ -133,259 +133,31 @@ func _exit_tree() -> void:
 		save_manager.save_thread.wait_to_finish()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not paused:
-		# Scrollbar fix: If the user clicks, drags, or zooms in the level, force the scrollbar to let go
-		if event is InputEventMouseButton and event.is_pressed():
-			if scrollbar and scrollbar.has_focus():
-				scrollbar.release_focus()
-		
-		# Backspace for deletion
-		if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSPACE:
-			delete_selected_object()
-			return # Stop processing this event
+	if paused: return
+	
+	# Scrollbar fix: Force scrollbar to let go on click
+	if event is InputEventMouseButton and event.is_pressed():
+		if scrollbar and scrollbar.has_focus():
+			scrollbar.release_focus()
 
-		# Copy (Ctrl + C)
-		if event is InputEventKey and event.pressed and event.keycode == KEY_C and Input.is_key_pressed(KEY_CTRL):
-			copy_selection()
-			return
-			
-		# Paste (Ctrl + V) 
-		if event is InputEventKey and event.pressed and event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
-			paste_clipboard()
-			return
-			
-		# Undo (Ctrl + Z)
-		if event is InputEventKey and event.pressed and event.keycode == KEY_Z and Input.is_key_pressed(KEY_CTRL):
-			undo_manager.undo_action()
-			return
-			
-		# Redo (Ctrl + Y)
-		if event is InputEventKey and event.pressed and event.keycode == KEY_Y and Input.is_key_pressed(KEY_CTRL):
-			undo_manager.redo_action()
-			return
+	# 1. Route Key Presses
+	if event is InputEventKey and event.pressed:
+		if _handle_hotkeys(event):
+			return # Stop processing if a hotkey was triggered
 
-		# Zoom by scrolling
-		if event is InputEventMouseButton and event.is_pressed():
-			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-				apply_zoom_at_mouse(camera.zoom.x + zoom_step/5)
-			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
+	# 2. Route Mouse Movement
+	elif event is InputEventMouseMotion:
+		_handle_mouse_motion(event)
 
-		# 1. Track dragging to protect camera panning
-		if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			# CONTINUOUS BRUSH (BUILD MODE CTRL PRESS)
-			if current_mode == EditorMode.BUILD and Input.is_key_pressed(KEY_CTRL):
-				if ui_layer.selected_scene_path != "":
-					var current_pos = get_global_mouse_position()
-					
-					# Calculate which grid cell the mouse is currently hovering over
-					var cell_x = floor(current_pos.x / GRID_SIZE)
-					var cell_y = floor(current_pos.y / GRID_SIZE)
-					var current_cell = Vector2(cell_x, cell_y)
-					
-					# Only trigger if the mouse entered a brand new grid cell
-					if current_cell != last_acted_cell:
-						place_object(current_pos)
-						last_acted_cell = current_cell
-						
-				get_viewport().set_input_as_handled()
-				return # Stop processing so the camera doesn't pan
-				
-			# BOX SELECTION (EDIT MODE CTRL PRESS)
-			if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
-				if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
-					is_box_selecting = true
-					box_current_pos = get_global_mouse_position()
-					
-					# Freeze the camera while drawing the box
-					camera.set_process_unhandled_input(false)
-					camera.set_process_input(false)
-					camera.set_process(false)
-					
-					queue_redraw() # Tells the engine to update our drawn rectangle
-					get_viewport().set_input_as_handled()
-					return
-				
-			if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
-				is_dragging = true
-				
-			# CONTINUOUS ERASER (DELETE MODE CTRL PRESS)
-			if current_mode == EditorMode.DELETE and Input.is_key_pressed(KEY_CTRL):
-				var current_pos = get_global_mouse_position()
-				
-				# Passing 'true' forces a fresh scan of the area exactly under the mouse pointer
-				var obj_to_delete = check_for_object_at(current_pos, true) 
-				
-				if obj_to_delete != null:
-					var deleted_state = undo_manager.serialize_objects([obj_to_delete])
-					undo_manager.commit_action("delete", deleted_state, [])
-					obj_to_delete.queue_free()
-					
-				get_viewport().set_input_as_handled()
-				return # Stop processing so the camera doesn't pan
-			
-			if is_dragging_objects:
-				var current_mouse_pos = get_global_mouse_position()
-				var mouse_delta = current_mouse_pos - previous_mouse_pos
-				
-				# Moves objects as one instead of bunch of independent objects
-				if is_instance_valid(drag_parent_node):
-					# Move the parent if we created one
-					drag_parent_node.global_position += mouse_delta
-				else:
-					# Fallback to individual movement if <= than 25 items
-					for obj in selected_objects:
-						if is_instance_valid(obj):
-							obj.global_position += mouse_delta
-						
-				previous_mouse_pos = current_mouse_pos
-				
-				# Kill the input so the camera script never sees it 
-				get_viewport().set_input_as_handled()
-				
-				# Tell the gizmo to follow the newly moved objects
-				if has_node("Foreground/TransformGizmo"):
-					$Foreground/TransformGizmo._calculate_bounding_box()
-					
-				return # Stop processing in this script
-
-		# 2. Handle Mouse Clicks
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				mouse_down_screen_pos = event.position
-				mouse_down_world_pos = get_global_mouse_position() # Anchor the starting corner for rectangle selection
-				is_dragging = false
-				last_acted_cell = Vector2(-9999, -9999)
-				
-				# Freeze camera immediately if holding Ctrl so it cannot pan in the 25px deadzone
-				if Input.is_key_pressed(KEY_CTRL):
-					camera.set_process_unhandled_input(false)
-					camera.set_process_input(false)
-					camera.set_process(false)
-					get_viewport().set_input_as_handled()
-			
-				# Run the object check for BOTH Edit and Delete modes to update the cache
-				if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
-					var click_pos = get_global_mouse_position()
-					var _clicked_obj = check_for_object_at(click_pos, true) # TRUE = Mouse Down!
-					
-					# Check if the mouse is touching ANY currently selected object 
-					var is_touching_selection = clicked_objects_cache.any(func(obj): return selected_objects.has(obj))
-
-					# Check if the mouse is trying to grab a Transform Gizmo handle
-					var is_touching_gizmo = false
-					if current_mode == EditorMode.EDIT and has_node("Foreground/TransformGizmo"):
-						var gizmo = $Foreground/TransformGizmo
-						if gizmo.visible:
-							# List all the Area2D handles exposed by the Gizmo
-							var handles = [gizmo.scale_handle, gizmo.rotate_handle, gizmo.scale_x_handle, gizmo.scale_y_handle, gizmo.skew_handle, gizmo.skew_y_handle]
-							
-							for handle in handles:
-								# If the click is within 24 pixels of a handle's center, protect it!
-								if is_instance_valid(handle) and click_pos.distance_to(handle.global_position) < 24.0:
-									is_touching_gizmo = true
-									break
-
-					# Add the 'not is_touching_gizmo' check to prevent dragging when using the handles
-					if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
-						is_dragging_objects = true
-						previous_mouse_pos = click_pos
-						
-						# Creates a temporary parent so the selected objects aren't dragging independently
-						if selected_objects.size() > 25:
-							drag_parent_node = Node2D.new()
-							room_canvas.add_child(drag_parent_node)
-							drag_parent_node.global_position = click_pos
-							
-							# Temporarily group them under the new node
-							for obj in selected_objects:
-								if is_instance_valid(obj):
-									obj.reparent(drag_parent_node)
-						
-						# Snapshot state before drag begins
-						undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
-						
-						# Freeze the camera so it cannot steal the input
-						camera.set_process_unhandled_input(false)
-						camera.set_process_input(false)
-						camera.set_process(false)
-						
-						# Kill the input so the camera script never sees the initial click
-						get_viewport().set_input_as_handled()
-						return # Stop processing the click so it doesn't deselect
-				
-			# The user let go of event
-			elif not event.pressed:
-				
-				# Unfreeze the camera on release
-				camera.set_process_unhandled_input(true)
-				camera.set_process_input(true)
-				camera.set_process(true)
-				
-				# Drop the objects if the user was dragging them
-				if is_dragging_objects:
-					is_dragging_objects = false
-					
-					# Separately the objects into independent ones again
-					if is_instance_valid(drag_parent_node):
-						for obj in selected_objects:
-							if is_instance_valid(obj):
-								obj.reparent(room_canvas)
-						
-						drag_parent_node.queue_free() # Clean parent node
-						drag_parent_node = null
-					
-					# Only commit the edit and stop processing if actually moved 
-					if is_dragging:
-						# Ending of the dragging object state
-						var drag_end_state = undo_manager.serialize_objects(selected_objects)
-						undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
-						
-						# Kill the input so dropping doesn't trigger random camera jumps 
-						get_viewport().set_input_as_handled()
-						return
-				
-				# Finish Box Selection 
-				if is_box_selecting:
-					is_box_selecting = false
-					queue_redraw() # Erases the blue box from the screen
-					
-					# Calculate what objects were inside the box
-					perform_box_selection(mouse_down_world_pos, get_global_mouse_position())
-		
-					get_viewport().set_input_as_handled()
-					return
-				
-				# Not dragging so it's a click
-				if not is_dragging:
-					# Get clicked position and clicked object if there is one
-					var click_pos = get_global_mouse_position()
-					var clicked_obj = check_for_object_at(click_pos, false) # FALSE = Mouse Up!
-					
-					# Mode-based click logic
-					match current_mode:
-						EditorMode.BUILD:
-							if ui_layer.selected_scene_path != "":
-								place_object(click_pos)
-								
-						EditorMode.EDIT:
-							var is_multi = Input.is_key_pressed(KEY_CTRL)
-							change_selection(clicked_obj, is_multi)
-							
-						EditorMode.DELETE:
-							if clicked_obj != null:
-								# Snapshot the single object before deleting
-								var deleted_state = undo_manager.serialize_objects([clicked_obj])
-								undo_manager.commit_action("delete", deleted_state, [])
-								
-								clicked_obj.queue_free()
-				
-				is_dragging = false
+	# 3. Route Mouse Clicks and Scrolls
+	elif event is InputEventMouseButton:
+		_handle_mouse_button(event)
 
 func _process(_delta: float) -> void:
 	# Track editor's camera's Y position
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
 	
+	# Updates chunk if in new one
 	if current_camera_chunk != last_calculated_chunk:
 		update_editor_chunks(current_camera_chunk)
 		last_calculated_chunk = current_camera_chunk
@@ -1019,3 +791,213 @@ func _on_picker_color_changed(new_color: Color) -> void:
 						else:
 							# If it is NOT selected, apply the raw color directly
 							obj.modulate = new_color
+
+func _handle_hotkeys(event: InputEventKey) -> bool:
+	# Backspace for deletion
+	if event.keycode == KEY_BACKSPACE:
+		delete_selected_object()
+		return true 
+
+	# Copy (Ctrl + C)
+	if event.keycode == KEY_C and Input.is_key_pressed(KEY_CTRL):
+		copy_selection()
+		return true
+		
+	# Paste (Ctrl + V) 
+	if event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
+		paste_clipboard()
+		return true
+		
+	# Undo (Ctrl + Z)
+	if event.keycode == KEY_Z and Input.is_key_pressed(KEY_CTRL):
+		undo_manager.undo_action()
+		return true
+		
+	# Redo (Ctrl + Y)
+	if event.keycode == KEY_Y and Input.is_key_pressed(KEY_CTRL):
+		undo_manager.redo_action()
+		return true
+
+	return false # No hotkeys matched
+	
+# Handles click and drag
+func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
+	# Only care if the left mouse button is held down
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		return
+		
+	# CONTINUOUS BRUSH (BUILD MODE CTRL PRESS)
+	if current_mode == EditorMode.BUILD and Input.is_key_pressed(KEY_CTRL):
+		if ui_layer.selected_scene_path != "":
+			var current_pos = get_global_mouse_position()
+			
+			var cell_x = floor(current_pos.x / GRID_SIZE)
+			var cell_y = floor(current_pos.y / GRID_SIZE)
+			var current_cell = Vector2(cell_x, cell_y)
+			
+			if current_cell != last_acted_cell:
+				place_object(current_pos)
+				last_acted_cell = current_cell
+				
+		get_viewport().set_input_as_handled()
+		return 
+		
+	# BOX SELECTION (EDIT MODE CTRL PRESS)
+	if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+		if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+			is_box_selecting = true
+			box_current_pos = get_global_mouse_position()
+			
+			camera.set_process_unhandled_input(false)
+			camera.set_process_input(false)
+			camera.set_process(false)
+			
+			queue_redraw() 
+			get_viewport().set_input_as_handled()
+			return
+		
+	if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+		is_dragging = true
+		
+	# CONTINUOUS ERASER (DELETE MODE CTRL PRESS)
+	if current_mode == EditorMode.DELETE and Input.is_key_pressed(KEY_CTRL):
+		var current_pos = get_global_mouse_position()
+		
+		var obj_to_delete = check_for_object_at(current_pos, true) 
+		
+		if obj_to_delete != null:
+			var deleted_state = undo_manager.serialize_objects([obj_to_delete])
+			undo_manager.commit_action("delete", deleted_state, [])
+			obj_to_delete.queue_free()
+			
+		get_viewport().set_input_as_handled()
+		return 
+	
+	if is_dragging_objects:
+		var current_mouse_pos = get_global_mouse_position()
+		var mouse_delta = current_mouse_pos - previous_mouse_pos
+		
+		if is_instance_valid(drag_parent_node):
+			drag_parent_node.global_position += mouse_delta
+		else:
+			for obj in selected_objects:
+				if is_instance_valid(obj):
+					obj.global_position += mouse_delta
+				
+		previous_mouse_pos = current_mouse_pos
+		get_viewport().set_input_as_handled()
+		
+		if has_node("Foreground/TransformGizmo"):
+			$Foreground/TransformGizmo._calculate_bounding_box()
+	
+# Handles just clicks
+func _handle_mouse_button(event: InputEventMouseButton) -> void:
+	# Zoom by scrolling
+	if event.is_pressed():
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			apply_zoom_at_mouse(camera.zoom.x + zoom_step/5)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
+
+	
+	if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			mouse_down_screen_pos = event.position
+			mouse_down_world_pos = get_global_mouse_position() 
+			is_dragging = false
+			last_acted_cell = Vector2(-9999, -9999)
+			
+			if Input.is_key_pressed(KEY_CTRL):
+				camera.set_process_unhandled_input(false)
+				camera.set_process_input(false)
+				camera.set_process(false)
+				get_viewport().set_input_as_handled()
+		
+			if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
+				var click_pos = get_global_mouse_position()
+				var _clicked_obj = check_for_object_at(click_pos, true) 
+				
+				var is_touching_selection = clicked_objects_cache.any(func(obj): return selected_objects.has(obj))
+
+				var is_touching_gizmo = false
+				if current_mode == EditorMode.EDIT and has_node("Foreground/TransformGizmo"):
+					var gizmo = $Foreground/TransformGizmo
+					if gizmo.visible:
+						var handles = [gizmo.scale_handle, gizmo.rotate_handle, gizmo.scale_x_handle, gizmo.scale_y_handle, gizmo.skew_handle, gizmo.skew_y_handle]
+						
+						for handle in handles:
+							if is_instance_valid(handle) and click_pos.distance_to(handle.global_position) < 24.0:
+								is_touching_gizmo = true
+								break
+
+				if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
+					is_dragging_objects = true
+					previous_mouse_pos = click_pos
+					
+					if selected_objects.size() > 25:
+						drag_parent_node = Node2D.new()
+						room_canvas.add_child(drag_parent_node)
+						drag_parent_node.global_position = click_pos
+						
+						for obj in selected_objects:
+							if is_instance_valid(obj):
+								obj.reparent(drag_parent_node)
+					
+					undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
+					
+					camera.set_process_unhandled_input(false)
+					camera.set_process_input(false)
+					camera.set_process(false)
+					
+					get_viewport().set_input_as_handled()
+					return 
+			
+		elif not event.pressed:
+			camera.set_process_unhandled_input(true)
+			camera.set_process_input(true)
+			camera.set_process(true)
+			
+			if is_dragging_objects:
+				is_dragging_objects = false
+				
+				if is_instance_valid(drag_parent_node):
+					for obj in selected_objects:
+						if is_instance_valid(obj):
+							obj.reparent(room_canvas)
+					
+					drag_parent_node.queue_free() 
+					drag_parent_node = null
+				
+				if is_dragging:
+					var drag_end_state = undo_manager.serialize_objects(selected_objects)
+					undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
+					get_viewport().set_input_as_handled()
+					return
+			
+			if is_box_selecting:
+				is_box_selecting = false
+				queue_redraw() 
+				perform_box_selection(mouse_down_world_pos, get_global_mouse_position())
+				get_viewport().set_input_as_handled()
+				return
+			
+			if not is_dragging:
+				var click_pos = get_global_mouse_position()
+				var clicked_obj = check_for_object_at(click_pos, false) 
+				
+				match current_mode:
+					EditorMode.BUILD:
+						if ui_layer.selected_scene_path != "":
+							place_object(click_pos)
+							
+					EditorMode.EDIT:
+						var is_multi = Input.is_key_pressed(KEY_CTRL)
+						change_selection(clicked_obj, is_multi)
+						
+					EditorMode.DELETE:
+						if clicked_obj != null:
+							var deleted_state = undo_manager.serialize_objects([clicked_obj])
+							undo_manager.commit_action("delete", deleted_state, [])
+							clicked_obj.queue_free()
+			
+			is_dragging = false

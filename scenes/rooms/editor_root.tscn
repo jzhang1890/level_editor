@@ -15,6 +15,12 @@
 [node name="EditorRoot" type="Node2D" unique_id=134942868]
 script = ExtResource("1_eufpp")
 
+[node name="UndoRedoManager" type="Node" parent="." unique_id=677643816]
+script = ExtResource("8_uank4")
+
+[node name="SaveLoadManager" type="Node" parent="." unique_id=1914157495]
+script = ExtResource("9_b4iia")
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1900298284]
 position = Vector2(0, -360)
 limit_left = -2000
@@ -370,12 +376,6 @@ offset_top = 29.0
 offset_right = 1245.0
 offset_bottom = 81.0
 text = "X"
-
-[node name="UndoRedoManager" type="Node" parent="." unique_id=677643816]
-script = ExtResource("8_uank4")
-
-[node name="SaveLoadManager" type="Node" parent="." unique_id=1914157495]
-script = ExtResource("9_b4iia")
 
 [connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
