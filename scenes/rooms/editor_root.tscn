@@ -101,10 +101,10 @@ layout_mode = 2
 metadata/_tab_index = 2
 
 [node name="SelectionMenu" type="HBoxContainer" parent="EditorUI" unique_id=1799396351]
-offset_left = 947.0
-offset_top = 26.0
-offset_right = 1170.0
-offset_bottom = 67.0
+offset_left = 853.0
+offset_top = 24.0
+offset_right = 1076.0
+offset_bottom = 65.0
 
 [node name="DeleteButton" type="Button" parent="EditorUI/SelectionMenu" unique_id=982780030]
 layout_mode = 2
@@ -115,10 +115,10 @@ layout_mode = 2
 text = "Edit Object"
 
 [node name="LayerContainer" type="HBoxContainer" parent="EditorUI" unique_id=1910677465]
-offset_left = 1068.0
-offset_top = 115.0
-offset_right = 1247.0
-offset_bottom = 174.0
+offset_left = 55.0
+offset_top = 94.0
+offset_right = 234.0
+offset_bottom = 153.0
 
 [node name="LeftArrowButton" type="Button" parent="EditorUI/LayerContainer" unique_id=1409007721]
 layout_mode = 2

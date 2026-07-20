@@ -283,11 +283,25 @@ func _unhandled_input(event: InputEvent) -> void:
 					var click_pos = get_global_mouse_position()
 					var _clicked_obj = check_for_object_at(click_pos, true) # TRUE = Mouse Down!
 					
-					# --- NEW: Check if the mouse is touching ANY currently selected object ---
+					# Check if the mouse is touching ANY currently selected object 
 					var is_touching_selection = clicked_objects_cache.any(func(obj): return selected_objects.has(obj))
 
-					# Use our new variable instead of selected_objects.has(clicked_obj)
-					if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL):
+					# Check if the mouse is trying to grab a Transform Gizmo handle
+					var is_touching_gizmo = false
+					if current_mode == EditorMode.EDIT and has_node("Foreground/TransformGizmo"):
+						var gizmo = $Foreground/TransformGizmo
+						if gizmo.visible:
+							# List all the Area2D handles exposed by the Gizmo
+							var handles = [gizmo.scale_handle, gizmo.rotate_handle, gizmo.scale_x_handle, gizmo.scale_y_handle, gizmo.skew_handle, gizmo.skew_y_handle]
+							
+							for handle in handles:
+								# If the click is within 24 pixels of a handle's center, protect it!
+								if is_instance_valid(handle) and click_pos.distance_to(handle.global_position) < 24.0:
+									is_touching_gizmo = true
+									break
+
+					# Add the 'not is_touching_gizmo' check to prevent dragging when using the handles
+					if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
 						is_dragging_objects = true
 						previous_mouse_pos = click_pos
 						
@@ -1106,7 +1120,7 @@ func _draw() -> void:
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 
 func update_editor_chunks(center_chunk: int) -> void:
-	# A radius of 4 (2048 pixels) ensures objects don't sleep while zoomed out!
+	# How many chunks to render on each side
 	var render_radius: int = 4
 	
 	var needed_chunks: Array[int] = []

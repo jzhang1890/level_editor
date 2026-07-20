@@ -56,6 +56,11 @@ func _ready() -> void:
 	populate_object_list(obstacles_list, item_database["obstacles"])
 	populate_object_list(deco_list, item_database["deco"])
 	populate_actions_tab()
+	
+	# Connect the Build tab's inner container like Obstacle, Deco, etc.
+	var objects_container = $EditorPanel/MainTabContainer/Build/ObjectsContainer
+	if objects_container is TabContainer:
+		objects_container.tab_changed.connect(_on_objects_container_tab_changed)
 
 func populate_object_list(target_list: ItemList, item_array: Array) -> void:
 	target_list.clear()
@@ -71,10 +76,23 @@ func populate_actions_tab() -> void:
 		var index = actions_list.add_item("", item["icon"]) 
 		actions_list.set_item_metadata(index, item["action"])
 
+func _on_objects_container_tab_changed(tab: int) -> void:
+	# Clear the path so the editor doesn't accidentally build an item from the hidden tab
+	selected_scene_path = ""
+
+	if tab == 0: # Obstacles
+		var selected = obstacles_list.get_selected_items()
+		if selected.size() > 0:
+			_on_object_item_selected(selected[0])		
+	elif tab == 1: # Decoration
+		var selected = deco_list.get_selected_items()
+		if selected.size() > 0:
+			_on_decoration_item_selected(selected[0])
+
 func _on_object_item_selected(index: int) -> void:
 	# Update the variable so the placement script knows what to build
 	selected_scene_path = obstacles_list.get_item_metadata(index)
-	print("Ready to place object from path: ", selected_scene_path)
+	print("Ready to place object from path: ", selected_scene_path)	
 	
 func _on_decoration_item_selected(index: int) -> void:
 	selected_scene_path = deco_list.get_item_metadata(index)
@@ -91,6 +109,7 @@ func _on_actions_item_selected(index: int) -> void:
 	
 func _on_edit_object_button_pressed() -> void:
 	$ColorChannelMenu.visible = true 
+	get_parent().paused  = true
 	
 	if current_selected_objects:
 		for obj in current_selected_objects:
@@ -115,6 +134,7 @@ func _on_edit_object_button_pressed() -> void:
 	
 func _on_exit_button_pressed() -> void:
 	$ColorChannelMenu.visible = false
+	get_parent().paused = false
 
 func update_selected_target(target_node):
 	current_selected_objects = target_node
