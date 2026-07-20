@@ -130,7 +130,38 @@ func _exit_tree() -> void:
 	# to wait for the background thread to finish saving.
 	if save_manager.save_thread and save_manager.save_thread.is_started():
 		save_manager.save_thread.wait_to_finish()
-
+		
+func _input(event: InputEvent) -> void:
+	if paused: return
+	
+	# 1. Protect Mouse Motion from UI theft during active drags
+	if event is InputEventMouseMotion:
+		if is_dragging_objects or is_box_selecting or is_dragging:
+			_handle_mouse_motion(event)
+			
+			# FIX: Only feed the event to the camera if we are purely panning
+			if is_dragging and not is_dragging_objects and not is_box_selecting:
+				if camera.has_method("_unhandled_input"):
+					camera._unhandled_input(event)
+				elif camera.has_method("_input"):
+					camera._input(event)
+					
+			get_viewport().set_input_as_handled()
+			
+	# 2. Protect Mouse Release from UI theft so things don't get "stuck"
+	elif event is InputEventMouseButton and not event.pressed:
+		if is_dragging_objects or is_box_selecting or is_dragging:
+			_handle_mouse_button(event)
+			
+			# FIX: Only feed the release to the camera if we were purely panning
+			if is_dragging and not is_dragging_objects and not is_box_selecting:
+				if camera.has_method("_unhandled_input"):
+					camera._unhandled_input(event)
+				elif camera.has_method("_input"):
+					camera._input(event)
+					
+			get_viewport().set_input_as_handled()
+			
 func _unhandled_input(event: InputEvent) -> void:
 	if paused: return
 	
@@ -755,10 +786,7 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 			queue_redraw() 
 			get_viewport().set_input_as_handled()
 			return
-		
-	if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
-		is_dragging = true
-		
+			
 	# CONTINUOUS ERASER (DELETE MODE CTRL PRESS)
 	if current_mode == EditorMode.DELETE and Input.is_key_pressed(KEY_CTRL):
 		var current_pos = get_global_mouse_position()
@@ -772,23 +800,25 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 			
 		get_viewport().set_input_as_handled()
 		return 
-	
+		
+	if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
+		is_dragging = true
+		
 	if is_dragging_objects:
 		var current_mouse_pos = get_global_mouse_position()
 		var mouse_delta = current_mouse_pos - previous_mouse_pos
 		
-		if is_instance_valid(drag_parent_node):
-			drag_parent_node.global_position += mouse_delta
-		else:
-			for obj in selected_objects:
-				if is_instance_valid(obj):
-					obj.global_position += mouse_delta
+		# Just loop through the selection directly
+		for obj in selected_objects:
+			if is_instance_valid(obj):
+				obj.global_position += mouse_delta
 				
 		previous_mouse_pos = current_mouse_pos
 		get_viewport().set_input_as_handled()
 		
+		# Moves transform gizmo with dragged objects
 		if has_node("Foreground/TransformGizmo"):
-			$Foreground/TransformGizmo._calculate_bounding_box()
+			$Foreground/TransformGizmo.global_position += mouse_delta
 	
 # Handles just clicks
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
@@ -834,27 +864,6 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					is_dragging_objects = true
 					previous_mouse_pos = click_pos
 					
-					if selected_objects.size() > 25:
-						# 1. Sort selected objects by their current tree index
-						var sorted_selection = selected_objects.duplicate()
-						sorted_selection.sort_custom(func(a, b): return a.get_index() < b.get_index())
-						
-						# 2. Get the lowest tree index in the group
-						var lowest_index = sorted_selection[0].get_index()
-						
-						drag_parent_node = Node2D.new()
-						room_canvas.add_child(drag_parent_node)
-						
-						# 3. Position the container in the tree at that lowest index slot
-						room_canvas.move_child(drag_parent_node, lowest_index)
-						drag_parent_node.global_position = click_pos
-						
-						# 4. Save original tree positions and reparent
-						for obj in sorted_selection:
-							if is_instance_valid(obj):
-								obj.set_meta("drag_index", obj.get_index())
-								obj.reparent(drag_parent_node)
-					
 					undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
 					
 					camera.set_process_unhandled_input(false)
@@ -871,18 +880,6 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			
 			if is_dragging_objects:
 				is_dragging_objects = false
-				
-				if is_instance_valid(drag_parent_node):
-					var sorted_pack = selected_objects.duplicate()
-					sorted_pack.sort_custom(func(a, b): return a.get_meta("drag_index", 0) < b.get_meta("drag_index", 0))
-					
-					for obj in sorted_pack:
-						if is_instance_valid(obj):
-							obj.reparent(room_canvas)
-							room_canvas.move_child(obj, obj.get_meta("drag_index", -1))
-							
-					drag_parent_node.queue_free()
-					drag_parent_node = null
 				
 				if is_dragging:
 					var drag_end_state = undo_manager.serialize_objects(selected_objects)
@@ -904,7 +901,9 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 				match current_mode:
 					EditorMode.BUILD:
 						if ui_layer.selected_scene_path != "":
-							place_object(click_pos)
+							# Only place an object if the brush wasn't just used
+							if last_acted_cell == Vector2(-9999, -9999):
+								place_object(click_pos)
 							
 					EditorMode.EDIT:
 						var is_multi = Input.is_key_pressed(KEY_CTRL)
