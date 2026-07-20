@@ -29,6 +29,13 @@ extends Node2D
 @onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorPickerButton
 var current_editing_channel: int = 0
 
+# Undo/Redo manager
+@onready var undo_manager: Node = $UndoRedoManager
+# Save and load manager
+@onready var save_manager: Node = $SaveLoadManager
+# Copy and paste manager
+@onready var clipboard_manager: Node = $ClipboardManager
+
 # Chunking variables
 const CHUNK_HEIGHT: float = 512.0
 var level_chunks: Dictionary = {}
@@ -67,14 +74,6 @@ var selected_objects: Array[Node2D] = []
 var last_click_pos: Vector2 = Vector2.ZERO
 var click_cycle_index: int = 0
 var clicked_objects_cache: Array[Node2D] = []
-
-# Clipboard for Copy/Paste 
-var clipboard: Array[Dictionary] = []
-
-# Undo/Redo manager
-@onready var undo_manager: Node = $UndoRedoManager
-# Save and load manager
-@onready var save_manager: Node = $SaveLoadManager
 
 # Current size of one grid
 const GRID_SIZE: float = 64.0
@@ -352,7 +351,7 @@ func place_object(pos: Vector2) -> void:
 
 # Deletion logic
 func delete_selected_object() -> void:
-	
+	# Snaps action in undo manager
 	if not selected_objects.is_empty():
 		var deleted_state = undo_manager.serialize_objects(selected_objects)
 		undo_manager.commit_action("delete", deleted_state, [])
@@ -401,7 +400,6 @@ func _on_resume_button_pressed() -> void:
 	paused = false
 	
 func _on_editor_ui_edit_action_requested(action_name: String) -> void:
-	
 	var start_state = undo_manager.serialize_objects(selected_objects)
 	
 	# Make sure the array isn't empty before performing edit action
@@ -486,7 +484,7 @@ func update_layer_display() -> void:
 	else:
 		layer_label.text = str(current_layer)
 		
-	# Instantly refresh the screen transparency when the layer changes
+	# Refresh the screen transparency when the layer changes
 	refresh_layer_visibility()
 	
 func refresh_layer_visibility() -> void:
@@ -500,104 +498,6 @@ func refresh_layer_visibility() -> void:
 				child.modulate.a = Global.get_channel_color(channel).a 
 			else:
 				child.modulate.a = 0.05 # Faded out for inactive layers
-
-# COPY AND PASTE LOGIC
-
-func copy_selection() -> void:
-	# Clear the old clipboard
-	clipboard.clear()
-	
-	# Filter out any deleted/freed objects before sorting
-	var sorted_selection = []
-	for obj in selected_objects:
-		if is_instance_valid(obj):
-			sorted_selection.append(obj)
-	
-	# Fix: Sort by visual tree index instead of creation ID
-	sorted_selection.sort_custom(func(a, b): return a.get_index() < b.get_index())
-	
-	# Save the exact state of every selected object using the sorted timeline
-	for obj in sorted_selection:
-		if obj.scene_file_path != "":
-			var item_data = {
-				"scene_path": obj.scene_file_path,
-				"global_position": obj.global_position,
-				"rotation_degrees": obj.rotation_degrees,
-				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
-				"scale": obj.scale,
-				"skew": obj.skew,
-				"layer": obj.get_meta("layer", 1),
-				"color_channel": obj.get_meta("color_channel", 0)
-			}
-			clipboard.append(item_data)
-
-func paste_clipboard() -> void:
-	if clipboard.is_empty():
-		return
-		
-	# 1. Drop the currently selected objects
-	change_selection(null, false)
-	
-	var new_selection: Array[Node2D] = []
-	
-	# 2. Build the new objects from the clipboard data
-	for item in clipboard:
-		var resource = load(item["scene_path"])
-		if resource:
-			var new_object = resource.instantiate()
-			
-			# Offset the position by 1 grid blocks up
-			var new_pos = item["global_position"] + Vector2(0, GRID_SIZE * -1)
-			new_object.global_position = new_pos
-			
-			# Apply visual transforms
-			new_object.rotation_degrees = item["rotation_degrees"]
-			new_object.scale = item["scale"]
-			new_object.skew = item.get("skew", 0.0)
-			
-			# Apply metadata and layer sorting
-			new_object.set_meta("base_rotation", item["base_rotation"])
-			new_object.set_meta("layer", item["layer"])
-			new_object.z_index = -item["layer"]
-			
-			# Apply Color Channel
-			var loaded_channel = item.get("color_channel", 0)
-			new_object.set_meta("color_channel", loaded_channel)
-			new_object.modulate = Global.get_channel_color(loaded_channel)
-			
-			# Generate a brand new unique ID for the clone
-			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
-			new_object.set_meta("unique_id", unique_id)
-			
-			# Put pasted objects into chunks
-			var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
-
-			# Create an empty array if the chunk doesn't exist
-			if not level_chunks.has(chunk_id):
-				level_chunks[chunk_id] = []
-
-			# Add to canvas for perfect chronological layering
-			room_canvas.add_child(new_object)
-			level_chunks[chunk_id].append(new_object)
-			
-			# Sleep immediately if chunk is inactive
-			if chunk_id not in active_chunks:
-				new_object.process_mode = Node.PROCESS_MODE_DISABLED
-				new_object.visible = false
-			
-			new_selection.append(new_object)
-			
-			# Update the clipboard item's position so pasting again moves it another 2 blocks
-			item["global_position"] = new_pos
-			
-	# 3. Automatically select the newly pasted objects
-	for obj in new_selection:
-		# Passing 'true' simulates holding Ctrl, adding them all to the group
-		change_selection(obj, true)
-		
-	if not new_selection.is_empty():
-		var pasted_state = undo_manager.serialize_objects(new_selection)
-		undo_manager.commit_action("place", [], pasted_state)
 		
 # BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -647,7 +547,7 @@ func _draw() -> void:
 		# Draw translucent blue fill
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.3), true)
 		
-		# Draw solid blue outline (width of 2 pixels)
+		# Draw solid blue outline with width of 2 pixels
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 
 func update_editor_chunks(center_chunk: int) -> void:
@@ -697,7 +597,7 @@ func update_editor_chunks(center_chunk: int) -> void:
 
 	active_chunks = needed_chunks
 
-# 5. UI Button Hooks
+# Undo/Redo Buttons
 func _on_undo_button_pressed() -> void:
 	undo_manager.undo_action()
 
@@ -800,12 +700,12 @@ func _handle_hotkeys(event: InputEventKey) -> bool:
 
 	# Copy (Ctrl + C)
 	if event.keycode == KEY_C and Input.is_key_pressed(KEY_CTRL):
-		copy_selection()
+		clipboard_manager.copy_selection()
 		return true
 		
 	# Paste (Ctrl + V) 
 	if event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
-		paste_clipboard()
+		clipboard_manager.paste_clipboard()
 		return true
 		
 	# Undo (Ctrl + Z)
@@ -917,7 +817,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 				var click_pos = get_global_mouse_position()
 				var _clicked_obj = check_for_object_at(click_pos, true) 
 				
-				var is_touching_selection = clicked_objects_cache.any(func(obj): return selected_objects.has(obj))
+				var is_touching_selection = clicked_objects_cache.any(func(obj): return is_instance_valid(obj) and selected_objects.has(obj))
 
 				var is_touching_gizmo = false
 				if current_mode == EditorMode.EDIT and has_node("Foreground/TransformGizmo"):
@@ -935,12 +835,24 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					previous_mouse_pos = click_pos
 					
 					if selected_objects.size() > 25:
+						# 1. Sort selected objects by their current tree index
+						var sorted_selection = selected_objects.duplicate()
+						sorted_selection.sort_custom(func(a, b): return a.get_index() < b.get_index())
+						
+						# 2. Get the lowest tree index in the group
+						var lowest_index = sorted_selection[0].get_index()
+						
 						drag_parent_node = Node2D.new()
 						room_canvas.add_child(drag_parent_node)
+						
+						# 3. Position the container in the tree at that lowest index slot
+						room_canvas.move_child(drag_parent_node, lowest_index)
 						drag_parent_node.global_position = click_pos
 						
-						for obj in selected_objects:
+						# 4. Save original tree positions and reparent
+						for obj in sorted_selection:
 							if is_instance_valid(obj):
+								obj.set_meta("drag_index", obj.get_index())
 								obj.reparent(drag_parent_node)
 					
 					undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
@@ -950,7 +862,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					camera.set_process(false)
 					
 					get_viewport().set_input_as_handled()
-					return 
+					return
 			
 		elif not event.pressed:
 			camera.set_process_unhandled_input(true)
@@ -961,11 +873,15 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 				is_dragging_objects = false
 				
 				if is_instance_valid(drag_parent_node):
-					for obj in selected_objects:
+					var sorted_pack = selected_objects.duplicate()
+					sorted_pack.sort_custom(func(a, b): return a.get_meta("drag_index", 0) < b.get_meta("drag_index", 0))
+					
+					for obj in sorted_pack:
 						if is_instance_valid(obj):
 							obj.reparent(room_canvas)
-					
-					drag_parent_node.queue_free() 
+							room_canvas.move_child(obj, obj.get_meta("drag_index", -1))
+							
+					drag_parent_node.queue_free()
 					drag_parent_node = null
 				
 				if is_dragging:

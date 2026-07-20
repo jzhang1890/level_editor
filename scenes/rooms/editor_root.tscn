@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://crrim6fs5r7pm" path="res://camera_2d.gd" id="2_5dt4k"]
 [ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Resources/Backgrounds/background1.png" id="3_xxn6o"]
 [ext_resource type="Script" uid="uid://d210fgxhcoeiv" path="res://room_canvas.gd" id="4_uank4"]
+[ext_resource type="Script" uid="uid://bdt0dnwafgxxn" path="res://scripts/Editor/clipboard_manager.gd" id="4_ybtv8"]
 [ext_resource type="Script" uid="uid://b5d70mqbd8735" path="res://editor_ui.gd" id="5_b4iia"]
 [ext_resource type="PackedScene" uid="uid://cshpi4x7dmqd2" path="res://scenes/Overlays/transform_gizmo.tscn" id="5_xxn6o"]
 [ext_resource type="Theme" uid="uid://cl0g3cwxl3k38" path="res://Theme/new_theme.tres" id="6_5dt4k"]
@@ -20,6 +21,9 @@ script = ExtResource("8_uank4")
 
 [node name="SaveLoadManager" type="Node" parent="." unique_id=1914157495]
 script = ExtResource("9_b4iia")
+
+[node name="ClipboardManager" type="Node" parent="." unique_id=718075485]
+script = ExtResource("4_ybtv8")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1900298284]
 position = Vector2(0, -360)
@@ -109,10 +113,10 @@ layout_mode = 2
 metadata/_tab_index = 2
 
 [node name="SelectionMenu" type="HBoxContainer" parent="EditorUI" unique_id=1799396351]
-offset_left = 853.0
-offset_top = 24.0
-offset_right = 1076.0
-offset_bottom = 65.0
+offset_left = 950.0
+offset_top = 138.0
+offset_right = 1173.0
+offset_bottom = 179.0
 
 [node name="DeleteButton" type="Button" parent="EditorUI/SelectionMenu" unique_id=982780030]
 layout_mode = 2
@@ -173,6 +177,14 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "+"
+
+[node name="LevelSettingsButton" type="Button" parent="EditorUI" unique_id=1131869784]
+offset_left = 1097.0
+offset_top = 79.0
+offset_right = 1249.0
+offset_bottom = 109.0
+text = "Level Settings
+"
 
 [node name="PauseButton" type="Button" parent="EditorUI" unique_id=1775317177]
 offset_left = 1183.0
