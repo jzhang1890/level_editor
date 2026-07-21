@@ -1,5 +1,6 @@
 extends Node
 
+# The main editor node
 @onready var editor: Node2D = get_parent()
 
 # Clipboard for Copy/Paste 

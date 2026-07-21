@@ -4,6 +4,8 @@ extends Node2D
 signal transform_started
 signal transform_ended
 
+var is_toggled_on: bool = false # Defaults to off
+
 var target_objects: Array[Node2D] = []
 var is_scaling: bool = false
 var is_rotating: bool = false
@@ -33,6 +35,16 @@ var bounding_rect: Rect2
 @onready var skew_handle: Area2D = $SkewHandle
 @onready var skew_y_handle: Area2D = $SkewYHandle
 
+func toggle_visibility() -> void:
+	is_toggled_on = not is_toggled_on
+	
+	# Instantly show the gizmo if toggled on while objects are already selected
+	if is_toggled_on and not target_objects.is_empty():
+		visible = true
+		_calculate_bounding_box()
+	else:
+		visible = false
+
 func _ready() -> void:
 	# Connect the handles to detect mouse clicks
 	scale_handle.input_event.connect(_on_scale_handle_input)
@@ -52,7 +64,9 @@ func _ready() -> void:
 func update_selection(selected: Array[Node2D]) -> void:
 	# Add .duplicate() to safely isolate the data
 	target_objects = selected.duplicate()
-	if target_objects.is_empty():
+	
+	# If no objects selected or not toggled on, don't show the gizmo
+	if target_objects.is_empty() or not is_toggled_on:
 		visible = false
 		return
 		

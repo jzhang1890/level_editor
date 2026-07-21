@@ -430,6 +430,12 @@ func _on_resume_button_pressed() -> void:
 	paused = false
 	
 func _on_editor_ui_edit_action_requested(action_name: String) -> void:
+	# 1. Catch the UI toggle before doing any object logic
+	if action_name == "show_hide_gizmo":
+		if has_node("Foreground/TransformGizmo"):
+			$Foreground/TransformGizmo.toggle_visibility()
+		return # Exit early so we don't trigger undo/redo saves or loop through objects
+	
 	var start_state = undo_manager.serialize_objects(selected_objects)
 	
 	# Make sure the array isn't empty before performing edit action
@@ -538,6 +544,11 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	# Flag to track if we actually grabbed anything
 	var selection_changed: bool = false 
 	
+	# Create a temporary dictionary for O(1) lookups 
+	var fast_selection_check = {}
+	for obj in selected_objects:
+		fast_selection_check[obj] = true
+	
 	# Loop through ACTIVE chunks only, not the whole level 
 	for chunk_id in active_chunks:
 		if level_chunks.has(chunk_id):
@@ -550,9 +561,12 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 						if current_layer == 0 or current_layer == obj_layer:
 							# Check if the object's center point is inside our rectangle
 							if selection_rect.has_point(child.global_position):
-								# Add it to the group safely without deselecting others
-								if not selected_objects.has(child):
+								
+								# Fixes for O(n^2): Check the dictionary instead of the array 
+								if not fast_selection_check.has(child):
 									selected_objects.append(child)
+									fast_selection_check[child] = true # Add it so we don't grab duplicates later
+									
 									if child.has_method("set_highlight"):
 										child.set_highlight(true)
 									
@@ -689,7 +703,7 @@ func _on_color_channel_selected(channel_id: int) -> void:
 	# 1. Tell the editor which channel we are currently editing
 	current_editing_channel = channel_id
 	
-	# 2. Force the little color box to physically change to the correct color
+	# 2. Force the color box to physically change to the correct color
 	color_picker_btn.color = Global.get_channel_color(channel_id)
 
 func apply_level_colors(json_color_data: Dictionary) -> void:
@@ -826,7 +840,6 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	
 # Handles just clicks
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
-	# --- ZOOMING LOGIC ---
 	# Zoom by scrolling the mouse wheel up or down
 	if event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:

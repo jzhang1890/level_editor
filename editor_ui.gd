@@ -46,7 +46,8 @@ var edit_actions: Array = [
 	{"icon": preload("res://Resources/Icons/move_left.svg"), "action": "move_left_tiny"},
 	{"icon": preload("res://Resources/Icons/move_right.svg"), "action": "move_right_tiny"},
 	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_left"},
-	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_right"}
+	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_right"},
+	{"icon": preload("res://Resources/icon.svg"), "action": "show_hide_gizmo"}
 ]
 
 # It stores the path so the main script can grab it when you click the canvas.

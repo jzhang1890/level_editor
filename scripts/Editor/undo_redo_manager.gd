@@ -1,6 +1,6 @@
 extends Node
 
-# This gives the manager a direct line to your main script's variables
+# The main editor node
 @onready var editor: Node2D = get_parent()
 
 var undo_stack: Array[Dictionary] = []
