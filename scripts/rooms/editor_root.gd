@@ -60,7 +60,6 @@ var last_acted_cell: Vector2 = Vector2(-9999, -9999) # Tracks the grid cell for 
 # Track for dragging object
 var is_dragging_objects: bool = false
 var previous_mouse_pos: Vector2 = Vector2.ZERO
-var drag_parent_node: Node2D = null
 
 # Tracking for Box Selection 
 var is_box_selecting: bool = false
@@ -460,7 +459,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				obj.global_position.x += GRID_SIZE/16
 			"rotate_left":
 				# 1. Rotate the object itself 
-				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) - 15
+				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) - 30
 				obj.set_meta("base_rotation", new_rot)
 				obj.rotation_degrees = new_rot
 				
@@ -468,14 +467,14 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				var offset = obj.global_position - group_center
 				
 				# Godot's rotated() function requires radians, so convert -90 degrees
-				var rotated_offset = offset.rotated(deg_to_rad(-15))
+				var rotated_offset = offset.rotated(deg_to_rad(-30))
 				
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
 			
 			"rotate_right":
 				# 1. Rotate the object itself 
-				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) + 15
+				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) + 30
 				obj.set_meta("base_rotation", new_rot)
 				obj.rotation_degrees = new_rot
 				
@@ -483,7 +482,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				var offset = obj.global_position - group_center
 				
 				# Godot's rotated() function requires radians, so convert 90 degrees
-				var rotated_offset = offset.rotated(deg_to_rad(15))
+				var rotated_offset = offset.rotated(deg_to_rad(30))
 				
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
@@ -589,6 +588,11 @@ func update_editor_chunks(center_chunk: int) -> void:
 	for i in range(-render_radius, render_radius + 1):
 		needed_chunks.append(center_chunk + i)
 
+	# Fix: Create a temporary dictionary for O(1) lookups
+	var fast_selection_check = {}
+	for sel in selected_objects:
+		fast_selection_check[sel] = true
+
 	# 1. Sleep chunks that went off-screen
 	for chunk_id in active_chunks:
 		if chunk_id not in needed_chunks:
@@ -618,8 +622,8 @@ func update_editor_chunks(center_chunk: int) -> void:
 							
 						obj.modulate = target_color
 						
-						# Ensure highlighted objects retain their glow if they were selected
-						if selected_objects.has(obj) and obj.has_method("set_highlight"):
+						# Fix o(n): Check the Dictionary instead of the Array 
+						if fast_selection_check.has(obj) and obj.has_method("set_highlight"):
 							obj.set_highlight(true)
 						
 						var hitbox = obj.get_node_or_null("HitboxSprite")
@@ -822,33 +826,44 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	
 # Handles just clicks
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
-	# Zoom by scrolling
+	# --- ZOOMING LOGIC ---
+	# Zoom by scrolling the mouse wheel up or down
 	if event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			apply_zoom_at_mouse(camera.zoom.x + zoom_step/5)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			apply_zoom_at_mouse(camera.zoom.x - zoom_step/5)
 
-	
+	# Left click logic
 	if event.button_index == MOUSE_BUTTON_LEFT:
+		# MOUSE BUTTON PRESSED DOWN
 		if event.pressed:
+			# 1. Record the exact starting positions for future distance/drag calculations
 			mouse_down_screen_pos = event.position
 			mouse_down_world_pos = get_global_mouse_position() 
+			
+			# 2. Reset tracking variables for a fresh click
 			is_dragging = false
 			last_acted_cell = Vector2(-9999, -9999)
 			
+			# 3. If holding Ctrl, instantly freeze the camera so user can safely use tools like box-select
 			if Input.is_key_pressed(KEY_CTRL):
 				camera.set_process_unhandled_input(false)
 				camera.set_process_input(false)
 				camera.set_process(false)
 				get_viewport().set_input_as_handled()
 		
+			# 4. Check if we are trying to grab an object to move it (Edit or Delete mode)
 			if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
 				var click_pos = get_global_mouse_position()
+				
+				# Advance the selection cycle and calculate what is under the mouse
 				var _clicked_obj = check_for_object_at(click_pos, true) 
 				
+				# Check if the mouse is touching ANY object in the currently active selection group
 				var is_touching_selection = clicked_objects_cache.any(func(obj): return is_instance_valid(obj) and selected_objects.has(obj))
 
+				# Check if the mouse is touching the transform gizmo handles
 				var is_touching_gizmo = false
 				if current_mode == EditorMode.EDIT and has_node("Foreground/TransformGizmo"):
 					var gizmo = $Foreground/TransformGizmo
@@ -860,12 +875,15 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 								is_touching_gizmo = true
 								break
 
+				# If we clicked our selection, are NOT holding Ctrl, and are NOT using the Gizmo, start dragging!
 				if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
 					is_dragging_objects = true
 					previous_mouse_pos = click_pos
 					
+					# Save the objects' original positions for the Undo system
 					undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
 					
+					# Freeze the camera so we don't accidentally pan while moving the objects
 					camera.set_process_unhandled_input(false)
 					camera.set_process_input(false)
 					camera.set_process(false)
@@ -873,46 +891,57 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					get_viewport().set_input_as_handled()
 					return
 			
+		# MOUSE BUTTON RELEASED
 		elif not event.pressed:
+			# 1. Unfreeze the camera so normal panning works again
 			camera.set_process_unhandled_input(true)
 			camera.set_process_input(true)
 			camera.set_process(true)
 			
+			# 2. Finish Object Dragging
 			if is_dragging_objects:
 				is_dragging_objects = false
 				
+				# If we actually dragged them (crossed the threshold), commit the final positions to the Undo stack
 				if is_dragging:
 					var drag_end_state = undo_manager.serialize_objects(selected_objects)
 					undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
 					get_viewport().set_input_as_handled()
 					return
 			
+			# 3. Finish Box Selection
 			if is_box_selecting:
 				is_box_selecting = false
-				queue_redraw() 
+				queue_redraw() # Clears the blue visual box 
 				perform_box_selection(mouse_down_world_pos, get_global_mouse_position())
 				get_viewport().set_input_as_handled()
 				return
 			
+			# 4. Handle Standard Single Clicks (Only triggers if the mouse stayed relatively still)
 			if not is_dragging:
 				var click_pos = get_global_mouse_position()
+				
+				# Grab the object under the mouse (pass false because we only update cycle math on press)
 				var clicked_obj = check_for_object_at(click_pos, false) 
 				
 				match current_mode:
 					EditorMode.BUILD:
 						if ui_layer.selected_scene_path != "":
-							# Only place an object if the brush wasn't just used
+							# Only place an object if the continuous brush wasn't just used
 							if last_acted_cell == Vector2(-9999, -9999):
 								place_object(click_pos)
 							
 					EditorMode.EDIT:
+						# If holding Ctrl, enable multi-select toggling
 						var is_multi = Input.is_key_pressed(KEY_CTRL)
 						change_selection(clicked_obj, is_multi)
 						
 					EditorMode.DELETE:
 						if clicked_obj != null:
+							# Commit to undo stack then destroy
 							var deleted_state = undo_manager.serialize_objects([clicked_obj])
 							undo_manager.commit_action("delete", deleted_state, [])
 							clicked_obj.queue_free()
 			
+			# Reset the general drag flag so the next click starts fresh
 			is_dragging = false
