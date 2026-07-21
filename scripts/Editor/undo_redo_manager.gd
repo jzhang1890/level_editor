@@ -77,11 +77,16 @@ func remove_objects_by_id(data_array: Array) -> void:
 		for child in editor.level_chunks[chunk_id]:
 			if is_instance_valid(child) and child.has_meta("unique_id"):
 				object_lookup[child.get_meta("unique_id")] = child
+	
+	# Create a temporary dictionary for O(1) lookups 
+	var fast_selection_check = {}
+	for sel in editor.selected_objects:
+		fast_selection_check[sel] = true
 				
 	for item in data_array:
 		var obj = object_lookup.get(item["unique_id"])
 		if obj:
-			if editor.selected_objects.has(obj): editor.change_selection(obj, true) 
+			if fast_selection_check.has(obj): editor.change_selection(obj, true)
 			obj.queue_free()
 
 func recreate_objects(data_array: Array) -> void:
@@ -141,6 +146,11 @@ func apply_object_state(data_array: Array) -> void:
 			if is_instance_valid(child) and child.has_meta("unique_id"):
 				object_lookup[child.get_meta("unique_id")] = child
 
+	# Create a temporary dictionary for O(1) lookups
+	var fast_selection_check = {}
+	for sel in editor.selected_objects:
+		fast_selection_check[sel] = true
+
 	for item in data_array:
 		var obj = object_lookup.get(item["unique_id"])
 		if obj:
@@ -155,3 +165,10 @@ func apply_object_state(data_array: Array) -> void:
 			var loaded_channel = item.get("color_channel", 0)
 			obj.set_meta("color_channel", loaded_channel)
 			obj.modulate = Global.get_channel_color(loaded_channel)
+			
+			# Re-apply the highlight if it's currently selected
+			if fast_selection_check.has(obj) and obj.has_method("set_highlight"):
+				obj.set_highlight(true)
+			# Place the gizmo at correct location
+	if editor.has_node("Foreground/TransformGizmo"):
+		editor.get_node("Foreground/TransformGizmo").update_selection(editor.selected_objects)

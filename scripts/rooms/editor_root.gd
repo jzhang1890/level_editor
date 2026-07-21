@@ -562,7 +562,7 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 							# Check if the object's center point is inside our rectangle
 							if selection_rect.has_point(child.global_position):
 								
-								# Fixes for O(n^2): Check the dictionary instead of the array 
+								# Fixes bad time complexity: Check the dictionary instead of the array 
 								if not fast_selection_check.has(child):
 									selected_objects.append(child)
 									fast_selection_check[child] = true # Add it so we don't grab duplicates later
@@ -690,6 +690,7 @@ func _on_gizmo_transform_ended() -> void:
 	undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
 
 func _on_color_channel_selected(channel_id: int) -> void:
+	# Snap the start state for undo/redo manager
 	var start_state = undo_manager.serialize_objects(selected_objects)
 
 	for obj in selected_objects:
@@ -725,6 +726,11 @@ func apply_level_colors(json_color_data: Dictionary) -> void:
 func _on_picker_color_changed(new_color: Color) -> void:
 	Global.active_level_colors[current_editing_channel] = new_color
 	
+	# Create a temporary dictionary for O(1) lookups
+	var fast_selection_check = {}
+	for obj in selected_objects:
+		fast_selection_check[obj] = true
+	
 	# Sweep through ACTIVE chunks only
 	for chunk_id in active_chunks:
 		if level_chunks.has(chunk_id):
@@ -733,7 +739,8 @@ func _on_picker_color_changed(new_color: Color) -> void:
 					# If the object is on this channel, update its tint
 					if obj.get_meta("color_channel", 0) == current_editing_channel:
 						
-						if selected_objects.has(obj):
+						# Use dictionary for better time complexity
+						if fast_selection_check.has(obj):
 							# If it IS selected, trigger its highlight function to refresh the base color 
 							if obj.has_method("set_highlight"):
 								obj.set_highlight(true)
