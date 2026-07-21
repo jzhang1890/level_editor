@@ -27,6 +27,7 @@ extends Node2D
 @onready var scrollbar: VSlider = $EditorUI/VSlider
 
 @onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorPickerButton
+var color_before_edit: Color
 var current_editing_channel: int = 0
 
 # Undo/Redo manager
@@ -106,6 +107,9 @@ func _ready() -> void:
 	$EditorUI/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
 	$EditorUI/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
 	$EditorUI/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
+	
+	color_picker_btn.pressed.connect(_on_color_picker_pressed)
+	color_picker_btn.popup_closed.connect(_on_color_picker_closed)
 	
 	color_picker_btn.color_changed.connect(_on_picker_color_changed)
 	
@@ -748,6 +752,19 @@ func _on_picker_color_changed(new_color: Color) -> void:
 							# If it is NOT selected, apply the raw color directly
 							obj.modulate = new_color
 
+func _on_color_picker_pressed() -> void:
+	# Snapshot the color right before the user starts messing with the wheel
+	color_before_edit = color_picker_btn.color
+
+func _on_color_picker_closed() -> void:
+	var final_color = color_picker_btn.color
+	
+	# Only commit to the undo stack if they actually changed the color
+	if final_color != color_before_edit:
+		var old_state = [{"channel": current_editing_channel, "color": color_before_edit}]
+		var new_state = [{"channel": current_editing_channel, "color": final_color}]
+		undo_manager.commit_action("color_change", old_state, new_state)
+
 func _handle_hotkeys(event: InputEventKey) -> bool:
 	# Backspace for deletion
 	if event.keycode == KEY_BACKSPACE:
@@ -965,3 +982,4 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			
 			# Reset the general drag flag so the next click starts fresh
 			is_dragging = false
+			
