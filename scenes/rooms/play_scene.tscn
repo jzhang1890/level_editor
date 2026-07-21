@@ -7,6 +7,7 @@
 
 [node name="PlayScene" type="Node2D" unique_id=621862255]
 script = ExtResource("1_x1qvo")
+hitboxes_on = true
 
 [node name="Player" parent="." unique_id=1001688488 instance=ExtResource("2_qf7ku")]
 
@@ -14,11 +15,10 @@ script = ExtResource("1_x1qvo")
 modulate = Color(0, 0, 0, 1)
 
 [node name="Misc" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="1" unique_id=1842518117]
-modulate = Color(0.7452349, 0.42187068, 1, 1)
-self_modulate = Color(1, 0.33333334, 0.33333334, 1)
+modulate = Color(0, 0.60304123, 0.7301358, 1)
 
 [node name="Outline" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="2" unique_id=565256926]
-modulate = Color(1, 0.33333334, 0.33333334, 1)
+modulate = Color(0, 0.6815843, 0.7131886, 1)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1096227993]
 offset = Vector2(0, -220)

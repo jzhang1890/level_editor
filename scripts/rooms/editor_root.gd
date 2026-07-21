@@ -533,9 +533,7 @@ func refresh_layer_visibility() -> void:
 			var obj_layer = child.get_meta("layer", 1)
 			
 			if current_layer == 0 or current_layer == obj_layer:
-				# Grab the original alpha from the object's assigned color channel
-				var channel = child.get_meta("color_channel", 0)
-				child.modulate.a = Global.get_channel_color(channel).a 
+				child.modulate.a = 1.0 # Force parent fully opaque when active
 			else:
 				child.modulate.a = 0.05 # Faded out for inactive layers
 		
@@ -634,11 +632,22 @@ func update_editor_chunks(center_chunk: int) -> void:
 						var obj_layer = obj.get_meta("layer", 1)
 						var target_color = Global.get_channel_color(channel)
 						
-						# Apply the 5% fade if the object isn't on the active layer
-						if current_layer != 0 and current_layer != obj_layer:
-							target_color.a = 0.05
-							
-						obj.modulate = target_color
+						if obj is Sprite2D:
+							# CASE 1: Object IS the sprite (Decorations)
+							if current_layer != 0 and current_layer != obj_layer:
+								target_color.a = 0.05
+							obj.modulate = target_color
+						else: # CASE 2: Object has sprite as a child
+							var sprite = obj.get_node_or_null("Sprite2D")
+							if sprite:
+								# Apply full color AND alpha directly to the sprite
+								sprite.modulate = target_color 
+				
+							# Not on the layer, so fade every node in the object including hitbox
+							if current_layer != 0 and current_layer != obj_layer:
+								obj.modulate = Color(1, 1, 1, 0.05) # Faded out
+							else: # The object is on the current layer, so keep main object completely opaque so hitbox show
+								obj.modulate = Color(1, 1, 1, 1.0) # Keep root opaque so hitboxes show
 						
 						# Fix o(n): Check the Dictionary instead of the Array 
 						if fast_selection_check.has(obj) and obj.has_method("set_highlight"):
@@ -647,7 +656,7 @@ func update_editor_chunks(center_chunk: int) -> void:
 						var hitbox = obj.get_node_or_null("HitboxSprite")
 						if hitbox:
 							hitbox.visible = hitboxes_on
-
+							
 	active_chunks = needed_chunks
 
 # Undo/Redo Buttons
@@ -750,7 +759,12 @@ func _on_picker_color_changed(new_color: Color) -> void:
 								obj.set_highlight(true)
 						else:
 							# If it is NOT selected, apply the raw color directly
-							obj.modulate = new_color
+							if obj is Sprite2D:
+								obj.modulate = new_color
+							else:
+								var sprite = obj.get_node_or_null("Sprite2D")
+								if sprite:
+									sprite.modulate = new_color
 
 func _on_color_picker_pressed() -> void:
 	# Snapshot the color right before the user starts messing with the wheel

@@ -15,7 +15,7 @@ extends Node2D
 
 var restart_button_pressed = false
 
-# --- CHUNKING VARIABLES ---
+# CHUNKING VARIABLES 
 const CHUNK_HEIGHT: float = 256.0 # Screen height
 var level_chunks: Dictionary = {} 
 var active_chunks: Array = [] 
@@ -152,7 +152,7 @@ func load_level(target_path: String) -> void:
 							"9": item_dict["skew"] = val.to_float()
 							"10": item_dict["color_channel"] = val.to_int()
 							
-					# --- THE FILTER INTERCEPT ---
+					#  THE FILTER INTERCEPT 
 					var path = item_dict["scene_path"]
 					
 					# Check if the path contains our new Deco folder
@@ -232,7 +232,18 @@ func load_level(target_path: String) -> void:
 						# Apply color channel data
 						var loaded_channel = item_dict["color_channel"]
 						new_object.set_meta("color_channel", loaded_channel)
-						new_object.modulate = Global.get_channel_color(loaded_channel)
+						
+						var target_color = Global.get_channel_color(loaded_channel)
+						var sprite = new_object.get_node_or_null("Sprite2D")
+						
+						if sprite:
+							# Apply full color AND alpha directly to the sprite
+							sprite.modulate = target_color
+							# Keep root opaque so hitboxes show
+							new_object.modulate = Color(1, 1, 1, 1.0) 
+						else:
+							# Fallback just in case
+							new_object.modulate = target_color
 						
 						var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 						

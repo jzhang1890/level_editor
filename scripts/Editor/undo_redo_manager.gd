@@ -68,7 +68,7 @@ func redo_action() -> void:
 		"place": recreate_objects(action["new_data"])
 		"delete": remove_objects_by_id(action["old_data"])
 		"edit": apply_object_state(action["new_data"])
-		"color_change": apply_global_color(action["old_data"])
+		"color_change": apply_global_color(action["new_data"])
 
 
 # UNDO/REDO HELPER FUNCTIONS (Adjusted with 'editor.' routing)
