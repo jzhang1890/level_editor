@@ -34,9 +34,12 @@ var respawn_time = 1
 var modified_objects: Array[Obstacle] = []
 
 func _ready() -> void:
-	
 	# After loading the level
 	spawn_position = player.global_position
+	
+	# Tell the player to match the play_scene's hitbox setting
+	if player.has_method("toggle_hitbox"):
+		player.toggle_hitbox(hitboxes_on)
 	
 	# Hides menu
 	if pause_menu:
@@ -279,6 +282,15 @@ func load_level(target_path: String) -> void:
 					dummy_scene.queue_free()
 					
 					if tex:
+						# ATLAS TEXTURE FIX 
+						if tex is AtlasTexture:
+							# Grab the raw image data from the massive sprite sheet
+							var atlas_img = tex.atlas.get_image()
+							# Crop out just the region we actually want
+							var region_img = atlas_img.get_region(tex.region)
+							# Convert it back into a standard texture for the MultiMesh
+							tex = ImageTexture.create_from_image(region_img)
+							
 						# Create the GPU mesh matched to the image size
 						var quad = QuadMesh.new()
 						quad.size = tex.get_size()

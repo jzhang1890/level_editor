@@ -48,3 +48,8 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 	if body is Obstacle and not noclip:
 		dead = true
 		player_died.emit()
+		
+func toggle_hitbox(is_visible: bool) -> void:
+	var hitbox = get_node_or_null("HitboxSprite")
+	if hitbox:
+		hitbox.visible = is_visible

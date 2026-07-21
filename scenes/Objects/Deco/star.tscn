@@ -1,8 +1,12 @@
 [gd_scene format=3 uid="uid://dm8bot2uwvarv"]
 
 [ext_resource type="Script" uid="uid://huhodu03m3jt" path="res://scripts/Objects/deco.gd" id="1_1yhdh"]
-[ext_resource type="Texture2D" uid="uid://ctstrwebei6ge" path="res://Resources/Objects/star.png" id="1_ce8be"]
+[ext_resource type="Texture2D" uid="uid://c41k54wpgw6lc" path="res://Resources/Objects/decosheet.png" id="1_2gnwq"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1yhdh"]
+atlas = ExtResource("1_2gnwq")
+region = Rect2(0, 0, 64, 64)
 
 [node name="Star" type="Sprite2D" unique_id=1282455436]
-texture = ExtResource("1_ce8be")
+texture = SubResource("AtlasTexture_1yhdh")
 script = ExtResource("1_1yhdh")

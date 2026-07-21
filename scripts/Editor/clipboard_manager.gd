@@ -62,11 +62,22 @@ func paste_clipboard() -> void:
 			new_object.set_meta("base_rotation", item["base_rotation"])
 			new_object.set_meta("layer", item["layer"])
 			new_object.z_index = -item["layer"]
-			
+
 			# Apply Color Channel
 			var loaded_channel = item.get("color_channel", 0)
 			new_object.set_meta("color_channel", loaded_channel)
-			new_object.modulate = Global.get_channel_color(loaded_channel)
+			
+			var target_color = Global.get_channel_color(loaded_channel)
+			
+			if new_object is Sprite2D:
+				new_object.modulate = target_color
+			else:
+				var sprite = new_object.get_node_or_null("Sprite2D")
+				if sprite:
+					sprite.modulate = target_color
+					new_object.modulate = Color(1, 1, 1, 1.0) # Explicitly keep root opaque
+				else:
+					new_object.modulate = target_color
 			
 			# Generate a brand new unique ID for the clone
 			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)

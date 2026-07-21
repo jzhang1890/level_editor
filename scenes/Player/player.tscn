@@ -4,6 +4,14 @@
 [ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Resources/Ships/Ship1/body.png" id="2_dqkch"]
 [ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Resources/Ships/Ship1/misc.png" id="3_qlg0r"]
 [ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Resources/Ships/Ship1/outline.png" id="4_tuyoq"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Objects/hitboxsheet.png" id="5_uiqp4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_c4h5g"]
+size = Vector2(22, 47)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hvfru"]
+atlas = ExtResource("5_uiqp4")
+region = Rect2(384, 0, 128, 128)
 
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
 z_index = 100
@@ -26,7 +34,13 @@ texture = ExtResource("4_tuyoq")
 [node name="Hitbox" type="Area2D" parent="." unique_id=1529693991]
 collision_mask = 2
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hitbox" unique_id=487485815]
-polygon = PackedVector2Array(-27, 32, 26, 32, 0, -36)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=767691101]
+position = Vector2(0, 6.5)
+shape = SubResource("RectangleShape2D_c4h5g")
+
+[node name="HitboxSprite" type="Sprite2D" parent="." unique_id=539775691]
+position = Vector2(-1.9999974, 8.000001)
+scale = Vector2(0.45312503, 0.4375)
+texture = SubResource("AtlasTexture_hvfru")
 
 [connection signal="body_entered" from="Hitbox" to="." method="_on_hitbox_body_entered"]
