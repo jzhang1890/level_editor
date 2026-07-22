@@ -57,6 +57,7 @@ var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
 var drag_threshold: float = 25.0
 var last_acted_cell: Vector2 = Vector2(-9999, -9999) # Tracks the grid cell for continuous drawing
+var drawn_cells_this_stroke: Dictionary = {}
 
 # Track for dragging object
 var is_dragging_objects: bool = false
@@ -79,7 +80,7 @@ var clicked_objects_cache: Array[Node2D] = []
 const GRID_SIZE: float = 64.0
 
 # Zoom settings
-var min_zoom: float = 0.30  # How far out you can see
+var min_zoom: float = 0.20  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
@@ -211,6 +212,10 @@ func apply_zoom(target_zoom: float) -> void:
 	
 	# Tell the canvas to update the grid thickness
 	room_canvas.queue_redraw()
+	
+	# Force chunks to recalculate their radius based on the new zoom 
+	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
+	update_editor_chunks(current_camera_chunk)
 
 func apply_zoom_at_mouse(requested_zoom: float) -> void:
 	var old_zoom = camera.zoom.x
@@ -380,7 +385,17 @@ func place_object(pos: Vector2) -> void:
 		var placed_state = undo_manager.serialize_objects([new_object])
 		undo_manager.commit_action("place", [], placed_state)
 		
-		update_scrollbar_bounds()
+		# --- NEW O(1) SCROLLBAR EXPANSION ---
+		var pad = CHUNK_HEIGHT / 2.0
+		if scrollbar.min_value == 0 and scrollbar.max_value == 0:
+			# First object placed, do the full calculation once to establish a baseline
+			update_scrollbar_bounds()
+		else:
+			# Just push the bounds outward if the new object exceeds them
+			if new_object.global_position.y - pad < scrollbar.min_value:
+				scrollbar.min_value = new_object.global_position.y - pad
+			if new_object.global_position.y + pad > scrollbar.max_value:
+				scrollbar.max_value = new_object.global_position.y + pad
 		
 
 # Deletion logic
@@ -397,8 +412,6 @@ func delete_selected_object() -> void:
 			
 	# Passing null without Ctrl pressed automatically clears the array and hides the menu
 	change_selection(null)
-	
-	update_scrollbar_bounds()
 
 func _on_delete_button_pressed() -> void:
 	delete_selected_object()
@@ -440,11 +453,11 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 			$Foreground/TransformGizmo.toggle_visibility()
 		return # Exit early so we don't trigger undo/redo saves or loop through objects
 	
-	var start_state = undo_manager.serialize_objects(selected_objects)
-	
 	# Make sure the array isn't empty before performing edit action
 	if selected_objects.is_empty():
 		return
+		
+	var start_state = undo_manager.serialize_objects(selected_objects)
 				
 	# Find the center of the group 
 	var group_center: Vector2 = Vector2.ZERO
@@ -528,14 +541,17 @@ func update_layer_display() -> void:
 	refresh_layer_visibility()
 	
 func refresh_layer_visibility() -> void:
-	for child in room_canvas.get_children():
-		if child is Node2D:
-			var obj_layer = child.get_meta("layer", 1)
-			
-			if current_layer == 0 or current_layer == obj_layer:
-				child.modulate.a = 1.0 # Force parent fully opaque when active
-			else:
-				child.modulate.a = 0.05 # Faded out for inactive layers
+	# Only sweep the on-screen chunks for better time complexity
+	for chunk_id in active_chunks:
+		if level_chunks.has(chunk_id):
+			for child in level_chunks[chunk_id]:
+				if is_instance_valid(child) and child is Node2D:
+					var obj_layer = child.get_meta("layer", 1)
+					
+					if current_layer == 0 or current_layer == obj_layer:
+						child.modulate.a = 1.0 # Force parent fully opaque when active
+					else:
+						child.modulate.a = 0.05 # Faded out for inactive layers
 		
 # BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -597,8 +613,11 @@ func _draw() -> void:
 		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 
 func update_editor_chunks(center_chunk: int) -> void:
-	# How many chunks to render on each side
-	var render_radius: int = 4
+	# Calculate the total vertical space currently visible to the camera
+	var visible_height: float = get_viewport_rect().size.y / camera.zoom.y
+
+	# Halve it (for a radius), divide by your chunk height, and add 2 as a safety buffer
+	var render_radius: int = int(ceil((visible_height / 2.0) / CHUNK_HEIGHT)) + 2
 	
 	var needed_chunks: Array[int] = []
 	for i in range(-render_radius, render_radius + 1):
@@ -822,9 +841,9 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 			var cell_y = floor(current_pos.y / GRID_SIZE)
 			var current_cell = Vector2(cell_x, cell_y)
 			
-			if current_cell != last_acted_cell:
+			if not drawn_cells_this_stroke.has(current_cell):
 				place_object(current_pos)
-				last_acted_cell = current_cell
+				drawn_cells_this_stroke[current_cell] = true
 				
 		get_viewport().set_input_as_handled()
 		return 
@@ -895,7 +914,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			
 			# 2. Reset tracking variables for a fresh click
 			is_dragging = false
-			last_acted_cell = Vector2(-9999, -9999)
+			drawn_cells_this_stroke.clear()
 			
 			# 3. If holding Ctrl, instantly freeze the camera so user can safely use tools like box-select
 			if Input.is_key_pressed(KEY_CTRL):

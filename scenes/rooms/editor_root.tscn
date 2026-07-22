@@ -194,10 +194,10 @@ offset_bottom = 60.0
 text = "Pause"
 
 [node name="VSlider" type="VSlider" parent="EditorUI" unique_id=125145340]
-offset_left = 1196.0
-offset_top = 224.0
-offset_right = 1227.0
-offset_bottom = 433.0
+offset_left = 1199.0
+offset_top = 156.0
+offset_right = 1230.0
+offset_bottom = 483.0
 
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 anchors_preset = 15

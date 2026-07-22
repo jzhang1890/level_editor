@@ -14,8 +14,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	# Keep expanding the foreground canvas ahead of the camera
-	if camera.position.y < current_top_y + 1500:
-		current_top_y -= 1500 
+	if camera.position.y < current_top_y + 2000:
+		current_top_y -= 2000 
 		queue_redraw() # Redraw the expanding grid and walls
 
 func _draw() -> void:

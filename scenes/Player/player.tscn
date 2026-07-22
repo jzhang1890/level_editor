@@ -14,7 +14,7 @@ atlas = ExtResource("5_uiqp4")
 region = Rect2(384, 0, 128, 128)
 
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
-z_index = 100
+z_index = 4000
 script = ExtResource("1_req00")
 speedX = 350
 
@@ -39,6 +39,7 @@ position = Vector2(0, 6.5)
 shape = SubResource("RectangleShape2D_c4h5g")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=539775691]
+z_index = 4091
 position = Vector2(-1.9999974, 8.000001)
 scale = Vector2(0.45312503, 0.4375)
 texture = SubResource("AtlasTexture_hvfru")

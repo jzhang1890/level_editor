@@ -49,7 +49,7 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 		dead = true
 		player_died.emit()
 		
-func toggle_hitbox(is_visible: bool) -> void:
+func toggle_hitbox(is_hitbox_visible: bool) -> void:
 	var hitbox = get_node_or_null("HitboxSprite")
 	if hitbox:
-		hitbox.visible = is_visible
+		hitbox.visible = is_hitbox_visible

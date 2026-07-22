@@ -77,8 +77,10 @@ func remove_objects_by_id(data_array: Array) -> void:
 	var object_lookup = {}
 	for chunk_id in editor.level_chunks:
 		for child in editor.level_chunks[chunk_id]:
-			if is_instance_valid(child) and child.has_meta("unique_id"):
-				object_lookup[child.get_meta("unique_id")] = child
+			if is_instance_valid(child):
+				var uid = child.get_meta("unique_id", "")
+				if uid != "":
+					object_lookup[uid] = child
 	
 	# Create a temporary dictionary for O(1) lookups 
 	var fast_selection_check = {}
@@ -109,7 +111,22 @@ func recreate_objects(data_array: Array) -> void:
 			
 			var loaded_channel = item.get("color_channel", 0)
 			new_object.set_meta("color_channel", loaded_channel)
-			new_object.modulate = Global.get_channel_color(loaded_channel)
+			
+			# OPACITY ROUTING 
+			var target_color = Global.get_channel_color(loaded_channel)
+			if new_object is Sprite2D:
+				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+					target_color.a = 0.05
+				new_object.modulate = target_color
+			else: 
+				var sprite = new_object.get_node_or_null("Sprite2D")
+				if sprite:
+					sprite.modulate = target_color 
+				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+					new_object.modulate = Color(1, 1, 1, 0.05) 
+				else: 
+					new_object.modulate = Color(1, 1, 1, 1.0) 
+
 			new_object.set_meta("unique_id", item["unique_id"])
 			
 			var chunk_id = int(floor(new_object.global_position.y / editor.CHUNK_HEIGHT))
@@ -145,8 +162,10 @@ func apply_object_state(data_array: Array) -> void:
 	var object_lookup = {}
 	for chunk_id in editor.level_chunks:
 		for child in editor.level_chunks[chunk_id]:
-			if is_instance_valid(child) and child.has_meta("unique_id"):
-				object_lookup[child.get_meta("unique_id")] = child
+			if is_instance_valid(child):
+				var uid = child.get_meta("unique_id", "")
+				if uid != "":
+					object_lookup[uid] = child
 
 	# Create a temporary dictionary for O(1) lookups
 	var fast_selection_check = {}
@@ -166,7 +185,21 @@ func apply_object_state(data_array: Array) -> void:
 			
 			var loaded_channel = item.get("color_channel", 0)
 			obj.set_meta("color_channel", loaded_channel)
-			obj.modulate = Global.get_channel_color(loaded_channel)
+			
+			# OPACITY ROUTING 
+			var target_color = Global.get_channel_color(loaded_channel)
+			if obj is Sprite2D:
+				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+					target_color.a = 0.05
+				obj.modulate = target_color
+			else: 
+				var sprite = obj.get_node_or_null("Sprite2D")
+				if sprite:
+					sprite.modulate = target_color 
+				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+					obj.modulate = Color(1, 1, 1, 0.05) 
+				else: 
+					obj.modulate = Color(1, 1, 1, 1.0) 
 			
 			# Re-apply the highlight if it's currently selected
 			if fast_selection_check.has(obj) and obj.has_method("set_highlight"):
