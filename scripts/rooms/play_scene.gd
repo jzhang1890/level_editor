@@ -9,6 +9,8 @@ extends Node2D
 
 @onready var pause_menu: ColorRect = $GameOverlay/PauseMenu
 
+@onready var level_end_screen: ColorRect = $GameOverlay/LevelEndScreen
+
 @onready var level_name_label: Label = $GameOverlay/PauseMenu/LevelNameLabel
 
 @export var hitboxes_on := false
@@ -30,6 +32,10 @@ var spawn_position: Vector2 = Vector2.ZERO
 
 var respawn_time = 1
 
+var end_level_y: float = 0.0
+var level_completed: bool = false
+@export var end_padding: float = 150.0 # Pixels above the highest object where the level ends
+
 # Array to track objects altered by triggers or gameplay
 var modified_objects: Array[Obstacle] = []
 
@@ -41,9 +47,11 @@ func _ready() -> void:
 	if player.has_method("toggle_hitbox"):
 		player.toggle_hitbox(hitboxes_on)
 	
-	# Hides menu
+	# Hides menus
 	if pause_menu:
 		pause_menu.visible = false
+	if level_end_screen:
+		level_end_screen.visible = false
 	
 	# 1. Grab the level path from your Global script
 	if Global.level_to_load != "":
@@ -57,6 +65,10 @@ func _ready() -> void:
 	# 2.  FOR LATER: Set the player's starting position based on level data for spawn points
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Block the pause menu if the level is already over
+	if level_completed:
+		return
+		
 	# Check if the player pressed ESC
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		if paused:
@@ -114,6 +126,8 @@ func load_level(target_path: String) -> void:
 			if typeof(items_raw) == TYPE_STRING:
 				var item_strings = items_raw.split(";")
 				
+				var highest_obj_y: float = 999999.0
+				
 				# Setup cache
 				var scene_cache: Dictionary = {}
 				var deco_batches: Dictionary = {}
@@ -154,7 +168,11 @@ func load_level(target_path: String) -> void:
 							"8": item_dict["layer"] = val.to_int()
 							"9": item_dict["skew"] = val.to_float()
 							"10": item_dict["color_channel"] = val.to_int()
-							
+					
+					# Track the highest point in the level
+					if item_dict.has("y") and item_dict["y"] < highest_obj_y:
+						highest_obj_y = item_dict["y"]
+					
 					#  THE FILTER INTERCEPT 
 					var path = item_dict["scene_path"]
 					
@@ -312,10 +330,18 @@ func load_level(target_path: String) -> void:
 						
 						# Add the single MultiMesh to the canvas
 						level_canvas.add_child(mm_inst)
+				
+				# Set the final trigger line
+				if highest_obj_y != 999999.0:
+					end_level_y = highest_obj_y - end_padding
 					
 func _process(_delta: float) -> void:
 	if paused:
 		return
+		
+	# Check for level completion
+	if not level_completed and player.global_position.y <= end_level_y:
+		trigger_level_end()
 		
 	# Check where the camera currently is on the Y-axis
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
@@ -328,6 +354,9 @@ func _process(_delta: float) -> void:
 func _on_player_player_died() -> void:
 	if not restart_button_pressed:
 		await get_tree().create_timer(respawn_time, false).timeout
+	
+	# Reset level state so it can be finished again
+	level_completed = false
 	
 	# Reset player
 	$Player/Sprite2D.rotation = 0
@@ -353,6 +382,10 @@ func _on_player_player_died() -> void:
 	restart_button_pressed = false
 	
 func _on_pause_button_pressed() -> void:
+	# Prevent pausing if the end screen is active
+	if level_completed:
+		return
+		
 	# Shows name of level
 	if level_name_label:
 		level_name_label.text = level_name
@@ -368,12 +401,16 @@ func _on_pause_button_pressed() -> void:
 	# Pauses the game
 	get_tree().paused = true
 
-
 func _on_resume_button_pressed() -> void:
 	# Hide the menu to resume game
 	if pause_menu:
 		pause_menu.visible = false
+	if level_end_screen:
+		level_end_screen.visible = false
 	paused = false	
+	
+	# Unlock the camera
+	camera.camera_locked = false
 	
 	# Lock and hide the mouse again for gameplay because of lag
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -434,3 +471,14 @@ func update_chunks(center_chunk: int) -> void:
 							hitbox.visible = hitboxes_on
 
 	active_chunks = needed_chunks
+	
+func trigger_level_end() -> void:
+	level_completed = true
+	camera.camera_locked = true 
+	
+	# Wait 1.5 seconds while the player flies off screen
+	await get_tree().create_timer(2).timeout
+	
+	if level_end_screen:
+		level_end_screen.visible = true
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE # Bring mouse back for UI

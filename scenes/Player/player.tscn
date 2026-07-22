@@ -16,6 +16,7 @@ region = Rect2(384, 0, 128, 128)
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
 z_index = 4000
 script = ExtResource("1_req00")
+speedY = 450
 speedX = 350
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=873178819]

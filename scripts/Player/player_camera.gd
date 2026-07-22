@@ -2,6 +2,9 @@ extends Camera2D
 
 @onready var player = $".."
 
+var camera_locked: bool = false
+var y_velocity: float = 0.0
+
 # Percentage of the half-screen size before the camera starts shifting (0.8 = 80%)
 @export_range(0.5, 0.95) var edge_threshold: float = 0.50
 
@@ -19,8 +22,16 @@ func _physics_process(delta: float) -> void:
 	if not player:
 		return
 		
-	# 1. Keep the Y position locked perfectly to the player
-	global_position.y = player.global_position.y
+	# Camera movement logic
+	if camera_locked:
+		# Smoothly ease the velocity down to 0 and apply it
+		y_velocity = lerp(y_velocity, 0.0, 5.0 * delta)
+		global_position.y += y_velocity * delta
+	else:
+		# 1. Keep the Y position locked perfectly to the player
+		global_position.y = player.global_position.y
+		# Constantly capture the player's speed so the camera knows how fast it was going when locked
+		y_velocity = player.velocity.y 
 	
 	# 2. Calculate the visible horizontal boundary from the center
 	var viewport_width: float = get_viewport().get_visible_rect().size.x
