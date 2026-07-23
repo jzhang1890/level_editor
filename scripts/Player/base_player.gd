@@ -7,11 +7,9 @@ signal player_died
 enum GameMode { SHIP, BALL }
 var current_mode: GameMode = GameMode.BALL
 
-@export var speedY := 400
+@export var speedY := 450
 
 var is_moving_x: bool = false
-
-@export var noclip := false # noclip testing
 
 # Ball Variables
 @export var ball_speedX := 1 # How much grids it moves
@@ -23,13 +21,14 @@ var ball_target_rotation: float = 0.0
 @export var ball_rotation_speed: float = 15.0
 
 # Ship Variables
-@export var ship_speedX := 300 # Max horizontal speed
+@export var ship_speedX := 400 # Max horizontal speed
 @export var ship_acceleration := 1200.0
-@export var ship_deceleration := 800.0
+@export var ship_deceleration := 1000.0
 @export var ship_max_rotation: float = 0.2
 @export var ship_rotation_speed: float = 1.0
 
 var dead = false
+var level_finished = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -47,6 +46,23 @@ func _physics_process(delta: float) -> void:
 		ball_target_rotation = 0.0 # Clear the ball target rotation
 		return
 		
+	# Take away horizontal controls when the level is beat and slow down
+	if level_finished:
+		velocity.x = move_toward(velocity.x, 0.0, 2000 * delta) # Coast horizontally to a stop
+		velocity.y = move_toward(velocity.y, -120.0, 150 * delta) # Hit the brakes until coasting at a slow speed
+		
+		# ROTATION HANDLING ON LEVEL END
+		match current_mode:
+			GameMode.SHIP:
+				# Smoothly straighten the ship upright (0.0 rad)
+				$Sprite2D.rotation = move_toward($Sprite2D.rotation, 0.0, ship_rotation_speed * delta)
+			GameMode.BALL:
+				# Keep interpolating the ball toward its target rotation
+				$Sprite2D.rotation_degrees = lerp($Sprite2D.rotation_degrees, ball_target_rotation, ball_rotation_speed * delta)
+		
+		move_and_slide()
+		return
+		
 	match current_mode:
 		GameMode.BALL:
 			process_ball(delta)
@@ -55,9 +71,9 @@ func _physics_process(delta: float) -> void:
 			
 	# Move the body after the specific state has calculated the velocity
 	move_and_slide()
-
+	
 func _on_hitbox_body_entered(body: Node2D) -> void:
-	if body is Obstacle and not noclip:
+	if body is Obstacle and not $"..".noclip:
 		dead = true
 		player_died.emit()
 		
@@ -71,22 +87,20 @@ func process_ball(delta: float) -> void:
 	var clicked: bool = false
 	
 	if Input.is_action_just_pressed("right"):
-		if not is_moving_x:
-			ball_target_x = global_position.x
-		ball_target_x += (ball_speedX * 64.0) 
+		# Always base the new target on the current position, overriding the old one
+		ball_target_x = global_position.x + (ball_speedX * 64.0) 
 		
-		# UPDATE THE TARGET
-		ball_target_rotation += 90.0
+		# Base the new rotation target on the sprite's current angle
+		ball_target_rotation = $Sprite2D.rotation_degrees + 90.0
 		
 		clicked = true
 		
 	elif Input.is_action_just_pressed("left"):
-		if not is_moving_x:
-			ball_target_x = global_position.x
-		ball_target_x -= (ball_speedX * 64.0)
+		# Always base the new target on the current position, overriding the old one
+		ball_target_x = global_position.x - (ball_speedX * 64.0)
 		
-		# UPDATE THE TARGET
-		ball_target_rotation -= 90.0
+		# Base the new rotation target on the sprite's current angle
+		ball_target_rotation = $Sprite2D.rotation_degrees - 90.0
 		
 		clicked = true
 
@@ -98,15 +112,20 @@ func process_ball(delta: float) -> void:
 		var distance_to_target = ball_target_x - global_position.x
 		var dir = sign(distance_to_target)
 		
+		# NEW: Dynamically scale your physics based on how many grid tiles you are jumping
+		var actual_max_speed = ball_max_speed * ball_speedX
+		var actual_acceleration = ball_acceleration * ball_speedX
+		var actual_deceleration = ball_deceleration * ball_speedX
+		
 		# Calculate if we need to start braking using d = v^2 / (2a)
-		var stopping_distance = (velocity.x * velocity.x) / (2.0 * ball_deceleration)
+		var stopping_distance = (velocity.x * velocity.x) / (2.0 * actual_deceleration)
 		
 		if abs(distance_to_target) <= stopping_distance:
 			# Player is close enough; hit the brakes
-			velocity.x = move_toward(velocity.x, 0.0, ball_deceleration * delta)
+			velocity.x = move_toward(velocity.x, 0.0, actual_deceleration * delta)
 		else:
 			# The player has room to speed up, so accelerate toward the target direction
-			velocity.x = move_toward(velocity.x, dir * ball_max_speed, ball_acceleration * delta)
+			velocity.x = move_toward(velocity.x, dir * actual_max_speed, actual_acceleration * delta)
 			
 		# Snap to the grid and stop if we reach the target or overshoot
 		if abs(distance_to_target) <= abs(velocity.x * delta) or (velocity.x == 0 and abs(distance_to_target) < 1.0):

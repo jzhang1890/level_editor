@@ -15,6 +15,8 @@ extends Node2D
 
 @export var hitboxes_on := false
 
+@export var noclip := false # noclip testing
+
 var restart_button_pressed = false
 
 # CHUNKING VARIABLES 
@@ -367,9 +369,15 @@ func _on_player_player_died() -> void:
 	
 	# Reset player
 	$Player/Sprite2D.rotation = 0
+	player.ball_target_rotation = 0.0 # Reset the interpolation target
 	player.global_position = spawn_position
 	player.velocity = Vector2(0, player.speedY)
+	player.is_moving_x = false
 	player.dead = false
+	
+	# Reset the finish line states so they can move again
+	player.level_finished = false
+	player.set_physics_process(true)
 	
 	# Reset camera
 	camera.global_position = spawn_position 
@@ -481,9 +489,11 @@ func update_chunks(center_chunk: int) -> void:
 	
 func trigger_level_end() -> void:
 	level_completed = true
-	camera.camera_locked = true 
 	
-	# Wait 1.5 seconds while the player flies off screen
+	# 1. Lock the player's horizontal movement
+	player.level_finished = true
+	
+	# Wait 1.5 seconds
 	await get_tree().create_timer(2).timeout
 	
 	if level_end_screen:
