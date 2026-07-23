@@ -1,19 +1,12 @@
-extends CharacterBody2D
+extends BasePlayer
 
-# Signal that shouts "player died" when the player dies
-signal player_died
-
-@export var speedY := 400
 @export var speedX := 300 # Max horizontal speed
 @export var acceleration := 1200.0
 @export var deceleration := 800.0
 
-@export var noclip := false # noclip testing
-
 @export var max_rotation: float = 0.2
 @export var rotation_speed: float = 1.0
 
-var dead = false
 
 func _physics_process(delta: float) -> void:
 	if not dead:
@@ -43,13 +36,3 @@ func _physics_process(delta: float) -> void:
 			elif $Sprite2D.rotation > 0:
 				$Sprite2D.rotation -= rotation_speed * delta
 				if $Sprite2D.rotation < 0: $Sprite2D.rotation = 0
-
-func _on_hitbox_body_entered(body: Node2D) -> void:
-	if body is Obstacle and not noclip:
-		dead = true
-		player_died.emit()
-		
-func toggle_hitbox(is_hitbox_visible: bool) -> void:
-	var hitbox = get_node_or_null("HitboxSprite")
-	if hitbox:
-		hitbox.visible = is_hitbox_visible
