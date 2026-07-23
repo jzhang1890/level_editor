@@ -43,6 +43,13 @@ func _ready() -> void:
 	# After loading the level
 	spawn_position = player.global_position
 	
+	# Drop the player physically down 800 pixels so they start off screen
+	player.global_position.y = spawn_position.y + 300.0
+	
+	# Tell the camera where its starting line is
+	camera.spawn_y = spawn_position.y
+	camera.waiting_at_spawn = true
+	
 	# Tell the player to match the play_scene's hitbox setting
 	if player.has_method("toggle_hitbox"):
 		player.toggle_hitbox(hitboxes_on)

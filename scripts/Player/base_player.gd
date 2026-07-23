@@ -19,6 +19,8 @@ var ball_target_x: float = 0.0
 @export var ball_max_speed: float = 1000.0
 @export var ball_acceleration: float = 3000.0
 @export var ball_deceleration: float = 2000.0
+var ball_target_rotation: float = 0.0
+@export var ball_rotation_speed: float = 15.0
 
 # Ship Variables
 @export var ship_speedX := 300 # Max horizontal speed
@@ -40,8 +42,9 @@ func _process(_delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	if dead:
-		# Reset ball movement when dead
+		# Reset movement when dead
 		is_moving_x = false 
+		ball_target_rotation = 0.0 # Clear the ball target rotation
 		return
 		
 	match current_mode:
@@ -70,13 +73,21 @@ func process_ball(delta: float) -> void:
 	if Input.is_action_just_pressed("right"):
 		if not is_moving_x:
 			ball_target_x = global_position.x
-		ball_target_x += (ball_speedX * 64.0) # Add to the target, don't reset it
+		ball_target_x += (ball_speedX * 64.0) 
+		
+		# UPDATE THE TARGET
+		ball_target_rotation += 90.0
+		
 		clicked = true
 		
 	elif Input.is_action_just_pressed("left"):
 		if not is_moving_x:
 			ball_target_x = global_position.x
 		ball_target_x -= (ball_speedX * 64.0)
+		
+		# UPDATE THE TARGET
+		ball_target_rotation -= 90.0
+		
 		clicked = true
 
 	if clicked:
@@ -91,10 +102,10 @@ func process_ball(delta: float) -> void:
 		var stopping_distance = (velocity.x * velocity.x) / (2.0 * ball_deceleration)
 		
 		if abs(distance_to_target) <= stopping_distance:
-			# We are close enough; hit the brakes
+			# Player is close enough; hit the brakes
 			velocity.x = move_toward(velocity.x, 0.0, ball_deceleration * delta)
 		else:
-			# We have room to speed up; accelerate toward the target direction
+			# The player has room to speed up, so accelerate toward the target direction
 			velocity.x = move_toward(velocity.x, dir * ball_max_speed, ball_acceleration * delta)
 			
 		# Snap to the grid and stop if we reach the target or overshoot
@@ -107,6 +118,9 @@ func process_ball(delta: float) -> void:
 		
 	# 4. Standard vertical movement
 	velocity.y = -speedY
+	
+	# Spin the sprite toward the target rotation every frame
+	$Sprite2D.rotation_degrees = lerp($Sprite2D.rotation_degrees, ball_target_rotation, ball_rotation_speed * delta)
 		
 # SHIP PHYSICS
 func process_ship(delta: float) -> void:
