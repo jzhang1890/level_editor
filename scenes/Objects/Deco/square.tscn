@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://n2cs5ofqu7st"]
+
+[ext_resource type="Texture2D" uid="uid://c41k54wpgw6lc" path="res://Resources/Objects/decosheet.png" id="1_bdfu1"]
+[ext_resource type="Script" uid="uid://huhodu03m3jt" path="res://scripts/Objects/deco.gd" id="2_fdi7w"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7kthc"]
+atlas = ExtResource("1_bdfu1")
+region = Rect2(195, 0, 64, 64)
+
+[node name="Square" type="Sprite2D" unique_id=434095103]
+texture = SubResource("AtlasTexture_7kthc")
+script = ExtResource("2_fdi7w")
+metadata/_custom_type_script = "uid://huhodu03m3jt"

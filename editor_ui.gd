@@ -12,7 +12,8 @@ signal edit_action_requested(action_name: String)
 
 var current_selected_objects: Array = []
 
-var item_database: Dictionary = {
+# 1. ADD @onready HERE so Godot allows function calls inside the dictionary
+@onready var item_database: Dictionary = {
 	"obstacles": [
 		{
 			"name": "Black Hole",
@@ -33,8 +34,28 @@ var item_database: Dictionary = {
 	"deco": [
 		{
 			"name": "Star",
-			"icon": preload("res://Resources/Objects/star.png"),
+			"icon": get_sheet_icon(Rect2(0, 0, 64, 64)), 
 			"scene_path": "res://scenes/objects/deco/star.tscn"
+		},
+		{
+			"name": "Side Line",
+			"icon": get_sheet_icon(Rect2(65, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/deco/side_line.tscn"
+		},
+		{
+			"name": "Middle Line",
+			"icon": get_sheet_icon(Rect2(130, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/deco/middle_line.tscn"
+		},
+		{
+			"name": "Square",
+			"icon": get_sheet_icon(Rect2(195, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/deco/square.tscn"
+		},
+		{
+			"name": "Half Square",
+			"icon": get_sheet_icon(Rect2(260, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/deco/half_square.tscn"
 		},
 	]
 }
@@ -53,6 +74,14 @@ var edit_actions: Array = [
 # It stores the path so the main script can grab it when you click the canvas.
 var selected_scene_path: String = ""
 
+# 3. ADD THIS HELPER FUNCTION
+# This takes the coordinates you provide and creates a sliced texture from your deco sheet
+func get_sheet_icon(region: Rect2) -> AtlasTexture:
+	var atlas = AtlasTexture.new()
+	atlas.atlas = preload("res://Resources/Objects/decosheet.png")
+	atlas.region = region
+	return atlas
+	
 func _ready() -> void:
 	populate_object_list(obstacles_list, item_database["obstacles"])
 	populate_object_list(deco_list, item_database["deco"])

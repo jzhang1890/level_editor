@@ -493,7 +493,7 @@ func trigger_level_end() -> void:
 	# 1. Lock the player's horizontal movement
 	player.level_finished = true
 	
-	# Wait 1.5 seconds
+	# Wait 2 seconds
 	await get_tree().create_timer(2).timeout
 	
 	if level_end_screen:
