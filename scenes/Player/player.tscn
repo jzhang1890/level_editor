@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cqow47bch5ocs"]
 
-[ext_resource type="Script" uid="uid://dmjks22kxqr3f" path="res://scripts/Player/ball_player.gd" id="1_uiqp4"]
+[ext_resource type="Script" uid="uid://rf4srb2pfo05" path="res://scripts/Player/base_player.gd" id="1_uiqp4"]
 [ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Resources/Ships/Ship1/body.png" id="2_dqkch"]
 [ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Resources/Ships/Ship1/misc.png" id="3_qlg0r"]
 [ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Resources/Ships/Ship1/outline.png" id="4_tuyoq"]

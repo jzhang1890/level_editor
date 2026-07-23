@@ -130,7 +130,7 @@ offset_right = 80.5
 offset_bottom = -86.5
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 35
+theme_override_font_sizes/font_size = 50
 text = "You Win"
 horizontal_alignment = 1
 
