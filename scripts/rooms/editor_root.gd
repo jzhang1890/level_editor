@@ -56,8 +56,10 @@ var current_mode: EditorMode = EditorMode.BUILD
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
 var drag_threshold: float = 25.0
-var last_acted_cell: Vector2 = Vector2(-9999, -9999) # Tracks the grid cell for continuous drawing
 var drawn_cells_this_stroke: Dictionary = {}
+var batched_paint_objects: Array = []
+# Tracks resources so we only load them from disk once
+var resource_cache: Dictionary = {}
 
 # Track for dragging object
 var is_dragging_objects: bool = false
@@ -75,6 +77,9 @@ var selected_objects: Array[Node2D] = []
 var last_click_pos: Vector2 = Vector2.ZERO
 var click_cycle_index: int = 0
 var clicked_objects_cache: Array[Node2D] = []
+
+# Object registry for undo redo
+var object_registry: Dictionary = {}
 
 # Current size of one grid
 const GRID_SIZE: float = 64.0
@@ -115,7 +120,6 @@ func _ready() -> void:
 	color_picker_btn.color_changed.connect(_on_picker_color_changed)
 	
 	# Turn the editor mouse features back on from when they were turned off during play_scene
-	get_viewport().physics_object_picking = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# If the global script has a level queued up, load it immediately
@@ -341,8 +345,16 @@ func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
 		$Foreground/TransformGizmo.update_selection(selected_objects)
 
 # Placement logic
-func place_object(pos: Vector2) -> void:
-	var object_resource = load(ui_layer.selected_scene_path)
+func place_object(pos: Vector2, is_painting: bool = false) -> void:
+	var path = ui_layer.selected_scene_path
+	
+	# If we haven't loaded this object yet, load it from disk and save it to memory
+	if not resource_cache.has(path):
+		resource_cache[path] = load(path)
+		
+	# Grab the pre-loaded resource from fast memory instead of the slow hard drive
+	var object_resource = resource_cache[path]
+	
 	if object_resource:
 		var new_object = object_resource.instantiate()
 		
@@ -358,6 +370,9 @@ func place_object(pos: Vector2) -> void:
 		new_object.set_meta("unique_id", unique_id)
 		new_object.set_meta("base_rotation", 0.0)
 		
+		# Register the new object instantly
+		object_registry[unique_id] = new_object
+		
 		# Sets the layer of the new object
 		var assigned_layer = current_layer
 		if assigned_layer == 0:
@@ -369,35 +384,36 @@ func place_object(pos: Vector2) -> void:
 		# CHUNKING PLACEMENT
 		var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 
-		# Create an empty array if the chunk doesn't exist
 		if not level_chunks.has(chunk_id):
 			level_chunks[chunk_id] = []
 
-		# Add to canvas for chronological layering
 		room_canvas.add_child(new_object)
 		level_chunks[chunk_id].append(new_object)
 		
-		# Sleep immediately if chunk is inactive
 		if chunk_id not in active_chunks:
 			new_object.process_mode = Node.PROCESS_MODE_DISABLED
 			new_object.visible = false
-		
-		var placed_state = undo_manager.serialize_objects([new_object])
-		undo_manager.commit_action("place", [], placed_state)
-		
-		# --- NEW O(1) SCROLLBAR EXPANSION ---
+			
+		# O(1) SCROLLBAR EXPANSION 
 		var pad = CHUNK_HEIGHT / 2.0
 		if scrollbar.min_value == 0 and scrollbar.max_value == 0:
-			# First object placed, do the full calculation once to establish a baseline
 			update_scrollbar_bounds()
 		else:
-			# Just push the bounds outward if the new object exceeds them
 			if new_object.global_position.y - pad < scrollbar.min_value:
 				scrollbar.min_value = new_object.global_position.y - pad
 			if new_object.global_position.y + pad > scrollbar.max_value:
 				scrollbar.max_value = new_object.global_position.y + pad
-		
 
+		# Batching logic
+		if not is_painting:
+			# Normal single click: commit to undo stack and select it immediately
+			var placed_state = undo_manager.serialize_objects([new_object])
+			undo_manager.commit_action("place", [], placed_state)
+			change_selection(new_object)
+		else:
+			# Continuous stroke: queue it up for the undo batch and SKIP selection
+			batched_paint_objects.append(new_object)
+		
 # Deletion logic
 func delete_selected_object() -> void:
 	# Snaps action in undo manager
@@ -408,6 +424,11 @@ func delete_selected_object() -> void:
 	# Loop through all selected objects and delete them
 	for obj in selected_objects:
 		if is_instance_valid(obj):
+			# Remove from registry before freeing
+			var uid = obj.get_meta("unique_id", "")
+			if uid != "":
+				object_registry.erase(uid)
+				
 			obj.queue_free()
 			
 	# Passing null without Ctrl pressed automatically clears the array and hides the menu
@@ -428,6 +449,12 @@ func change_background(new_path: String) -> void:
 func _on_main_tab_container_tab_changed(tab: int) -> void:
 	# 0 = Build, 1 = Edit, 2 = Delete
 	current_mode = tab as EditorMode
+
+	# Only turn on Godot's physics picking in Edit mode so the Gizmo Area2Ds work
+	if current_mode == EditorMode.EDIT:
+		get_viewport().physics_object_picking = true
+	else:
+		get_viewport().physics_object_picking = false
 
 # Pause Menu logic
 func _on_pause_button_pressed() -> void:
@@ -842,11 +869,12 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 			var current_cell = Vector2(cell_x, cell_y)
 			
 			if not drawn_cells_this_stroke.has(current_cell):
-				place_object(current_pos)
+				# Pass 'true' to signal that we are dragging
+				place_object(current_pos, true) 
 				drawn_cells_this_stroke[current_cell] = true
 				
 		get_viewport().set_input_as_handled()
-		return 
+		return
 		
 	# BOX SELECTION (EDIT MODE CTRL PRESS)
 	if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
@@ -871,6 +899,12 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		if obj_to_delete != null:
 			var deleted_state = undo_manager.serialize_objects([obj_to_delete])
 			undo_manager.commit_action("delete", deleted_state, [])
+			
+			# Remove from registry before freeing
+			var uid = obj_to_delete.get_meta("unique_id", "")
+			if uid != "":
+				object_registry.erase(uid)
+			
 			obj_to_delete.queue_free()
 			
 		get_viewport().set_input_as_handled()
@@ -961,12 +995,18 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					get_viewport().set_input_as_handled()
 					return
 			
-		# MOUSE BUTTON RELEASED
+			# MOUSE BUTTON RELEASED
 		elif not event.pressed:
 			# 1. Unfreeze the camera so normal panning works again
 			camera.set_process_unhandled_input(true)
 			camera.set_process_input(true)
 			camera.set_process(true)
+			
+			# Batch commit logic
+			if batched_paint_objects.size() > 0:
+				var placed_state = undo_manager.serialize_objects(batched_paint_objects)
+				undo_manager.commit_action("place", [], placed_state)
+				batched_paint_objects.clear()
 			
 			# 2. Finish Object Dragging
 			if is_dragging_objects:
@@ -976,6 +1016,11 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 				if is_dragging:
 					var drag_end_state = undo_manager.serialize_objects(selected_objects)
 					undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
+					
+					# Force the Gizmo to recalculate its exact center point after being moved
+					if has_node("Foreground/TransformGizmo"):
+						$Foreground/TransformGizmo.update_selection(selected_objects)
+						
 					get_viewport().set_input_as_handled()
 					return
 			
@@ -998,7 +1043,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					EditorMode.BUILD:
 						if ui_layer.selected_scene_path != "":
 							# Only place an object if the continuous brush wasn't just used
-							if last_acted_cell == Vector2(-9999, -9999):
+							if drawn_cells_this_stroke.is_empty():
 								place_object(click_pos)
 							
 					EditorMode.EDIT:
@@ -1011,6 +1056,12 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 							# Commit to undo stack then destroy
 							var deleted_state = undo_manager.serialize_objects([clicked_obj])
 							undo_manager.commit_action("delete", deleted_state, [])
+							
+							# Remove from registry before freeing
+							var uid = clicked_obj.get_meta("unique_id", "")
+							if uid != "":
+								object_registry.erase(uid)
+							
 							clicked_obj.queue_free()
 			
 			# Reset the general drag flag so the next click starts fresh

@@ -83,6 +83,9 @@ func paste_clipboard() -> void:
 			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
 			new_object.set_meta("unique_id", unique_id)
 			
+			# Register the pasted object
+			editor.object_registry[unique_id] = new_object
+			
 			# Put pasted objects into chunks
 			var chunk_id = int(floor(new_object.global_position.y / editor.CHUNK_HEIGHT))
 

@@ -74,23 +74,19 @@ func redo_action() -> void:
 # UNDO/REDO HELPER FUNCTIONS (Adjusted with 'editor.' routing)
 
 func remove_objects_by_id(data_array: Array) -> void:
-	var object_lookup = {}
-	for chunk_id in editor.level_chunks:
-		for child in editor.level_chunks[chunk_id]:
-			if is_instance_valid(child):
-				var uid = child.get_meta("unique_id", "")
-				if uid != "":
-					object_lookup[uid] = child
-	
 	# Create a temporary dictionary for O(1) lookups 
 	var fast_selection_check = {}
 	for sel in editor.selected_objects:
 		fast_selection_check[sel] = true
 				
 	for item in data_array:
-		var obj = object_lookup.get(item["unique_id"])
+		var uid = item["unique_id"]
+		# Direct O(1) lookup
+		var obj = editor.object_registry.get(uid) 
 		if obj:
 			if fast_selection_check.has(obj): editor.change_selection(obj, true)
+			# Unregister and destroy
+			editor.object_registry.erase(uid)
 			obj.queue_free()
 
 func recreate_objects(data_array: Array) -> void:
@@ -129,6 +125,9 @@ func recreate_objects(data_array: Array) -> void:
 
 			new_object.set_meta("unique_id", item["unique_id"])
 			
+			# Register the recreated object
+			editor.object_registry[item["unique_id"]] = new_object
+			
 			var chunk_id = int(floor(new_object.global_position.y / editor.CHUNK_HEIGHT))
 
 			if not editor.level_chunks.has(chunk_id):
@@ -159,21 +158,14 @@ func recreate_objects(data_array: Array) -> void:
 		editor.get_node("Foreground/TransformGizmo").update_selection(editor.selected_objects)
 
 func apply_object_state(data_array: Array) -> void:
-	var object_lookup = {}
-	for chunk_id in editor.level_chunks:
-		for child in editor.level_chunks[chunk_id]:
-			if is_instance_valid(child):
-				var uid = child.get_meta("unique_id", "")
-				if uid != "":
-					object_lookup[uid] = child
-
 	# Create a temporary dictionary for O(1) lookups
 	var fast_selection_check = {}
 	for sel in editor.selected_objects:
 		fast_selection_check[sel] = true
 
 	for item in data_array:
-		var obj = object_lookup.get(item["unique_id"])
+		# Direct O(1) lookup!
+		var obj = editor.object_registry.get(item["unique_id"]) 
 		if obj:
 			obj.global_position = item["global_position"]
 			obj.rotation_degrees = item["rotation_degrees"]

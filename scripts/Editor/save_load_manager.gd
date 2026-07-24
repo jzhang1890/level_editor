@@ -109,6 +109,9 @@ func load_level(target_path: String) -> void:
 						# Apply saved ID
 						new_object.set_meta("unique_id", item_dict["id"])
 						
+						# Register the loaded object so Undo/Redo can see it!
+						editor.object_registry[item_dict["id"]] = new_object
+						
 						# Apply skew (with a safe fallback to 0.0 for older saves)
 						new_object.skew = item_dict.get("skew", 0.0)
 						
