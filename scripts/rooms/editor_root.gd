@@ -381,6 +381,19 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		new_object.set_meta("layer", assigned_layer)
 		new_object.z_index = -assigned_layer
 		
+		new_object.set_meta("color_channel", 0)
+		var target_color = Global.get_channel_color(0)
+		
+		if new_object is Sprite2D:
+			new_object.modulate = target_color
+		else:
+			var sprite = new_object.get_node_or_null("Sprite2D")
+			if sprite:
+				sprite.modulate = target_color
+				new_object.modulate = Color(1, 1, 1, 1.0) # Explicitly keep root opaque
+			else:
+				new_object.modulate = target_color
+		
 		# CHUNKING PLACEMENT
 		var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 

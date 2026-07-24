@@ -16,10 +16,12 @@ radius = 86.023254
 atlas = ExtResource("4_278f1")
 region = Rect2(128, 0, 256, 256)
 
-[node name="Blackhole" type="StaticBody2D" unique_id=2067773606]
+[node name="Blackhole" type="StaticBody2D" unique_id=461466946]
 collision_layer = 2
 collision_mask = 0
+input_pickable = true
 script = ExtResource("1_scepj")
+metadata/_custom_type_script = "uid://sk3rn71awo6r"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=276152179]
 position = Vector2(3, 0)

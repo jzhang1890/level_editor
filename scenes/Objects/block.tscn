@@ -15,7 +15,7 @@ size = Vector2(54, 54)
 atlas = ExtResource("3_4g0po")
 region = Rect2(0, 0, 128, 128)
 
-[node name="block" type="StaticBody2D" unique_id=530130337]
+[node name="block" type="StaticBody2D" unique_id=328068684]
 collision_layer = 2
 collision_mask = 0
 input_pickable = true
