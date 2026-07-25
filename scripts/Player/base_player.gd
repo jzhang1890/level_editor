@@ -55,7 +55,7 @@ func _physics_process(delta: float) -> void:
 		match current_mode:
 			GameMode.SHIP:
 				# Smoothly straighten the ship upright (0.0 rad)
-				rotation = move_toward($Sprite2D.rotation, 0.0, ship_rotation_speed * delta)
+				rotation = move_toward(rotation, 0.0, ship_rotation_speed * delta)
 			GameMode.BALL:
 				# Keep interpolating the ball toward its target rotation
 				$Sprite2D.rotation_degrees = lerp($Sprite2D.rotation_degrees, ball_target_rotation, ball_rotation_speed * delta)

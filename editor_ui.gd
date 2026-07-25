@@ -91,6 +91,8 @@ func _ready() -> void:
 	var objects_container = $EditorPanel/MainTabContainer/Build/ObjectsContainer
 	if objects_container is TabContainer:
 		objects_container.tab_changed.connect(_on_objects_container_tab_changed)
+		
+	load_images_from_folder($LevelSettingsMenu/GroundsContainer/Background, "res://Resources/Backgrounds")
 
 func populate_object_list(target_list: ItemList, item_array: Array) -> void:
 	target_list.clear()
@@ -164,7 +166,38 @@ func _on_edit_object_button_pressed() -> void:
 	
 func _on_exit_button_pressed() -> void:
 	$ColorChannelMenu.visible = false
+	$LevelSettingsMenu.visible = false
 	get_parent().paused = false
 
 func update_selected_target(target_node):
 	current_selected_objects = target_node
+	
+func load_images_from_folder(target_list: ItemList, folder_path: String) -> void:
+	target_list.clear()
+	
+	# Open the directory
+	var dir = DirAccess.open(folder_path)
+	if dir:
+		# Loop through all files found in that folder
+		for file_name in dir.get_files():
+			# Filter out .import files, we only want the direct image files
+			if file_name.ends_with(".png") or file_name.ends_with(".jpg"):
+				var full_path = folder_path + "/" + file_name
+				var texture = load(full_path)
+				
+				# Add to the ItemList just like your build menu!
+				var index = target_list.add_item("", texture)
+				target_list.set_item_metadata(index, full_path)
+	else:
+		print("Warning: Could not open folder at ", folder_path)
+
+func _on_background_item_selected(index: int) -> void:
+	# 1. Grab the specific ItemList node and ask it for the metadata at the clicked index
+	var selected_path = $LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
+	
+	# 2. Send that retrieved string up to editor_root.gd
+	get_parent().change_background(selected_path)
+
+func _on_level_settings_button_pressed() -> void:
+	$LevelSettingsMenu.visible = true
+	get_parent().paused = true

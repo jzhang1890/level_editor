@@ -41,10 +41,17 @@ motion_mirroring = Vector2(1024, 1024)
 
 [node name="Background" type="TextureRect" parent="BackgroundCanvas/BackgroundLayer" unique_id=1699632227]
 z_index = -10
-offset_left = -2173.0
-offset_top = -1482.0
-offset_right = 2063.0
-offset_bottom = 2258.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2118.0
+offset_top = -1870.0
+offset_right = 2118.0
+offset_bottom = 1870.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("3_xxn6o")
 stretch_mode = 1
@@ -200,6 +207,7 @@ offset_right = 1230.0
 offset_bottom = 483.0
 
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -258,6 +266,10 @@ visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 262.0
+offset_top = 80.0
+offset_right = -263.0
+offset_bottom = -106.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.2, 0.2, 0.2, 0.78431374)
@@ -375,19 +387,73 @@ text = "10"
 
 [node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelMenu" unique_id=1639325206]
 layout_mode = 0
-offset_left = 1127.0
-offset_top = 568.0
-offset_right = 1215.0
-offset_bottom = 656.0
+offset_left = 656.0
+offset_top = 99.0
+offset_right = 709.0
+offset_bottom = 152.0
 color = Color(1, 1, 1, 1)
 
 [node name="ExitButton" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1965459271]
 layout_mode = 0
-offset_left = 1176.0
-offset_top = 29.0
-offset_right = 1245.0
-offset_bottom = 81.0
+offset_left = 649.0
+offset_top = 26.0
+offset_right = 718.0
+offset_bottom = 78.0
 text = "X"
+
+[node name="LevelSettingsMenu" type="ColorRect" parent="EditorUI" unique_id=114053226]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -378.75
+offset_top = -282.25
+offset_right = 378.75
+offset_bottom = 256.25
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.9372549)
+
+[node name="ExitButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=1413421263]
+layout_mode = 0
+offset_left = 654.5
+offset_top = 30.5
+offset_right = 713.5
+offset_bottom = 77.5
+text = "X"
+
+[node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=499566738]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -334.5
+offset_top = -234.5
+offset_right = 171.0
+offset_bottom = -44.0
+grow_horizontal = 2
+grow_vertical = 0
+current_tab = 0
+
+[node name="Background" type="ItemList" parent="EditorUI/LevelSettingsMenu/GroundsContainer" unique_id=184513869]
+layout_mode = 2
+item_count = 1
+max_columns = 0
+icon_mode = 0
+fixed_icon_size = Vector2i(150, 150)
+metadata/_tab_index = 0
+
+[node name="Foreground" type="ItemList" parent="EditorUI/LevelSettingsMenu/GroundsContainer" unique_id=673019510]
+visible = false
+layout_mode = 2
+max_columns = 0
+icon_mode = 0
+fixed_icon_size = Vector2i(75, 75)
+metadata/_tab_index = 1
 
 [connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
@@ -402,6 +468,7 @@ text = "X"
 [connection signal="pressed" from="EditorUI/UndoRedoContainer/RedoButton" to="." method="_on_redo_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomContainer/ZoomOutButton" to="." method="_on_zoom_out_button_pressed"]
 [connection signal="pressed" from="EditorUI/ZoomContainer/ZoomInButton" to="." method="_on_zoom_in_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsButton" to="EditorUI" method="_on_level_settings_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
@@ -409,3 +476,5 @@ text = "X"
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="SaveLoadManager" method="_on_save_and_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="item_selected" from="EditorUI/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]

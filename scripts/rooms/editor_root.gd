@@ -90,7 +90,12 @@ var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
 # Game state
-var paused = false
+var paused: bool = false:
+	set(value):
+		paused = value
+		if camera:
+			camera.set_process_unhandled_input(!paused)
+			camera.set_process_input(!paused)
 
 @export var hitboxes_on := false
 
