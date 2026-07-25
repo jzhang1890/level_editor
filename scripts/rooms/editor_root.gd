@@ -1085,3 +1085,14 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			# Reset the general drag flag so the next click starts fresh
 			is_dragging = false
 			
+func update_ground_color(tab_index: int, new_color: Color) -> void:
+	# Match the tab index to the correct ground layer
+	if tab_index == 0:
+		bg_rect.modulate = new_color
+	elif tab_index == 1:
+		pass # Add your middleground rect modulate here later
+	elif tab_index == 2:
+		pass # Add your foreground rect modulate here later
+		
+	# Store the color as a hex string so the save manager can write it to JSON
+	save_manager.ground_colors[tab_index] = new_color.to_html()

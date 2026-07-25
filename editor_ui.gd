@@ -12,6 +12,17 @@ signal edit_action_requested(action_name: String)
 
 var current_selected_objects: Array = []
 
+# For level settings menu
+# Tracks the colors for Background (0), Middleground (1), and Foreground (2)
+var ground_colors: Dictionary = {
+	0: Color(1, 1, 1, 1), 
+	1: Color(1, 1, 1, 1), 
+	2: Color(1, 1, 1, 1)  
+}
+
+@onready var settings_color_picker: ColorPickerButton = $LevelSettingsMenu/ColorPickerButton 
+@onready var grounds_container: TabContainer = $LevelSettingsMenu/GroundsContainer
+
 # 1. ADD @onready HERE so Godot allows function calls inside the dictionary
 @onready var item_database: Dictionary = {
 	"obstacles": [
@@ -71,11 +82,10 @@ var edit_actions: Array = [
 	{"icon": preload("res://Resources/icon.svg"), "action": "show_hide_gizmo"}
 ]
 
-# It stores the path so the main script can grab it when you click the canvas.
+# Stores the path so the main script can grab it when you click the canvas.
 var selected_scene_path: String = ""
 
-# 3. ADD THIS HELPER FUNCTION
-# This takes the coordinates you provide and creates a sliced texture from your deco sheet
+# Takes the region provided in parameter and creates a sliced texture from your deco sheet
 func get_sheet_icon(region: Rect2) -> AtlasTexture:
 	var atlas = AtlasTexture.new()
 	atlas.atlas = preload("res://Resources/Objects/decosheet.png")
@@ -91,9 +101,39 @@ func _ready() -> void:
 	var objects_container = $EditorPanel/MainTabContainer/Build/ObjectsContainer
 	if objects_container is TabContainer:
 		objects_container.tab_changed.connect(_on_objects_container_tab_changed)
+	settings_color_picker.color_changed.connect(_on_settings_color_changed)
+	grounds_container.tab_changed.connect(_on_grounds_tab_changed)
 		
 	load_images_from_folder($LevelSettingsMenu/GroundsContainer/Background, "res://Resources/Backgrounds")
 
+func _on_exit_button_pressed() -> void:
+	$ColorChannelMenu.visible = false
+	$LevelSettingsMenu.visible = false
+	get_parent().paused = false
+
+func update_selected_target(target_node):
+	current_selected_objects = target_node
+	
+func load_images_from_folder(target_list: ItemList, folder_path: String) -> void:
+	target_list.clear()
+	
+	# Open the directory
+	var dir = DirAccess.open(folder_path)
+	if dir:
+		# Loop through all files found in that folder
+		for file_name in dir.get_files():
+			# Filter out .import files, we only want the direct image files
+			if file_name.ends_with(".png") or file_name.ends_with(".jpg"):
+				var full_path = folder_path + "/" + file_name
+				var texture = load(full_path)
+				
+				# Add to the ItemList like in build menu
+				var index = target_list.add_item("", texture)
+				target_list.set_item_metadata(index, full_path)
+	else:
+		print("Warning: Could not open folder at ", folder_path)
+
+# EDITOR PANEL FUNCTIONS
 func populate_object_list(target_list: ItemList, item_array: Array) -> void:
 	target_list.clear()
 	
@@ -163,41 +203,29 @@ func _on_edit_object_button_pressed() -> void:
 					# 2. Tell the main editor script that the active channel has changed.
 					# Since editor_ui is a child of the root, we use get_parent() to reach the variable.
 					get_parent().current_editing_channel = channel
-	
-func _on_exit_button_pressed() -> void:
-	$ColorChannelMenu.visible = false
-	$LevelSettingsMenu.visible = false
-	get_parent().paused = false
 
-func update_selected_target(target_node):
-	current_selected_objects = target_node
-	
-func load_images_from_folder(target_list: ItemList, folder_path: String) -> void:
-	target_list.clear()
-	
-	# Open the directory
-	var dir = DirAccess.open(folder_path)
-	if dir:
-		# Loop through all files found in that folder
-		for file_name in dir.get_files():
-			# Filter out .import files, we only want the direct image files
-			if file_name.ends_with(".png") or file_name.ends_with(".jpg"):
-				var full_path = folder_path + "/" + file_name
-				var texture = load(full_path)
-				
-				# Add to the ItemList just like your build menu!
-				var index = target_list.add_item("", texture)
-				target_list.set_item_metadata(index, full_path)
-	else:
-		print("Warning: Could not open folder at ", folder_path)
-
+# LEVEL SETTING FUNCTIONS
 func _on_background_item_selected(index: int) -> void:
 	# 1. Grab the specific ItemList node and ask it for the metadata at the clicked index
 	var selected_path = $LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
 	
 	# 2. Send that retrieved string up to editor_root.gd
 	get_parent().change_background(selected_path)
-
+	
 func _on_level_settings_button_pressed() -> void:
 	$LevelSettingsMenu.visible = true
 	get_parent().paused = true
+	
+func _on_grounds_tab_changed(tab: int) -> void:
+	# 1. Ask the dictionary what color was saved for this specific tab
+	# 2. Force the UI button to display that color
+	settings_color_picker.color = ground_colors[tab]
+
+func _on_settings_color_changed(new_color: Color) -> void:
+	var current_tab = grounds_container.current_tab
+	
+	# 1. Save the new color into our dictionary so it doesn't leak into other tabs
+	ground_colors[current_tab] = new_color
+	
+	# Actually updates the ground color in editor root
+	get_parent().update_ground_color(current_tab, new_color)

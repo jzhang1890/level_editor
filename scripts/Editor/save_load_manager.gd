@@ -15,6 +15,13 @@ var current_level_name: String = "Untitled"
 # Default background path
 var current_bg_path: String = "res://Resources/Backgrounds/background1.png"
 
+# Tab 0: Background, Tab 1: Middleground, Tab 2: Foreground
+var ground_colors: Dictionary = {
+	0: "ffffffff", 
+	1: "ffffffff", 
+	2: "ffffffff"
+}
+
 # Loading level function
 func load_level(target_path: String) -> void:
 	if not FileAccess.file_exists(target_path):
@@ -51,6 +58,11 @@ func load_level(target_path: String) -> void:
 				var loaded_texture = load(current_bg_path)
 				if loaded_texture:
 					editor.bg_rect.texture = loaded_texture
+					
+			# Load and apply the ground tab colors
+			if level_data.has("ground_colors"):
+				# Pass the JSON directly without replacing the main dictionary
+				load_ground_colors(level_data["ground_colors"])
 			
 			var items_raw = level_data["items"]
 			if typeof(items_raw) == TYPE_STRING:
@@ -149,6 +161,23 @@ func load_level(target_path: String) -> void:
 	# Visually updates the color box when the level finishes loading
 	editor.color_picker_btn.color = Global.get_channel_color(editor.current_editing_channel)
 
+func load_ground_colors(saved_colors: Dictionary) -> void:
+	# JSON keys are always strings, so loop through them and convert back to ints
+	for tab_str in saved_colors.keys():
+		var tab_index = int(tab_str)
+		var color_hex = saved_colors[tab_str]
+		var loaded_color = Color(color_hex)
+		
+		# 1. Physically update the texture colors using the root's function
+		editor.update_ground_color(tab_index, loaded_color)
+		
+		# 2. Sync the UI's memory dictionary so the color picker matches the loaded color
+		editor.ui_layer.ground_colors[tab_index] = loaded_color
+
+	# 3. Visually update the physical UI button so it doesn't show the default white!
+	var active_tab = editor.ui_layer.grounds_container.current_tab
+	editor.ui_layer.settings_color_picker.color = editor.ui_layer.ground_colors[active_tab]
+
 # Saving Level function
 func _on_save_button_pressed() -> void:
 	if not DirAccess.dir_exists_absolute("user://Levels"):
@@ -227,7 +256,8 @@ func _on_save_button_pressed() -> void:
 		"level_name": current_level_name,
 		"background": current_bg_path, 
 		"colors": colors_as_hex,
-		"items": compressed_items_string, # Now a single optimized string
+		"ground_colors": ground_colors,
+		"items": compressed_items_string, # Single optimized string
 	}
 			
 	# 3. Spin up the background thread

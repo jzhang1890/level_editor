@@ -98,6 +98,11 @@ func _on_create_new_button_pressed() -> void:
 	var default_level_data: Dictionary = {
 		"level_name": "Untitled", 
 		"background": "res://Resources/Backgrounds/background1.png", 
+		"ground_colors": {
+			0: "2c6091", 
+			1: "ffffffff", 
+			2: "ffffffff"
+		},
 		"items": [] 
 	}
 	

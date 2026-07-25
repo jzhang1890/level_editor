@@ -48,7 +48,7 @@ func _physics_process(delta: float) -> void:
 		
 	# Take away horizontal controls when the level is beat and slow down
 	if level_finished:
-		velocity.x = move_toward(velocity.x, 0.0, 150 * delta) # Coast horizontally to a stop
+		velocity.x = move_toward(velocity.x, 0.0, 225 * delta) # Coast horizontally to a stop
 		velocity.y = move_toward(velocity.y, -120.0, 150 * delta) # Hit the brakes until coasting at a slow speed
 		
 		# ROTATION HANDLING ON LEVEL END

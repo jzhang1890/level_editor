@@ -115,7 +115,25 @@ func load_level(target_path: String) -> void:
 				var loaded_texture = load(current_bg_path)
 				if loaded_texture:
 					bg_rect.texture = loaded_texture
+			
+			# Load and apply the ground tab colors
+			if level_data.has("ground_colors"):
+				var saved_ground_colors = level_data["ground_colors"]
+				
+				# Loop through the saved colors and apply them
+				for tab_str in saved_ground_colors.keys():
+					var tab_index = int(tab_str)
+					var color_hex = saved_ground_colors[tab_str]
+					var loaded_color = Color(color_hex)
 					
+					# Match the index to the physical TextureRect
+					if tab_index == 0:
+						bg_rect.modulate = loaded_color
+					elif tab_index == 1:
+						pass # Add middleground rect modulate here later
+					elif tab_index == 2:
+						pass # Add foreground rect modulate here later		
+			
 			# Apply the name
 			if level_data.has("level_name"):
 				level_name = level_data["level_name"]
@@ -150,7 +168,7 @@ func load_level(target_path: String) -> void:
 					if data.size() < 2:
 						continue
 						
-					# Setup our baseline default values
+					# Setup baseline default values
 					var item_dict = {
 						"rotation": 0.0,
 						"scale_x": 1.0,
@@ -211,7 +229,7 @@ func load_level(target_path: String) -> void:
 						obj_scale.y *= -1.0 
 
 						# 3. Use the Godot 4 master constructor: Transform2D(rotation, scale, skew, origin)
-						# Feed it Vector2.ZERO for the origin first so it flips and skews locally!
+						# Feed it Vector2.ZERO for the origin first so it flips and skews locally
 						var gpu_transform = Transform2D(rot_rad, obj_scale, obj_skew, Vector2.ZERO)
 
 						# 4. Add the position in AFTER the transform is built
@@ -313,7 +331,7 @@ func load_level(target_path: String) -> void:
 						if tex is AtlasTexture:
 							# Grab the raw image data from the massive sprite sheet
 							var atlas_img = tex.atlas.get_image()
-							# Crop out just the region we actually want
+							# Crop out just the region actually wanted
 							var region_img = atlas_img.get_region(tex.region)
 							# Convert it back into a standard texture for the MultiMesh
 							tex = ImageTexture.create_from_image(region_img)
