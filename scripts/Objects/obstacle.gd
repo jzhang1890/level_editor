@@ -1,4 +1,4 @@
-extends StaticBody2D
+extends Area2D
 class_name Obstacle
 
 var base_position: Vector2

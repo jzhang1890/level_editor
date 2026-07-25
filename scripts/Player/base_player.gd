@@ -5,9 +5,9 @@ class_name BasePlayer
 signal player_died
 
 enum GameMode { SHIP, BALL }
-var current_mode: GameMode = GameMode.BALL
+var current_mode: GameMode = GameMode.SHIP
 
-@export var speedY := 450
+@export var speedY := 450 
 
 var is_moving_x: bool = false
 
@@ -48,14 +48,14 @@ func _physics_process(delta: float) -> void:
 		
 	# Take away horizontal controls when the level is beat and slow down
 	if level_finished:
-		velocity.x = move_toward(velocity.x, 0.0, 2000 * delta) # Coast horizontally to a stop
+		velocity.x = move_toward(velocity.x, 0.0, 150 * delta) # Coast horizontally to a stop
 		velocity.y = move_toward(velocity.y, -120.0, 150 * delta) # Hit the brakes until coasting at a slow speed
 		
 		# ROTATION HANDLING ON LEVEL END
 		match current_mode:
 			GameMode.SHIP:
 				# Smoothly straighten the ship upright (0.0 rad)
-				$Sprite2D.rotation = move_toward($Sprite2D.rotation, 0.0, ship_rotation_speed * delta)
+				rotation = move_toward($Sprite2D.rotation, 0.0, ship_rotation_speed * delta)
 			GameMode.BALL:
 				# Keep interpolating the ball toward its target rotation
 				$Sprite2D.rotation_degrees = lerp($Sprite2D.rotation_degrees, ball_target_rotation, ball_rotation_speed * delta)
@@ -72,8 +72,8 @@ func _physics_process(delta: float) -> void:
 	# Move the body after the specific state has calculated the velocity
 	move_and_slide()
 	
-func _on_hitbox_body_entered(body: Node2D) -> void:
-	if body is Obstacle and not $"..".noclip:
+func _on_hitbox_area_entered(area: Area2D) -> void:
+	if area is Obstacle and not $"..".noclip:
 		dead = true
 		player_died.emit()
 		
@@ -156,14 +156,14 @@ func process_ship(delta: float) -> void:
 	velocity.y = -speedY
 	
 	# Rotation physics
-	if direction > 0 and $Sprite2D.rotation < ship_max_rotation:
-		$Sprite2D.rotation += ship_rotation_speed * delta
-	elif direction < 0 and $Sprite2D.rotation > -ship_max_rotation:
-		$Sprite2D.rotation -= ship_rotation_speed * delta
+	if direction > 0 and rotation < ship_max_rotation:
+		rotation += ship_rotation_speed * delta
+	elif direction < 0 and rotation > -ship_max_rotation:
+		rotation -= ship_rotation_speed * delta
 	elif direction == 0:
-		if $Sprite2D.rotation < 0:
-			$Sprite2D.rotation += ship_rotation_speed * delta
-			if $Sprite2D.rotation > 0: $Sprite2D.rotation = 0
-		elif $Sprite2D.rotation > 0:
-			$Sprite2D.rotation -= ship_rotation_speed * delta
-			if $Sprite2D.rotation < 0: $Sprite2D.rotation = 0
+		if rotation < 0:
+			rotation += ship_rotation_speed * delta
+			if rotation > 0: rotation = 0
+		elif rotation > 0:
+			rotation -= ship_rotation_speed * delta
+			if rotation < 0: rotation = 0

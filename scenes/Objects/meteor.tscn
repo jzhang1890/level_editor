@@ -16,10 +16,9 @@ radius = 84.0
 atlas = ExtResource("4_iu3ty")
 region = Rect2(128, 0, 256, 256)
 
-[node name="Meteor" type="StaticBody2D" unique_id=1077104043]
+[node name="Meteor" type="Area2D" unique_id=1375989992]
 collision_layer = 2
 collision_mask = 0
-input_pickable = true
 script = ExtResource("1_cyiuj")
 metadata/_custom_type_script = "uid://sk3rn71awo6r"
 
