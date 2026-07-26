@@ -21,7 +21,7 @@ var ball_target_rotation: float = 0.0
 @export var ball_rotation_speed: float = 15.0
 
 # Ship Variables
-@export var ship_speedX := 400 # Max horizontal speed
+@export var ship_speedX := 430 # Max horizontal speed
 @export var ship_acceleration := 1200.0
 @export var ship_deceleration := 1000.0
 @export var ship_max_rotation: float = 0.2
@@ -73,7 +73,12 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	
 func _on_hitbox_area_entered(area: Area2D) -> void:
-	if area is Obstacle and not $"..".noclip:
+	# Safely check if the parent has a noclip variable; default to false if it doesn't
+	var is_noclip = get_parent().get("noclip")
+	if is_noclip == null:
+		is_noclip = false
+		
+	if area is Obstacle and not is_noclip:
 		dead = true
 		player_died.emit()
 		

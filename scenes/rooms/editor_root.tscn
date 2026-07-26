@@ -200,6 +200,13 @@ offset_right = 1238.0
 offset_bottom = 60.0
 text = "Pause"
 
+[node name="TestButton" type="Button" parent="EditorUI" unique_id=241923128]
+offset_left = 55.0
+offset_top = 169.0
+offset_right = 126.0
+offset_bottom = 213.0
+text = "Test"
+
 [node name="VSlider" type="VSlider" parent="EditorUI" unique_id=125145340]
 offset_left = 1199.0
 offset_top = 156.0
@@ -430,7 +437,6 @@ offset_left = 588.75
 offset_top = 335.25
 offset_right = 646.75
 offset_bottom = 392.25
-color = Color(0.37111905, 0.37111905, 0.37111905, 1)
 
 [node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=499566738]
 layout_mode = 1
@@ -478,6 +484,7 @@ metadata/_tab_index = 1
 [connection signal="pressed" from="EditorUI/ZoomContainer/ZoomInButton" to="." method="_on_zoom_in_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsButton" to="EditorUI" method="_on_level_settings_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="pressed" from="EditorUI/TestButton" to="EditorUI" method="_on_test_button_pressed"]
 [connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]

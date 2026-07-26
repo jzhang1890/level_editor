@@ -20,6 +20,9 @@ var ground_colors: Dictionary = {
 	2: Color(1, 1, 1, 1)  
 }
 
+# Dictionary to remember what was visible before playtesting
+var pre_test_visibility: Dictionary = {}
+
 @onready var settings_color_picker: ColorPickerButton = $LevelSettingsMenu/ColorPickerButton 
 @onready var grounds_container: TabContainer = $LevelSettingsMenu/GroundsContainer
 
@@ -229,3 +232,25 @@ func _on_settings_color_changed(new_color: Color) -> void:
 	
 	# Actually updates the ground color in editor root
 	get_parent().update_ground_color(current_tab, new_color)
+	
+# Test Button
+func _on_test_button_pressed() -> void:
+	# Calls the logic on editor_root.gd
+	get_parent().toggle_playtest()
+
+func toggle_playtest_ui(is_testing: bool) -> void:
+	if is_testing:
+		pre_test_visibility.clear()
+		# Loop through all direct UI elements
+		for child in get_children():
+			# Ignore the test button so it stays on screen
+			# NOTE: Change "TestButton" if your node is named slightly differently!
+			if child.name != "TestButton":
+				# Save its current state, then hide it
+				pre_test_visibility[child] = child.visible
+				child.visible = false
+	else:
+		# Restore all UI elements to their exact previous state
+		for child in pre_test_visibility.keys():
+			if is_instance_valid(child):
+				child.visible = pre_test_visibility[child]

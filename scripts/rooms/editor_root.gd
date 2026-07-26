@@ -89,6 +89,15 @@ var min_zoom: float = 0.20  # How far out you can see
 var max_zoom: float = 3.0  # How close you can zoom in
 var zoom_step: float = 0.2 # How much the buttons zoom per click
 
+# Playtesting variables
+var is_playtesting: bool = false
+var test_player: BasePlayer = null
+var pre_test_camera_pos: Vector2 = Vector2.ZERO
+var playtest_trail: Line2D = null # NEW: Tracks the path
+
+# IMPORTANT: Make sure to paste the exact path to your player scene here!
+const PLAYER_SCENE = preload("res://scenes/Player/player.tscn")
+
 # Game state
 var paused: bool = false:
 	set(value):
@@ -197,16 +206,28 @@ func _unhandled_input(event: InputEvent) -> void:
 		_handle_mouse_button(event)
 
 func _process(_delta: float) -> void:
-	# Track editor's camera's Y position
-	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
+	# 1. Determine what the chunk system should follow
+	var tracker_y = camera.global_position.y
+	if is_playtesting and is_instance_valid(test_player):
+		tracker_y = test_player.global_position.y
+		
+		# PLAYER TRAIL LOGIC
+		if is_instance_valid(playtest_trail):
+			var current_pos = test_player.global_position
+			
+			# Only add a new point if the line is empty OR the player has moved at least 10 pixels
+			if playtest_trail.get_point_count() == 0 or playtest_trail.get_point_position(playtest_trail.get_point_count() - 1).distance_to(current_pos) > 10.0:
+				playtest_trail.add_point(current_pos)
+		
+	var current_camera_chunk = int(floor(tracker_y / CHUNK_HEIGHT))
 	
-	# Updates chunk if in new one
+	# 2. Updates chunk if in new one
 	if current_camera_chunk != last_calculated_chunk:
 		update_editor_chunks(current_camera_chunk)
 		last_calculated_chunk = current_camera_chunk
 		
-	# If user is NOT clicking the slider, make the slider follow the camera
-	if scrollbar and not scrollbar.has_focus():
+	# 3. If user is NOT clicking the slider AND not testing, make the slider follow the camera
+	if scrollbar and not scrollbar.has_focus() and not is_playtesting:
 		# Apply the exact same flip formula in reverse to keep them synced
 		var inverted_val = scrollbar.max_value + scrollbar.min_value - camera.global_position.y
 		scrollbar.set_value_no_signal(inverted_val)
@@ -596,7 +617,7 @@ func refresh_layer_visibility() -> void:
 					if current_layer == 0 or current_layer == obj_layer:
 						child.modulate.a = 1.0 # Force parent fully opaque when active
 					else:
-						child.modulate.a = 0.05 # Faded out for inactive layers
+						child.modulate.a = 0.08 # Faded out for inactive layers
 		
 # BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -1096,3 +1117,79 @@ func update_ground_color(tab_index: int, new_color: Color) -> void:
 		
 	# Store the color as a hex string so the save manager can write it to JSON
 	save_manager.ground_colors[tab_index] = new_color.to_html()
+
+# PLAYTESTING LOGIC
+func toggle_playtest() -> void:
+	if not is_playtesting:
+		start_playtest()
+	else:
+		stop_playtest()
+
+func start_playtest() -> void:
+	is_playtesting = true
+	
+	# PLAYER TRAIL LOGIC
+	if not is_instance_valid(playtest_trail):
+		playtest_trail = Line2D.new()
+		playtest_trail.width = 4.0
+		# Give it a bright orange color so it stands out, with slight transparency
+		playtest_trail.default_color = Color(1.0, 0.5, 0.0, 0.8) 
+		playtest_trail.z_index = 100 # Force it to draw on top of the grid and objects
+		room_canvas.add_child(playtest_trail)
+	else:
+		# Wipe the previous playtest's line clean
+		playtest_trail.clear_points()
+
+	# 1. Save where the editor camera was looking
+	pre_test_camera_pos = camera.global_position
+	
+	# 2. Spawn the player
+	test_player = PLAYER_SCENE.instantiate()
+	
+	# Spawn the player exactly at 0,0
+	test_player.global_position = Vector2(0, 0)
+	
+	# Match the editor's hitbox visibility setting
+	if test_player.has_method("toggle_hitbox"):
+		test_player.toggle_hitbox(hitboxes_on)
+		
+	# 3. Add to the canvas so it renders chronologically with the level
+	room_canvas.add_child(test_player)
+	
+	# Tell the engine to switch to the player's camera
+	var player_cam = test_player.get_node_or_null("Camera2D")
+	if player_cam:
+		player_cam.make_current()
+	
+	# 4. Connect the death signal to automatically end the playtest if they die
+	test_player.player_died.connect(stop_playtest)
+	
+	# 5. Freeze all editor inputs (stops placing blocks and panning)
+	paused = true
+	
+	# 6. Hide the editor UI
+	ui_layer.toggle_playtest_ui(true)
+
+func stop_playtest() -> void:
+	is_playtesting = false
+	
+	# 1. Destroy the test player
+	if is_instance_valid(test_player):
+		test_player.queue_free()
+		test_player = null
+		
+	# 2. Force the editor camera to take visual control back
+	if camera:
+		camera.make_current()
+		camera.global_position = pre_test_camera_pos
+		
+	# 3. Unfreeze the editor tools
+	paused = false
+	
+	# 4. Restore the editor UI
+	ui_layer.toggle_playtest_ui(false)
+	
+	# 5. Snap the chunks back to the editor camera instantly
+	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
+	update_editor_chunks(current_camera_chunk)
+	

@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://cggeec3jkdgc2"]
 
 [ext_resource type="Script" uid="uid://bhn2em66b2a7" path="res://scripts/rooms/play_scene.gd" id="1_x1qvo"]
-[ext_resource type="Script" uid="uid://boa5scnw8xkf7" path="res://scripts/Player/player_camera.gd" id="2_4g8qc"]
 [ext_resource type="PackedScene" uid="uid://cqow47bch5ocs" path="res://scenes/Player/player.tscn" id="2_qf7ku"]
 [ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Resources/Backgrounds/background2.png" id="3_qf7ku"]
 
@@ -18,10 +17,6 @@ modulate = Color(0, 0.60304123, 0.7301358, 1)
 
 [node name="Outline" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="2" unique_id=565256926]
 modulate = Color(0, 0.6815843, 0.7131886, 1)
-
-[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1096227993]
-offset = Vector2(0, -220)
-script = ExtResource("2_4g8qc")
 
 [node name="BackgroundCanvas" type="ParallaxBackground" parent="." unique_id=2115234044]
 scroll_ignore_camera_zoom = true

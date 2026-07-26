@@ -12,7 +12,7 @@ func _ready() -> void:
 	# 2. Fill the list
 	populate_list()
 
-# --- LIGHTNING FAST READING (End of File Seek) ---
+# Looks at end of file to get level name
 func get_level_name_fast(target_path: String) -> String:
 	var file = FileAccess.open(target_path, FileAccess.READ)
 	if not file: return "Unknown Level"
@@ -73,7 +73,7 @@ func _on_level_list_item_selected(index: int) -> void:
 	# 2. Store it in our Global script
 	Global.level_to_load = selected_path
 	
-	# 3. Change to the new Details Hub instead of the Editor
+	# 3. Change to the level details page
 	get_tree().call_deferred("change_scene_to_file", "res://scenes/rooms/level_details.tscn")
 
 # New level button

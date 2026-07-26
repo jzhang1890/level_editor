@@ -174,7 +174,7 @@ func load_ground_colors(saved_colors: Dictionary) -> void:
 		# 2. Sync the UI's memory dictionary so the color picker matches the loaded color
 		editor.ui_layer.ground_colors[tab_index] = loaded_color
 
-	# 3. Visually update the physical UI button so it doesn't show the default white!
+	# 3. Visually update the physical UI button so it doesn't show the default white
 	var active_tab = editor.ui_layer.grounds_container.current_tab
 	editor.ui_layer.settings_color_picker.color = editor.ui_layer.ground_colors[active_tab]
 
