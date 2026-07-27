@@ -271,13 +271,9 @@ func _on_download_button_pressed() -> void:
 	var song_id = song_id_input.text.strip_edges()
 	
 	if song_id != "":
-		status_label.text = "Downloading..."
+		status_label.text = "Fetching data..."
 		
-		# 1. Start the MP3 audio download (Your existing code)
-		var audio_url = "https://www.newgrounds.com/audio/download/" + song_id
-		http_request.request(audio_url)
-		
-		# 2. Start the HTML webpage download to scrape the text
+		# 1. Request the HTML webpage first
 		var page_url = "https://www.newgrounds.com/audio/listen/" + song_id
 		metadata_request.request(page_url)
 		
@@ -312,28 +308,39 @@ func _on_http_request_request_completed(result: int, response_code: int, _header
 
 func _on_metadata_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-		# Convert the raw web bytes into a readable string
 		var html_string = body.get_string_from_utf8()
 		
 		var parsed_title = "Unknown"
 		var parsed_author = "Unknown"
 		
-		# Look for the exact syntax you found in the inspector
+		# 1. Parse Title and Artist the old way (from the JS string)
 		if "'title':" in html_string:
-			# Chop the string at the label, grab the right half (1), then chop at the next quote and grab the left half (0)
 			parsed_title = html_string.get_slice("'title': \"", 1).get_slice("\"", 0)
 			
 		if "'author':" in html_string:
 			parsed_author = html_string.get_slice("'author': \"", 1).get_slice("\"", 0)
 			
-		# Send the parsed data to the save manager so it writes to the JSON
-		get_parent().save_manager.current_song_name = parsed_title
-		get_parent().save_manager.current_song_artist = parsed_author
-		
-		# Apply the parsed text to your UI labels
+		# Update the UI
 		song_name_label.text = "Song: " + parsed_title
 		artist_label.text = "Artist: " + parsed_author
 		song_id_display.text = "ID: " + song_id_input.text.strip_edges()
+		
+		# Send to Save Manager
+		get_parent().save_manager.current_song_name = parsed_title
+		get_parent().save_manager.current_song_artist = parsed_author
+		
+		# 2. Parse the direct MP3 link from the og:audio tag
+		if "property=\"og:audio\" content=\"" in html_string:
+			var mp3_url = html_string.get_slice("property=\"og:audio\" content=\"", 1).get_slice("\"", 0)
+			
+			status_label.text = "Downloading audio..."
+			
+			# 3. Fire the SECOND request to download the actual MP3
+			http_request.request(mp3_url)
+		else:
+			status_label.text = "Audio link not found!"
+	else:
+		status_label.text = "Failed to load page data!"
 
 func update_song_ui(title: String, artist: String, id: String) -> void:
 	song_name_label.text = "Song: " + title
