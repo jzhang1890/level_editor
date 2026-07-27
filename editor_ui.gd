@@ -10,6 +10,18 @@ signal edit_action_requested(action_name: String)
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
 
+# Level Settings song
+@onready var http_request: HTTPRequest = $LevelSettingsMenu/HTTPRequest
+@onready var metadata_request: HTTPRequest = $LevelSettingsMenu/MetadataRequest
+@onready var song_id_input: LineEdit = $LevelSettingsMenu/SongIDInput
+@onready var status_label: Label = $LevelSettingsMenu/StatusLabel
+@onready var play_music_btn: Button = $LevelSettingsMenu/PlayButton
+
+# References for your display container
+@onready var song_name_label: Label = $LevelSettingsMenu/SongInfoContainer/SongNameLabel
+@onready var artist_label: Label = $LevelSettingsMenu/SongInfoContainer/ArtistLabel
+@onready var song_id_display: Label = $LevelSettingsMenu/SongInfoContainer/SongIDLabel
+
 var current_selected_objects: Array = []
 
 # For level settings menu
@@ -254,3 +266,88 @@ func toggle_playtest_ui(is_testing: bool) -> void:
 		for child in pre_test_visibility.keys():
 			if is_instance_valid(child):
 				child.visible = pre_test_visibility[child]
+				
+func _on_download_button_pressed() -> void:
+	var song_id = song_id_input.text.strip_edges()
+	
+	if song_id != "":
+		status_label.text = "Downloading..."
+		
+		# 1. Start the MP3 audio download (Your existing code)
+		var audio_url = "https://www.newgrounds.com/audio/download/" + song_id
+		http_request.request(audio_url)
+		
+		# 2. Start the HTML webpage download to scrape the text
+		var page_url = "https://www.newgrounds.com/audio/listen/" + song_id
+		metadata_request.request(page_url)
+		
+func _on_http_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	# 200 means the server said "OK"
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		var song_id = song_id_input.text.strip_edges()
+		
+		# Define where to save it
+		var save_directory = "user://songs/"
+		var file_path = save_directory + song_id + ".mp3"
+		
+		# Make sure the folder actually exists before we try to save inside it
+		if not DirAccess.dir_exists_absolute(save_directory):
+			DirAccess.make_dir_absolute(save_directory)
+			
+		# Write the raw bytes to the file
+		var file = FileAccess.open(file_path, FileAccess.WRITE)
+		if file:
+			file.store_buffer(body)
+			file.close()
+			status_label.text = "Saved to: " + file_path
+			
+		get_parent().save_manager.current_song_id = song_id
+		# 2. orce the level to save to disk immediately 
+		get_parent().save_manager._on_save_button_pressed()
+		# 3. Load the raw audio into the editor so your Play button works right now
+		get_parent().save_manager.load_song_to_editor(song_id)
+		
+	else:
+		status_label.text = "Download failed! Code: " + str(response_code)
+
+func _on_metadata_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		# Convert the raw web bytes into a readable string
+		var html_string = body.get_string_from_utf8()
+		
+		var parsed_title = "Unknown"
+		var parsed_author = "Unknown"
+		
+		# Look for the exact syntax you found in the inspector
+		if "'title':" in html_string:
+			# Chop the string at the label, grab the right half (1), then chop at the next quote and grab the left half (0)
+			parsed_title = html_string.get_slice("'title': \"", 1).get_slice("\"", 0)
+			
+		if "'author':" in html_string:
+			parsed_author = html_string.get_slice("'author': \"", 1).get_slice("\"", 0)
+			
+		# Send the parsed data to the save manager so it writes to the JSON
+		get_parent().save_manager.current_song_name = parsed_title
+		get_parent().save_manager.current_song_artist = parsed_author
+		
+		# Apply the parsed text to your UI labels
+		song_name_label.text = "Song: " + parsed_title
+		artist_label.text = "Artist: " + parsed_author
+		song_id_display.text = "ID: " + song_id_input.text.strip_edges()
+
+func update_song_ui(title: String, artist: String, id: String) -> void:
+	song_name_label.text = "Song: " + title
+	artist_label.text = "Artist: " + artist
+	song_id_display.text = "ID: " + id
+
+func _on_play_button_pressed() -> void:
+	# Reach up to the root to grab the music player
+	var music_player = get_parent().get_node_or_null("LevelMusic")
+	
+	if music_player and music_player.stream != null:
+		if music_player.playing:
+			music_player.stop()
+			play_music_btn.text = "Play"
+		else:
+			music_player.play()
+			play_music_btn.text = "Stop"

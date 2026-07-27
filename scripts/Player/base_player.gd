@@ -34,7 +34,6 @@ var level_finished = false
 func _ready() -> void:
 	pass # Replace with function body.
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	pass
@@ -122,7 +121,7 @@ func process_ball(delta: float) -> void:
 		var actual_acceleration = ball_acceleration * ball_speedX
 		var actual_deceleration = ball_deceleration * ball_speedX
 		
-		# Calculate if we need to start braking using d = v^2 / (2a)
+		# Calculate if when to start braking using d = v^2 / (2a)
 		var stopping_distance = (velocity.x * velocity.x) / (2.0 * actual_deceleration)
 		
 		if abs(distance_to_target) <= stopping_distance:

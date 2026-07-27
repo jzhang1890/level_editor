@@ -438,6 +438,64 @@ offset_top = 335.25
 offset_right = 646.75
 offset_bottom = 392.25
 
+[node name="SongLabel" type="Label" parent="EditorUI/LevelSettingsMenu" unique_id=349403028]
+layout_mode = 0
+offset_left = 62.75
+offset_top = 47.25
+offset_right = 108.75
+offset_bottom = 69.25
+text = "audio"
+
+[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu" unique_id=2006054138]
+
+[node name="MetadataRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu" unique_id=324733594]
+
+[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu" unique_id=42146442]
+layout_mode = 0
+offset_left = 61.75
+offset_top = 87.25
+offset_right = 260.75
+offset_bottom = 117.25
+
+[node name="DownloadButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=986200182]
+layout_mode = 0
+offset_left = 282.75
+offset_top = 87.25
+offset_right = 337.75
+offset_bottom = 117.25
+text = "Use"
+
+[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu" unique_id=92092695]
+layout_mode = 0
+offset_left = 64.75
+offset_top = 136.25
+offset_right = 208.75
+offset_bottom = 158.25
+
+[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=326683021]
+layout_mode = 0
+offset_left = 350.75
+offset_top = 86.25
+offset_right = 403.75
+offset_bottom = 116.25
+text = "Play"
+
+[node name="SongInfoContainer" type="VBoxContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2130612461]
+layout_mode = 0
+offset_left = 62.75
+offset_top = 167.25
+offset_right = 270.75
+offset_bottom = 278.25
+
+[node name="SongNameLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=1456700509]
+layout_mode = 2
+
+[node name="ArtistLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=464914370]
+layout_mode = 2
+
+[node name="SongIDLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=154906162]
+layout_mode = 2
+
 [node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=499566738]
 layout_mode = 1
 anchors_preset = 7
@@ -469,6 +527,8 @@ icon_mode = 0
 fixed_icon_size = Vector2i(75, 75)
 metadata/_tab_index = 1
 
+[node name="LevelMusic" type="AudioStreamPlayer" parent="." unique_id=242871586]
+
 [connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
 [connection signal="tab_changed" from="EditorUI/EditorPanel/MainTabContainer" to="." method="_on_main_tab_container_tab_changed"]
 [connection signal="item_selected" from="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles" to="EditorUI" method="_on_object_item_selected"]
@@ -492,4 +552,8 @@ metadata/_tab_index = 1
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="SaveLoadManager" method="_on_save_and_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/HTTPRequest" to="EditorUI" method="_on_http_request_request_completed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MetadataRequest" to="EditorUI" method="_on_metadata_request_request_completed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/DownloadButton" to="EditorUI" method="_on_download_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
 [connection signal="item_selected" from="EditorUI/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]

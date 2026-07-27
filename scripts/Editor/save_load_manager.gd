@@ -9,6 +9,11 @@ var save_thread: Thread
 # Save path
 var current_save_path: String = "user://Levels/my_new_level.json"
 
+# Track the downloaded song ID
+var current_song_id: String = ""
+var current_song_name: String = "Unknown"
+var current_song_artist: String = "Unknown" 
+
 # Gives it untitled if it doesnt have a name
 var current_level_name: String = "Untitled"
 
@@ -58,6 +63,19 @@ func load_level(target_path: String) -> void:
 				var loaded_texture = load(current_bg_path)
 				if loaded_texture:
 					editor.bg_rect.texture = loaded_texture
+					
+			# Load the song ID and trigger the audio parser
+			if level_data.has("song_id"):
+				current_song_id = level_data["song_id"]
+				
+				# Grab the name and artist if they exist in the save file
+				current_song_name = level_data.get("song_name", "Unknown")
+				current_song_artist = level_data.get("song_artist", "Unknown")
+				
+				if current_song_id != "":
+					load_song_to_editor(current_song_id)
+					# Tell the UI to display the loaded info
+					editor.ui_layer.update_song_ui(current_song_name, current_song_artist, current_song_id)
 					
 			# Load and apply the ground tab colors
 			if level_data.has("ground_colors"):
@@ -255,6 +273,9 @@ func _on_save_button_pressed() -> void:
 	var save_dict: Dictionary = {
 		"level_name": current_level_name,
 		"background": current_bg_path, 
+		"song_id": current_song_id,
+		"song_name": current_song_name,
+		"song_artist": current_song_artist,
 		"colors": colors_as_hex,
 		"ground_colors": ground_colors,
 		"items": compressed_items_string, # Single optimized string
@@ -285,3 +306,22 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 		file.close()
 		
 	print("Background thread complete! Level safely saved to: ", path)
+
+# NEW: Converts the saved MP3 file back into playable audio
+func load_song_to_editor(song_id: String) -> void:
+	var file_path = "user://songs/" + song_id + ".mp3"
+	
+	if FileAccess.file_exists(file_path):
+		var file = FileAccess.open(file_path, FileAccess.READ)
+		var stream = AudioStreamMP3.new()
+		
+		# Grab the raw bytes and assign them to the stream
+		stream.data = file.get_buffer(file.get_length())
+		file.close()
+		
+		# Locate the player node and load the stream
+		var music_player = editor.get_node_or_null("LevelMusic")
+		if music_player:
+			music_player.stream = stream
+	else:
+		print("Warning: Song file not found at ", file_path)
