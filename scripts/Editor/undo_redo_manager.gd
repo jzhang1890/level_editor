@@ -71,7 +71,7 @@ func redo_action() -> void:
 		"color_change": apply_global_color(action["new_data"])
 
 
-# UNDO/REDO HELPER FUNCTIONS (Adjusted with 'editor.' routing)
+# UNDO/REDO HELPER FUNCTIONS
 
 func remove_objects_by_id(data_array: Array) -> void:
 	# Create a temporary dictionary for O(1) lookups 
@@ -164,7 +164,7 @@ func apply_object_state(data_array: Array) -> void:
 		fast_selection_check[sel] = true
 
 	for item in data_array:
-		# Direct O(1) lookup!
+		# O(1) lookup
 		var obj = editor.object_registry.get(item["unique_id"]) 
 		if obj:
 			obj.global_position = item["global_position"]

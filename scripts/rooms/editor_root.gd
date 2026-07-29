@@ -95,7 +95,7 @@ var test_player: BasePlayer = null
 var pre_test_camera_pos: Vector2 = Vector2.ZERO
 var playtest_trail: Line2D = null # NEW: Tracks the path
 
-# IMPORTANT: Make sure to paste the exact path to your player scene here!
+# The player to spawn when playtesting
 const PLAYER_SCENE = preload("res://scenes/Player/player.tscn")
 
 # Game state
@@ -109,7 +109,7 @@ var paused: bool = false:
 @export var hitboxes_on := false
 
 func _ready() -> void:
-	# Hide the entire contextual menu at the start
+	# Hide the all menus at the start
 	if selection_menu:
 		selection_menu.visible = false
 	if pause_menu:
@@ -1010,7 +1010,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 				camera.set_process(false)
 				get_viewport().set_input_as_handled()
 		
-			# 4. Check if we are trying to grab an object to move it (Edit or Delete mode)
+			# 4. Check if user is trying to grab an object to move it (Edit or Delete mode)
 			if current_mode == EditorMode.EDIT or current_mode == EditorMode.DELETE:
 				var click_pos = get_global_mouse_position()
 				

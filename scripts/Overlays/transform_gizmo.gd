@@ -38,7 +38,7 @@ var bounding_rect: Rect2
 func toggle_visibility() -> void:
 	is_toggled_on = not is_toggled_on
 	
-	# Instantly show the gizmo if toggled on while objects are already selected
+	# Show the gizmo if toggled on while objects are already selected
 	if is_toggled_on and not target_objects.is_empty():
 		visible = true
 		_calculate_bounding_box()
@@ -72,7 +72,7 @@ func update_selection(selected: Array[Node2D]) -> void:
 		
 	visible = true
 	
-	# Smart Rotation: Hug single objects perfectly, or reset for groups
+	# Smart Rotation: Hug single objects or reset for groups
 	if target_objects.size() == 1:
 		global_rotation = deg_to_rad(target_objects[0].rotation_degrees)
 	else:
@@ -93,7 +93,7 @@ func _calculate_bounding_box() -> void:
 	group_center = center
 	global_position = group_center
 
-	# 2. Find min and max in LOCAL space (respecting our current rotation)
+	# 2. Find min and max in local space while respecting current rotation
 	var min_x = INF
 	var max_x = -INF
 	var min_y = INF
@@ -102,7 +102,7 @@ func _calculate_bounding_box() -> void:
 	for obj in target_objects:
 		var local_pos = to_local(obj.global_position)
 		
-		# Dynamically find the real size of the object's Sprite
+		# Find the real size of the object's Sprite
 		var base_extents = Vector2(32.0, 32.0) # Includes safe fallback just in case
 		
 		# Search inside the collision object for its visual sprite
@@ -200,7 +200,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif is_skewing:
 			get_viewport().set_input_as_handled()
 			_apply_skew()
-		elif is_skewing_y: # Route the motion to the new function
+		elif is_skewing_y:
 			get_viewport().set_input_as_handled()
 			_apply_skew_y()
 

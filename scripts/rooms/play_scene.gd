@@ -463,7 +463,7 @@ func _on_quit_button_pressed() -> void:
 # CHUNK MANAGER
 func update_chunks(center_chunk: int) -> void:
 	# How many chunks up and down to load. 
-	# A radius of 4 means 4 above, 4 below, and the center (9 total).
+	# A radius of 3 means 3 above, 3 below, and the center (7 total).
 	var render_radius: int = 3
 	
 	var needed_chunks: Array[int] = []
