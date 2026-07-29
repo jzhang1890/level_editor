@@ -213,6 +213,351 @@ offset_top = 156.0
 offset_right = 1230.0
 offset_bottom = 483.0
 
+[node name="ColorChannelNode" type="Control" parent="EditorUI" unique_id=1702470925]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TransparentRect" type="ColorRect" parent="EditorUI/ColorChannelNode" unique_id=1474151031]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 262.0
+offset_top = 80.0
+offset_right = 262.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="ColorChannelMenu" type="ColorRect" parent="EditorUI/ColorChannelNode" unique_id=1408618124]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 262.0
+offset_top = 80.0
+offset_right = -251.0
+offset_bottom = -155.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.78431374)
+
+[node name="Channel0Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1914646805]
+layout_mode = 0
+offset_left = 56.5
+offset_top = 113.5
+offset_right = 140.5
+offset_bottom = 143.5
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "Default"
+
+[node name="Channel1Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=800828293]
+layout_mode = 0
+offset_left = 165.5
+offset_top = 114.5
+offset_right = 183.5
+offset_bottom = 144.5
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "1"
+
+[node name="Channel2Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=2097595621]
+layout_mode = 0
+offset_left = 209.5
+offset_top = 114.5
+offset_right = 228.5
+offset_bottom = 144.5
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "2"
+
+[node name="Channel3Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1549381149]
+layout_mode = 0
+offset_left = 256.5
+offset_top = 114.5
+offset_right = 275.5
+offset_bottom = 144.5
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "3"
+
+[node name="Channel4Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=370865143]
+layout_mode = 0
+offset_left = 301.5
+offset_top = 115.5
+offset_right = 321.5
+offset_bottom = 145.5
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "4"
+
+[node name="Channel5Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1573993471]
+layout_mode = 0
+offset_left = 361.0
+offset_top = 116.0
+offset_right = 381.0
+offset_bottom = 146.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "5"
+
+[node name="Channel6Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1242377611]
+layout_mode = 0
+offset_left = 411.0
+offset_top = 115.0
+offset_right = 431.0
+offset_bottom = 145.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "6"
+
+[node name="Channel7Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1296480632]
+layout_mode = 0
+offset_left = 460.0
+offset_top = 114.0
+offset_right = 480.0
+offset_bottom = 144.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "7"
+
+[node name="Channel8Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=708063410]
+layout_mode = 0
+offset_left = 507.0
+offset_top = 113.0
+offset_right = 527.0
+offset_bottom = 143.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "8"
+
+[node name="Channel9Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1463585321]
+layout_mode = 0
+offset_left = 554.0
+offset_top = 114.0
+offset_right = 574.0
+offset_bottom = 144.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "9"
+
+[node name="Channel10Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=2064374537]
+layout_mode = 0
+offset_left = 601.0
+offset_top = 113.0
+offset_right = 631.0
+offset_bottom = 143.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_xxn6o")
+text = "10"
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1639325206]
+layout_mode = 0
+offset_left = 656.0
+offset_top = 99.0
+offset_right = 709.0
+offset_bottom = 152.0
+color = Color(1, 1, 1, 1)
+
+[node name="ExitButton" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1965459271]
+layout_mode = 0
+offset_left = 649.0
+offset_top = 26.0
+offset_right = 718.0
+offset_bottom = 78.0
+text = "X"
+
+[node name="LevelSettingsNode" type="Control" parent="EditorUI" unique_id=363562272]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TransparentRect" type="ColorRect" parent="EditorUI/LevelSettingsNode" unique_id=2075391895]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="LevelSettingsMenu" type="ColorRect" parent="EditorUI/LevelSettingsNode" unique_id=114053226]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -378.75
+offset_top = -282.25
+offset_right = 378.75
+offset_bottom = 256.25
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.9372549)
+
+[node name="ExitButton" type="Button" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=1413421263]
+layout_mode = 0
+offset_left = 654.5
+offset_top = 30.5
+offset_right = 713.5
+offset_bottom = 77.5
+text = "X"
+
+[node name="MusicSourceTabs" type="TabContainer" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=2011524024]
+layout_mode = 0
+offset_left = 45.75
+offset_top = 36.25
+offset_right = 536.75
+offset_bottom = 215.25
+current_tab = 0
+
+[node name="NCS" type="Control" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs" unique_id=805276591]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=2006054138]
+
+[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=42146442]
+layout_mode = 0
+offset_left = 61.75
+offset_top = 38.25
+offset_right = 260.75
+offset_bottom = 68.25
+
+[node name="GetButton" type="Button" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=986200182]
+layout_mode = 0
+offset_left = 282.75
+offset_top = 39.25
+offset_right = 337.75
+offset_bottom = 69.25
+text = "Use"
+
+[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=92092695]
+layout_mode = 0
+offset_left = 65.75
+offset_top = 76.25
+offset_right = 209.75
+offset_bottom = 98.25
+
+[node name="SongOptionContainer" type="HBoxContainer" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=554572833]
+layout_mode = 0
+offset_left = 61.75
+offset_top = 105.25
+offset_right = 298.75
+offset_bottom = 140.25
+
+[node name="RegularButton" type="Button" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=2102533336]
+layout_mode = 2
+text = "Regular"
+
+[node name="InstrumentalButton" type="Button" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=1991398794]
+layout_mode = 2
+text = "Instrumental"
+
+[node name="Newgrounds" type="Control" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs" unique_id=1469506594]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1443580158]
+
+[node name="NG_SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1889757240]
+layout_mode = 0
+offset_left = 61.75
+offset_top = 38.25
+offset_right = 260.75
+offset_bottom = 68.25
+
+[node name="NG_GetButton" type="Button" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=2053343517]
+layout_mode = 0
+offset_left = 282.75
+offset_top = 39.25
+offset_right = 337.75
+offset_bottom = 69.25
+text = "Use"
+
+[node name="NG_StatusLabel" type="Label" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1907075194]
+layout_mode = 0
+offset_left = 65.75
+offset_top = 76.25
+offset_right = 209.75
+offset_bottom = 98.25
+
+[node name="SongInfoContainer" type="VBoxContainer" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=2130612461]
+layout_mode = 0
+offset_left = 50.75
+offset_top = 223.25
+offset_right = 258.75
+offset_bottom = 297.25
+
+[node name="SongNameLabel" type="Label" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/SongInfoContainer" unique_id=1456700509]
+layout_mode = 2
+
+[node name="ArtistLabel" type="Label" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/SongInfoContainer" unique_id=464914370]
+layout_mode = 2
+
+[node name="SongIDLabel" type="Label" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/SongInfoContainer" unique_id=154906162]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=326683021]
+layout_mode = 0
+offset_left = 436.75
+offset_top = 276.25
+offset_right = 529.75
+offset_bottom = 306.25
+text = "Play"
+
+[node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=499566738]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -336.5
+offset_top = -220.5
+offset_right = 169.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+current_tab = 0
+
+[node name="Background" type="ItemList" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/GroundsContainer" unique_id=184513869]
+layout_mode = 2
+item_count = 1
+max_columns = 0
+icon_mode = 0
+fixed_icon_size = Vector2i(150, 150)
+metadata/_tab_index = 0
+
+[node name="MiddleGround" type="ItemList" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/GroundsContainer" unique_id=673019510]
+visible = false
+layout_mode = 2
+max_columns = 0
+icon_mode = 0
+fixed_icon_size = Vector2i(75, 75)
+metadata/_tab_index = 1
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=688069703]
+layout_mode = 0
+offset_left = 572.75
+offset_top = 373.25
+offset_right = 630.75
+offset_bottom = 430.25
+
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 visible = false
 anchors_preset = 15
@@ -268,311 +613,6 @@ text = "Quit"
 layout_mode = 2
 text = "Save and Quit"
 
-[node name="ColorChannelMenu" type="ColorRect" parent="EditorUI" unique_id=1408618124]
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 262.0
-offset_top = 80.0
-offset_right = -263.0
-offset_bottom = -106.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.2, 0.2, 0.2, 0.78431374)
-
-[node name="Channel0Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1914646805]
-layout_mode = 0
-offset_left = 56.5
-offset_top = 113.5
-offset_right = 140.5
-offset_bottom = 143.5
-toggle_mode = true
-button_pressed = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "Default"
-
-[node name="Channel1Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=800828293]
-layout_mode = 0
-offset_left = 165.5
-offset_top = 114.5
-offset_right = 183.5
-offset_bottom = 144.5
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "1"
-
-[node name="Channel2Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=2097595621]
-layout_mode = 0
-offset_left = 209.5
-offset_top = 114.5
-offset_right = 228.5
-offset_bottom = 144.5
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "2"
-
-[node name="Channel3Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1549381149]
-layout_mode = 0
-offset_left = 256.5
-offset_top = 114.5
-offset_right = 275.5
-offset_bottom = 144.5
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "3"
-
-[node name="Channel4Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=370865143]
-layout_mode = 0
-offset_left = 301.5
-offset_top = 115.5
-offset_right = 321.5
-offset_bottom = 145.5
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "4"
-
-[node name="Channel5Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1573993471]
-layout_mode = 0
-offset_left = 361.0
-offset_top = 116.0
-offset_right = 381.0
-offset_bottom = 146.0
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "5"
-
-[node name="Channel6Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1242377611]
-layout_mode = 0
-offset_left = 411.0
-offset_top = 115.0
-offset_right = 431.0
-offset_bottom = 145.0
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "6"
-
-[node name="Channel7Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1296480632]
-layout_mode = 0
-offset_left = 460.0
-offset_top = 114.0
-offset_right = 480.0
-offset_bottom = 144.0
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "7"
-
-[node name="Channel8Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=708063410]
-layout_mode = 0
-offset_left = 507.0
-offset_top = 113.0
-offset_right = 527.0
-offset_bottom = 143.0
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "8"
-
-[node name="Channel9Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1463585321]
-layout_mode = 0
-offset_left = 554.0
-offset_top = 114.0
-offset_right = 574.0
-offset_bottom = 144.0
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "9"
-
-[node name="Channel10Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=2064374537]
-layout_mode = 0
-offset_left = 601.0
-offset_top = 113.0
-offset_right = 631.0
-offset_bottom = 143.0
-toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
-text = "10"
-
-[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelMenu" unique_id=1639325206]
-layout_mode = 0
-offset_left = 656.0
-offset_top = 99.0
-offset_right = 709.0
-offset_bottom = 152.0
-color = Color(1, 1, 1, 1)
-
-[node name="ExitButton" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1965459271]
-layout_mode = 0
-offset_left = 649.0
-offset_top = 26.0
-offset_right = 718.0
-offset_bottom = 78.0
-text = "X"
-
-[node name="LevelSettingsMenu" type="ColorRect" parent="EditorUI" unique_id=114053226]
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -378.75
-offset_top = -282.25
-offset_right = 378.75
-offset_bottom = 256.25
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.2, 0.2, 0.2, 0.9372549)
-
-[node name="ExitButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=1413421263]
-layout_mode = 0
-offset_left = 654.5
-offset_top = 30.5
-offset_right = 713.5
-offset_bottom = 77.5
-text = "X"
-
-[node name="MusicSourceTabs" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2011524024]
-layout_mode = 0
-offset_left = 45.75
-offset_top = 36.25
-offset_right = 536.75
-offset_bottom = 215.25
-current_tab = 0
-
-[node name="NCS" type="Control" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs" unique_id=805276591]
-layout_mode = 2
-metadata/_tab_index = 0
-
-[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=2006054138]
-
-[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=42146442]
-layout_mode = 0
-offset_left = 61.75
-offset_top = 38.25
-offset_right = 260.75
-offset_bottom = 68.25
-
-[node name="GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=986200182]
-layout_mode = 0
-offset_left = 282.75
-offset_top = 39.25
-offset_right = 337.75
-offset_bottom = 69.25
-text = "Use"
-
-[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=92092695]
-layout_mode = 0
-offset_left = 65.75
-offset_top = 76.25
-offset_right = 209.75
-offset_bottom = 98.25
-
-[node name="SongOptionContainer" type="HBoxContainer" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=554572833]
-layout_mode = 0
-offset_left = 61.75
-offset_top = 105.25
-offset_right = 298.75
-offset_bottom = 140.25
-
-[node name="RegularButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=2102533336]
-layout_mode = 2
-text = "Regular"
-
-[node name="InstrumentalButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=1991398794]
-layout_mode = 2
-text = "Instrumental"
-
-[node name="Newgrounds" type="Control" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs" unique_id=1469506594]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 1
-
-[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1443580158]
-
-[node name="NG_SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1889757240]
-layout_mode = 0
-offset_left = 61.75
-offset_top = 38.25
-offset_right = 260.75
-offset_bottom = 68.25
-
-[node name="NG_GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=2053343517]
-layout_mode = 0
-offset_left = 282.75
-offset_top = 39.25
-offset_right = 337.75
-offset_bottom = 69.25
-text = "Use"
-
-[node name="NG_StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1907075194]
-layout_mode = 0
-offset_left = 65.75
-offset_top = 76.25
-offset_right = 209.75
-offset_bottom = 98.25
-
-[node name="SongInfoContainer" type="VBoxContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2130612461]
-layout_mode = 0
-offset_left = 50.75
-offset_top = 223.25
-offset_right = 258.75
-offset_bottom = 297.25
-
-[node name="SongNameLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=1456700509]
-layout_mode = 2
-
-[node name="ArtistLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=464914370]
-layout_mode = 2
-
-[node name="SongIDLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=154906162]
-layout_mode = 2
-
-[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=326683021]
-layout_mode = 0
-offset_left = 436.75
-offset_top = 276.25
-offset_right = 529.75
-offset_bottom = 306.25
-text = "Play"
-
-[node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=499566738]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -336.5
-offset_top = -220.5
-offset_right = 169.0
-offset_bottom = -30.0
-grow_horizontal = 2
-grow_vertical = 0
-current_tab = 0
-
-[node name="Background" type="ItemList" parent="EditorUI/LevelSettingsMenu/GroundsContainer" unique_id=184513869]
-layout_mode = 2
-item_count = 1
-max_columns = 0
-icon_mode = 0
-fixed_icon_size = Vector2i(150, 150)
-metadata/_tab_index = 0
-
-[node name="MiddleGround" type="ItemList" parent="EditorUI/LevelSettingsMenu/GroundsContainer" unique_id=673019510]
-visible = false
-layout_mode = 2
-max_columns = 0
-icon_mode = 0
-fixed_icon_size = Vector2i(75, 75)
-metadata/_tab_index = 1
-
-[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/LevelSettingsMenu" unique_id=688069703]
-layout_mode = 0
-offset_left = 572.75
-offset_top = 373.25
-offset_right = 630.75
-offset_bottom = 430.25
-
 [node name="LevelMusic" type="AudioStreamPlayer" parent="." unique_id=242871586]
 
 [connection signal="edit_action_requested" from="EditorUI" to="." method="_on_editor_ui_edit_action_requested"]
@@ -592,15 +632,15 @@ offset_bottom = 430.25
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="EditorUI/TestButton" to="EditorUI" method="_on_test_button_pressed"]
 [connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
+[connection signal="pressed" from="EditorUI/ColorChannelNode/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest" to="EditorUI" method="_on_ncs_http_request_request_completed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest" to="EditorUI" method="_on_ng_http_request_request_completed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
+[connection signal="item_selected" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="SaveLoadManager" method="_on_save_and_quit_button_pressed"]
-[connection signal="pressed" from="EditorUI/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest" to="EditorUI" method="_on_ncs_http_request_request_completed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest" to="EditorUI" method="_on_ng_http_request_request_completed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
-[connection signal="item_selected" from="EditorUI/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]

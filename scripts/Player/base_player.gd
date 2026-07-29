@@ -5,7 +5,7 @@ class_name BasePlayer
 signal player_died
 
 enum GameMode { SHIP, BALL }
-var current_mode: GameMode = GameMode.SHIP
+var current_mode: GameMode = GameMode.BALL
 
 @export var speedY := 450 
 
@@ -14,9 +14,9 @@ var is_moving_x: bool = false
 # Ball Variables
 @export var ball_speedX := 1.5 # How much grids it moves
 var ball_target_x: float = 0.0
-@export var ball_max_speed: float = 1000.0
-@export var ball_acceleration: float = 3000.0
-@export var ball_deceleration: float = 2000.0
+@export var ball_max_speed: float = 1500.0
+@export var ball_acceleration: float = 3500.0
+@export var ball_deceleration: float = 2500.0
 var ball_target_rotation: float = 0.0
 @export var ball_rotation_speed: float = 15.0
 

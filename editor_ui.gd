@@ -10,15 +10,6 @@ signal edit_action_requested(action_name: String)
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
 
-# NCS UI REFERENCES
-@onready var ncs_http_request: HTTPRequest = $LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest
-@onready var ncs_song_id_input: LineEdit = $LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
-@onready var ncs_status_label: Label = $LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
-
-@onready var song_option_container: Control = $LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer
-@onready var regular_btn: Button = $LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton
-@onready var instrumental_btn: Button = $LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
-
 # Tracks if we are scraping the HTML or downloading the MP3
 var is_fetching_html: bool = false
 var is_primary_download: bool = false
@@ -29,18 +20,27 @@ var regular_download_url: String = ""
 var instrumental_download_url: String = ""
 var is_instrumental_download: bool = false
 
+# NCS UI REFERENCES
+@onready var ncs_http_request: HTTPRequest = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest
+@onready var ncs_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
+@onready var ncs_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
+
+@onready var song_option_container: Control = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer
+@onready var regular_btn: Button = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton
+@onready var instrumental_btn: Button = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
+
 # NEWGROUNDS UI REFERENCES
-@onready var ng_http_request: HTTPRequest = $LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest
-@onready var ng_song_id_input: LineEdit = $LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
-@onready var ng_status_label: Label = $LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
+@onready var ng_http_request: HTTPRequest = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest
+@onready var ng_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
+@onready var ng_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
 
 # Unified Play Button
-@onready var play_music_btn: Button = $LevelSettingsMenu/PlayButton
+@onready var play_music_btn: Button = $LevelSettingsNode/LevelSettingsMenu/PlayButton
 
 # Unified Song Info UI references
-@onready var song_name_label: Label = $LevelSettingsMenu/SongInfoContainer/SongNameLabel
-@onready var artist_label: Label = $LevelSettingsMenu/SongInfoContainer/ArtistLabel
-@onready var song_id_display: Label = $LevelSettingsMenu/SongInfoContainer/SongIDLabel
+@onready var song_name_label: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/SongNameLabel
+@onready var artist_label: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/ArtistLabel
+@onready var song_id_display: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/SongIDLabel
 
 var is_ng_fetching_html: bool = false
 var ng_mp3_url: String = ""
@@ -61,8 +61,8 @@ var ground_colors: Dictionary = {
 # Dictionary to remember what was visible before playtesting
 var pre_test_visibility: Dictionary = {}
 
-@onready var settings_color_picker: ColorPickerButton = $LevelSettingsMenu/ColorPickerButton 
-@onready var grounds_container: TabContainer = $LevelSettingsMenu/GroundsContainer
+@onready var settings_color_picker: ColorPickerButton = $LevelSettingsNode/LevelSettingsMenu/ColorPickerButton 
+@onready var grounds_container: TabContainer = $LevelSettingsNode/LevelSettingsMenu/GroundsContainer
 
 @onready var item_database: Dictionary = {
 	"obstacles": [
@@ -145,12 +145,18 @@ func _ready() -> void:
 	settings_color_picker.color_changed.connect(_on_settings_color_changed)
 	grounds_container.tab_changed.connect(_on_grounds_tab_changed)
 		
-	load_images_from_folder($LevelSettingsMenu/GroundsContainer/Background, "res://Resources/Backgrounds")
+	load_images_from_folder($LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background, "res://Resources/Backgrounds")
 
 func _on_exit_button_pressed() -> void:
-	$ColorChannelMenu.visible = false
-	$LevelSettingsMenu.visible = false
+	$ColorChannelNode.visible = false
+	$LevelSettingsNode.visible = false
 	get_parent().paused = false
+	
+	var music_player = get_parent().get_node_or_null("LevelMusic")
+	if music_player and music_player.stream != null:
+		if music_player.playing:
+			music_player.stop()
+			play_music_btn.text = "Play"
 
 func update_selected_target(target_node):
 	current_selected_objects = target_node
@@ -203,25 +209,25 @@ func _on_actions_item_selected(index: int) -> void:
 	actions_list.deselect_all()
 	
 func _on_edit_object_button_pressed() -> void:
-	$ColorChannelMenu.visible = true 
+	$ColorChannelNode.visible = true 
 	get_parent().paused  = true
 	if current_selected_objects:
 		for obj in current_selected_objects:
 			if obj.has_meta("color_channel"):
 				var channel = obj.get_meta("color_channel")
 				var button_name = "Channel" + str(channel) + "Button"
-				var target_button = $ColorChannelMenu.get_node(button_name)
+				var target_button = $ColorChannelNode/ColorChannelMenu.get_node(button_name)
 				if target_button:
 					target_button.button_pressed = true
-					$ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
+					$ColorChannelNode/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
 					get_parent().current_editing_channel = channel
 
 func _on_background_item_selected(index: int) -> void:
-	var selected_path = $LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
+	var selected_path = $LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
 	get_parent().change_background(selected_path)
 	
 func _on_level_settings_button_pressed() -> void:
-	$LevelSettingsMenu.visible = true
+	$LevelSettingsNode.visible = true
 	get_parent().paused = true
 	
 func _on_grounds_tab_changed(tab: int) -> void:
@@ -247,9 +253,7 @@ func toggle_playtest_ui(is_testing: bool) -> void:
 			if is_instance_valid(child):
 				child.visible = pre_test_visibility[child]
 
-# ==========================================
 # NCS LOGIC
-# ==========================================
 func _on_regular_button_pressed() -> void:
 	if regular_download_url == "":
 		return
@@ -286,7 +290,6 @@ func _on_get_button_pressed() -> void:
 		var url = "https://ncs.io/" + song_id
 		ncs_http_request.request(url)
 
-# Make sure you connect your HTTPRequest node to this function in the inspector
 func _on_ncs_http_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if is_fetching_html:
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
@@ -348,7 +351,6 @@ func _on_ncs_http_request_request_completed(result: int, response_code: int, _he
 				ncs_status_label.text = "Saved to: " + file_path
 				
 			get_parent().save_manager.current_song_id = song_id
-			get_parent().save_manager._on_save_button_pressed()
 			get_parent().save_manager.load_song_to_editor(song_id)
 			
 			update_song_ui(
@@ -429,7 +431,6 @@ func _on_ng_http_request_request_completed(result: int, response_code: int, _hea
 		else:
 			ng_status_label.text = "Failed to load Newgrounds page"
 			is_ng_fetching_html = false
-			# --------------------------------------------------
 
 	else:
 		# 3. Save the actual MP3 bytes to user directory

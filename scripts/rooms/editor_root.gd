@@ -26,7 +26,7 @@ extends Node2D
 
 @onready var scrollbar: VSlider = $EditorUI/VSlider
 
-@onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorPickerButton
+@onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelNode/ColorChannelMenu/ColorPickerButton
 var color_before_edit: Color
 var current_editing_channel: int = 0
 
@@ -116,17 +116,17 @@ func _ready() -> void:
 		pause_menu.visible = false
 	
 	# Manually connect the buttons and bind their specific channel ID
-	$EditorUI/ColorChannelMenu/Channel0Button.pressed.connect(_on_color_channel_selected.bind(0))
-	$EditorUI/ColorChannelMenu/Channel1Button.pressed.connect(_on_color_channel_selected.bind(1))
-	$EditorUI/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
-	$EditorUI/ColorChannelMenu/Channel3Button.pressed.connect(_on_color_channel_selected.bind(3))
-	$EditorUI/ColorChannelMenu/Channel4Button.pressed.connect(_on_color_channel_selected.bind(4))
-	$EditorUI/ColorChannelMenu/Channel5Button.pressed.connect(_on_color_channel_selected.bind(5))
-	$EditorUI/ColorChannelMenu/Channel6Button.pressed.connect(_on_color_channel_selected.bind(6))
-	$EditorUI/ColorChannelMenu/Channel7Button.pressed.connect(_on_color_channel_selected.bind(7))
-	$EditorUI/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
-	$EditorUI/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
-	$EditorUI/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel0Button.pressed.connect(_on_color_channel_selected.bind(0))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel1Button.pressed.connect(_on_color_channel_selected.bind(1))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel3Button.pressed.connect(_on_color_channel_selected.bind(3))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel4Button.pressed.connect(_on_color_channel_selected.bind(4))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel5Button.pressed.connect(_on_color_channel_selected.bind(5))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel6Button.pressed.connect(_on_color_channel_selected.bind(6))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel7Button.pressed.connect(_on_color_channel_selected.bind(7))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
+	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
 	
 	color_picker_btn.pressed.connect(_on_color_picker_pressed)
 	color_picker_btn.popup_closed.connect(_on_color_picker_closed)
@@ -1183,6 +1183,12 @@ func start_playtest() -> void:
 	
 	# 6. Hide the editor UI
 	ui_layer.toggle_playtest_ui(true)
+	$EditorUI/TestButton.text = "Stop"
+	
+	# 7. Start the music
+	var music_player = get_node_or_null("LevelMusic")
+	if music_player and music_player.stream != null:
+		music_player.play(0.0) # 0.0 forces it to start from the exact beginning
 
 func stop_playtest() -> void:
 	is_playtesting = false
@@ -1202,8 +1208,14 @@ func stop_playtest() -> void:
 	
 	# 4. Restore the editor UI
 	ui_layer.toggle_playtest_ui(false)
+	$EditorUI/TestButton.text = "Play"
 	
 	# 5. Snap the chunks back to the editor camera instantly
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
 	update_editor_chunks(current_camera_chunk)
+	
+	# 6. Stop the music
+	var music_player = get_node_or_null("LevelMusic")
+	if music_player and music_player.playing:
+		music_player.stop()
 	
