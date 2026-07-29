@@ -12,7 +12,7 @@ var current_mode: GameMode = GameMode.SHIP
 var is_moving_x: bool = false
 
 # Ball Variables
-@export var ball_speedX := 1 # How much grids it moves
+@export var ball_speedX := 1.5 # How much grids it moves
 var ball_target_x: float = 0.0
 @export var ball_max_speed: float = 1000.0
 @export var ball_acceleration: float = 3000.0
@@ -21,9 +21,9 @@ var ball_target_rotation: float = 0.0
 @export var ball_rotation_speed: float = 15.0
 
 # Ship Variables
-@export var ship_speedX := 430 # Max horizontal speed
-@export var ship_acceleration := 1200.0
-@export var ship_deceleration := 1000.0
+@export var ship_speedX := 450 # Max horizontal speed
+@export var ship_acceleration := 1250.0
+@export var ship_deceleration := 1050.0
 @export var ship_max_rotation: float = 0.2
 @export var ship_rotation_speed: float = 1.0
 

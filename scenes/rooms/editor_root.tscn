@@ -431,61 +431,92 @@ offset_right = 713.5
 offset_bottom = 77.5
 text = "X"
 
-[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/LevelSettingsMenu" unique_id=688069703]
+[node name="MusicSourceTabs" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2011524024]
 layout_mode = 0
-offset_left = 588.75
-offset_top = 335.25
-offset_right = 646.75
-offset_bottom = 392.25
+offset_left = 45.75
+offset_top = 36.25
+offset_right = 536.75
+offset_bottom = 215.25
+current_tab = 0
 
-[node name="SongLabel" type="Label" parent="EditorUI/LevelSettingsMenu" unique_id=349403028]
-layout_mode = 0
-offset_left = 62.75
-offset_top = 47.25
-offset_right = 108.75
-offset_bottom = 69.25
-text = "audio"
+[node name="NCS" type="Control" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs" unique_id=805276591]
+layout_mode = 2
+metadata/_tab_index = 0
 
-[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu" unique_id=2006054138]
+[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=2006054138]
 
-[node name="MetadataRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu" unique_id=324733594]
-
-[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu" unique_id=42146442]
+[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=42146442]
 layout_mode = 0
 offset_left = 61.75
-offset_top = 87.25
+offset_top = 38.25
 offset_right = 260.75
-offset_bottom = 117.25
+offset_bottom = 68.25
 
-[node name="DownloadButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=986200182]
+[node name="GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=986200182]
 layout_mode = 0
 offset_left = 282.75
-offset_top = 87.25
+offset_top = 39.25
 offset_right = 337.75
-offset_bottom = 117.25
+offset_bottom = 69.25
 text = "Use"
 
-[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu" unique_id=92092695]
+[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=92092695]
 layout_mode = 0
-offset_left = 64.75
-offset_top = 136.25
-offset_right = 208.75
-offset_bottom = 158.25
+offset_left = 65.75
+offset_top = 76.25
+offset_right = 209.75
+offset_bottom = 98.25
 
-[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=326683021]
+[node name="SongOptionContainer" type="HBoxContainer" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=554572833]
 layout_mode = 0
-offset_left = 350.75
-offset_top = 86.25
-offset_right = 403.75
-offset_bottom = 116.25
-text = "Play"
+offset_left = 61.75
+offset_top = 105.25
+offset_right = 298.75
+offset_bottom = 140.25
+
+[node name="RegularButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=2102533336]
+layout_mode = 2
+text = "Regular"
+
+[node name="InstrumentalButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=1991398794]
+layout_mode = 2
+text = "Instrumental"
+
+[node name="Newgrounds" type="Control" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs" unique_id=1469506594]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1443580158]
+
+[node name="NG_SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1889757240]
+layout_mode = 0
+offset_left = 61.75
+offset_top = 38.25
+offset_right = 260.75
+offset_bottom = 68.25
+
+[node name="NG_GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=2053343517]
+layout_mode = 0
+offset_left = 282.75
+offset_top = 39.25
+offset_right = 337.75
+offset_bottom = 69.25
+text = "Use"
+
+[node name="NG_StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1907075194]
+layout_mode = 0
+offset_left = 65.75
+offset_top = 76.25
+offset_right = 209.75
+offset_bottom = 98.25
 
 [node name="SongInfoContainer" type="VBoxContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2130612461]
 layout_mode = 0
-offset_left = 62.75
-offset_top = 167.25
-offset_right = 270.75
-offset_bottom = 278.25
+offset_left = 50.75
+offset_top = 223.25
+offset_right = 258.75
+offset_bottom = 297.25
 
 [node name="SongNameLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=1456700509]
 layout_mode = 2
@@ -496,6 +527,14 @@ layout_mode = 2
 [node name="SongIDLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=154906162]
 layout_mode = 2
 
+[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=326683021]
+layout_mode = 0
+offset_left = 436.75
+offset_top = 276.25
+offset_right = 529.75
+offset_bottom = 306.25
+text = "Play"
+
 [node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=499566738]
 layout_mode = 1
 anchors_preset = 7
@@ -503,10 +542,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -334.5
-offset_top = -234.5
-offset_right = 171.0
-offset_bottom = -44.0
+offset_left = -336.5
+offset_top = -220.5
+offset_right = 169.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 0
 current_tab = 0
@@ -526,6 +565,13 @@ max_columns = 0
 icon_mode = 0
 fixed_icon_size = Vector2i(75, 75)
 metadata/_tab_index = 1
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/LevelSettingsMenu" unique_id=688069703]
+layout_mode = 0
+offset_left = 572.75
+offset_top = 373.25
+offset_right = 630.75
+offset_bottom = 430.25
 
 [node name="LevelMusic" type="AudioStreamPlayer" parent="." unique_id=242871586]
 
@@ -552,8 +598,9 @@ metadata/_tab_index = 1
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveAndQuitButton" to="SaveLoadManager" method="_on_save_and_quit_button_pressed"]
 [connection signal="pressed" from="EditorUI/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/HTTPRequest" to="EditorUI" method="_on_http_request_request_completed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MetadataRequest" to="EditorUI" method="_on_metadata_request_request_completed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/DownloadButton" to="EditorUI" method="_on_download_button_pressed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest" to="EditorUI" method="_on_ncs_http_request_request_completed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest" to="EditorUI" method="_on_ng_http_request_request_completed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
 [connection signal="item_selected" from="EditorUI/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]

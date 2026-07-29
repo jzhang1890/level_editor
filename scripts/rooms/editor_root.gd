@@ -613,11 +613,25 @@ func refresh_layer_visibility() -> void:
 			for child in level_chunks[chunk_id]:
 				if is_instance_valid(child) and child is Node2D:
 					var obj_layer = child.get_meta("layer", 1)
+					var channel = child.get_meta("color_channel", 0)
+					var target_color = Global.get_channel_color(channel)
 					
 					if current_layer == 0 or current_layer == obj_layer:
-						child.modulate.a = 1.0 # Force parent fully opaque when active
+						if child is Sprite2D:
+							child.modulate = target_color
+						else:
+							var sprite = child.get_node_or_null("Sprite2D")
+							if sprite:
+								sprite.modulate = target_color
+							child.modulate = Color(1, 1, 1, 1.0) # Keeps root container opaque so hitboxes stay visible
 					else:
-						child.modulate.a = 0.08 # Faded out for inactive layers
+						# Faded out for inactive layers
+						if child is Sprite2D:
+							var faded_color = target_color
+							faded_color.a *= 0.08
+							child.modulate = faded_color
+						else:
+							child.modulate = Color(1, 1, 1, 0.08)
 		
 # BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -1132,7 +1146,7 @@ func start_playtest() -> void:
 	if not is_instance_valid(playtest_trail):
 		playtest_trail = Line2D.new()
 		playtest_trail.width = 4.0
-		# Give it a bright orange color so it stands out, with slight transparency
+		# Bright orange color so it stands out, with slight transparency
 		playtest_trail.default_color = Color(1.0, 0.5, 0.0, 0.8) 
 		playtest_trail.z_index = 100 # Force it to draw on top of the grid and objects
 		room_canvas.add_child(playtest_trail)
@@ -1161,10 +1175,10 @@ func start_playtest() -> void:
 	if player_cam:
 		player_cam.make_current()
 	
-	# 4. Connect the death signal to automatically end the playtest if they die
+	# 4. Connect the death signal to automatically end the playtest if dead
 	test_player.player_died.connect(stop_playtest)
 	
-	# 5. Freeze all editor inputs (stops placing blocks and panning)
+	# 5. Freeze all editor inputs 
 	paused = true
 	
 	# 6. Hide the editor UI

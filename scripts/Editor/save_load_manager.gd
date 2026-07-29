@@ -307,7 +307,7 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 		
 	print("Background thread complete! Level safely saved to: ", path)
 
-# NEW: Converts the saved MP3 file back into playable audio
+#  Converts the saved MP3 file back into playable audio
 func load_song_to_editor(song_id: String) -> void:
 	var file_path = "user://songs/" + song_id + ".mp3"
 	
