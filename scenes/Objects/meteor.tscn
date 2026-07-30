@@ -7,10 +7,10 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cyiuj"]
 atlas = ExtResource("2_cyiuj")
-region = Rect2(65, 0, 191, 192)
+region = Rect2(65, 0, 113, 128)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_cyiuj"]
-radius = 84.0
+radius = 55.081757
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7qbda"]
 atlas = ExtResource("4_iu3ty")
@@ -28,7 +28,7 @@ script = ExtResource("3_sbkq2")
 spin_speed = 360.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1001671945]
-position = Vector2(-1, 2)
+position = Vector2(-1, 0)
 shape = SubResource("CircleShape2D_cyiuj")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1466279909]

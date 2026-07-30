@@ -27,6 +27,7 @@ script = ExtResource("4_ybtv8")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1900298284]
 position = Vector2(0, -360)
+zoom = Vector2(0.8, 0.8)
 limit_left = -4000
 limit_right = 4000
 limit_bottom = 2000

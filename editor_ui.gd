@@ -67,19 +67,24 @@ var pre_test_visibility: Dictionary = {}
 @onready var item_database: Dictionary = {
 	"obstacles": [
 		{
-			"name": "Black Hole",
-			"icon": preload("res://Resources/Icons/black_hole.svg"),
-			"scene_path": "res://scenes/objects/black_hole.tscn"
+			"name": "Sawblade1",
+			"icon": get_game_sheet_icon(Rect2(190, 0, 128, 128)),
+			"scene_path": "res://scenes/objects/sawblade1.tscn"
 		},
 		{
 			"name": "Meteor",
-			"icon": preload("res://Resources/Icons/meteor.svg"),
+			"icon": get_game_sheet_icon(Rect2(65, 0, 113, 128)),
 			"scene_path": "res://scenes/objects/meteor.tscn"
 		},
 		{
 			"name": "Block",
-			"icon": preload("res://Resources/Icons/block1.svg"), 
+			"icon": get_game_sheet_icon(Rect2(0, 0, 64, 64)),
 			"scene_path": "res://scenes/objects/block.tscn"
+		},
+		{
+			"name": "Clear Spike",
+			"icon": get_game_sheet_icon(Rect2(0, 65, 64, 64)),
+			"scene_path": "res://scenes/objects/clear_spike.tscn"
 		}
 	],
 	"deco": [
@@ -126,6 +131,12 @@ var selected_scene_path: String = ""
 func get_sheet_icon(region: Rect2) -> AtlasTexture:
 	var atlas = AtlasTexture.new()
 	atlas.atlas = preload("res://Resources/Objects/decosheet.png")
+	atlas.region = region
+	return atlas
+	
+func get_game_sheet_icon(region: Rect2) -> AtlasTexture:
+	var atlas = AtlasTexture.new()
+	atlas.atlas = preload("res://Resources/Objects/gamesheet.png") 
 	atlas.region = region
 	return atlas
 	

@@ -60,6 +60,38 @@ func _ready() -> void:
 	
 	visible = false
 
+func _process(_delta: float) -> void:
+	if not visible or target_objects.is_empty():
+		return
+		
+	var cam = get_viewport().get_camera_2d()
+	if cam:
+		# 1. Calculate the exact opposite of the camera's current zoom
+		# Divide it by 2 so the handles are smaller
+		var inverse_zoom = Vector2(1.0 / cam.zoom.x, 1.0 / cam.zoom.y)/2
+		
+		# 2. Scale all the handles by that inverse amount
+		scale_handle.scale = inverse_zoom
+		rotate_handle.scale = inverse_zoom
+		scale_x_handle.scale = inverse_zoom
+		scale_y_handle.scale = inverse_zoom
+		skew_handle.scale = inverse_zoom
+		skew_y_handle.scale = inverse_zoom
+		
+		# 3. Scale the physical distance of offset handles so they don't overlap the box when zoomed out
+		var offset_dist = 48.0 * inverse_zoom.x
+		var local_center_x = bounding_rect.position.x + (bounding_rect.size.x / 2.0)
+		var max_x = bounding_rect.position.x + bounding_rect.size.x
+		var min_y = bounding_rect.position.y
+		var max_y = bounding_rect.position.y + bounding_rect.size.y
+		
+		rotate_handle.position = Vector2(local_center_x, min_y - offset_dist)
+		skew_handle.position = Vector2(local_center_x + offset_dist, min_y - offset_dist)
+		skew_y_handle.position = Vector2(max_x + offset_dist, (min_y + max_y) / 2.0 - offset_dist)
+		
+		# Force the box to redraw so the lines also adjust to the zoom
+		queue_redraw()
+
 # This is called by your main script whenever selection changes
 func update_selection(selected: Array[Node2D]) -> void:
 	# Add .duplicate() to safely isolate the data
@@ -148,16 +180,23 @@ func _calculate_bounding_box() -> void:
 	skew_y_handle.position = Vector2(max_x + 48.0, (min_y + max_y) / 2.0 - 48.0)
 
 	queue_redraw()
+	
 func _draw() -> void:
 	if target_objects.is_empty():
 		return
 		
+	var line_thickness = 2.0
+	var cam = get_viewport().get_camera_2d()
+	if cam:
+		# Divide the base thickness by the zoom to keep it visually constant
+		line_thickness /= cam.zoom.x
+		
 	# Draw outline using the saved local rect
-	draw_rect(bounding_rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
+	draw_rect(bounding_rect, Color(0.2, 0.6, 1.0, 0.8), false, line_thickness)
 	
 	# Draw the line up to the rotate handle
 	var top_center = Vector2(rotate_handle.position.x, bounding_rect.position.y)
-	draw_line(top_center, rotate_handle.position, Color(0.2, 0.6, 1.0, 0.8), 2.0)
+	draw_line(top_center, rotate_handle.position, Color(0.2, 0.6, 1.0, 0.8), line_thickness)
 
 func _unhandled_input(event: InputEvent) -> void:
 	# If the user lets go of the mouse, stop all dragging
