@@ -399,6 +399,8 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		# Register the new object instantly
 		object_registry[unique_id] = new_object
 		
+		new_object.set_meta("groups", [])
+		
 		# Sets the layer of the new object
 		var assigned_layer = current_layer
 		if assigned_layer == 0:

@@ -34,6 +34,6 @@ shape = SubResource("CircleShape2D_r8fna")
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=887538334]
 visible = false
 z_index = 4090
-position = Vector2(0.74999857, 0.25000146)
-scale = Vector2(0.6972656, 0.69726557)
+position = Vector2(-0.9999995, -3.8444996e-06)
+scale = Vector2(0.35156247, 0.35156247)
 texture = SubResource("AtlasTexture_kos6l")

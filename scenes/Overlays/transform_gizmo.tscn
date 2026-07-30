@@ -23,7 +23,6 @@ texture = ExtResource("1_v2tj4")
 shape = SubResource("CircleShape2D_1cw00")
 
 [node name="RotateHandle" type="Area2D" parent="." unique_id=2045809538]
-scale = Vector2(0.4, 0.4)
 
 [node name="Sprite2D" type="Sprite2D" parent="RotateHandle" unique_id=637988018]
 texture = ExtResource("1_v2tj4")
@@ -32,7 +31,6 @@ texture = ExtResource("1_v2tj4")
 shape = SubResource("CircleShape2D_jtxpn")
 
 [node name="ScaleXHandle" type="Area2D" parent="." unique_id=434022470]
-scale = Vector2(0.4, 0.4)
 
 [node name="Sprite2D" type="Sprite2D" parent="ScaleXHandle" unique_id=1521640618]
 texture = ExtResource("1_v2tj4")
@@ -41,7 +39,6 @@ texture = ExtResource("1_v2tj4")
 shape = SubResource("CircleShape2D_jtxpn")
 
 [node name="ScaleYHandle" type="Area2D" parent="." unique_id=87317796]
-scale = Vector2(0.4, 0.4)
 
 [node name="Sprite2D" type="Sprite2D" parent="ScaleYHandle" unique_id=32144308]
 texture = ExtResource("1_v2tj4")
@@ -50,7 +47,6 @@ texture = ExtResource("1_v2tj4")
 shape = SubResource("CircleShape2D_jtxpn")
 
 [node name="SkewHandle" type="Area2D" parent="." unique_id=1209243931]
-scale = Vector2(0.4, 0.4)
 
 [node name="Sprite2D" type="Sprite2D" parent="SkewHandle" unique_id=785613087]
 texture = ExtResource("1_v2tj4")
@@ -59,7 +55,6 @@ texture = ExtResource("1_v2tj4")
 shape = SubResource("CircleShape2D_jtxpn")
 
 [node name="SkewYHandle" type="Area2D" parent="." unique_id=1115676099]
-scale = Vector2(0.4, 0.4)
 
 [node name="Sprite2D" type="Sprite2D" parent="SkewYHandle" unique_id=1665689776]
 texture = ExtResource("1_v2tj4")

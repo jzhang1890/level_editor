@@ -100,7 +100,8 @@ func load_level(target_path: String) -> void:
 						"scale_x": 1.0,
 						"scale_y": 1.0,
 						"layer": 1,
-						"color_channel": 0
+						"color_channel": 0,
+						"groups": []
 					}
 					
 					# Read through array in pairs (key, value)
@@ -121,6 +122,12 @@ func load_level(target_path: String) -> void:
 							"8": item_dict["layer"] = val.to_int()
 							"9": item_dict["skew"] = val.to_float() 
 							"10": item_dict["color_channel"] = val.to_int()
+							"11": 
+								var parsed_groups = []
+								for g_str in val.split("-"):
+									if g_str != "":
+										parsed_groups.append(g_str.to_int())
+								item_dict["groups"] = parsed_groups
 							
 					# Instantiate the object exactly like before using our parsed dict!
 					var resource = load(item_dict["scene_path"])
@@ -139,8 +146,11 @@ func load_level(target_path: String) -> void:
 						# Apply saved ID
 						new_object.set_meta("unique_id", item_dict["id"])
 						
-						# Register the loaded object so Undo/Redo can see it!
+						# Register the loaded object so Undo/Redo can see it
 						editor.object_registry[item_dict["id"]] = new_object
+						
+						# Apply the loaded groups array
+						new_object.set_meta("groups", item_dict["groups"])
 						
 						# Apply skew (with a safe fallback to 0.0 for older saves)
 						new_object.skew = item_dict.get("skew", 0.0)
@@ -254,6 +264,16 @@ func _on_save_button_pressed() -> void:
 			if color_channel != 0:
 				obj_parts.append("10")
 				obj_parts.append(str(color_channel))
+			
+			# 11: Groups (only if the array isn't empty)
+			var groups = object.get_meta("groups", [])
+			if groups.size() > 0:
+				obj_parts.append("11")
+				var group_strings = []
+				for g in groups:
+					group_strings.append(str(g))
+				# Join them with a hyphen so it doesn't break the comma parsing
+				obj_parts.append("-".join(group_strings))
 			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))

@@ -34,6 +34,14 @@ var is_instrumental_download: bool = false
 @onready var ng_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
 @onready var ng_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
 
+# GROUP ID UI REFERENCES
+@onready var edit_group_node: Node = $EditGroupNode
+@onready var edit_group_menu: Control = $EditGroupNode/EditGroupMenu
+@onready var group_id_input: LineEdit = $EditGroupNode/EditGroupMenu/GroupIDInput
+@onready var add_group_btn: Button = $EditGroupNode/EditGroupMenu/AddGroupIDButton
+@onready var active_groups_container: Container = $EditGroupNode/EditGroupMenu/ActiveGroupsContainer
+@onready var edit_group_btn: Button = $SelectionMenu/EditGroupButton
+
 # Unified Play Button
 @onready var play_music_btn: Button = $LevelSettingsNode/LevelSettingsMenu/PlayButton
 
@@ -46,7 +54,6 @@ var is_ng_fetching_html: bool = false
 var ng_mp3_url: String = ""
 var ng_title: String = ""
 var ng_artist: String = ""
-
 
 var current_selected_objects: Array = []
 
@@ -67,6 +74,26 @@ var pre_test_visibility: Dictionary = {}
 @onready var item_database: Dictionary = {
 	"obstacles": [
 		{
+			"name": "Block",
+			"icon": get_game_sheet_icon(Rect2(0, 0, 64, 64)),
+			"scene_path": "res://scenes/objects/block.tscn"
+		},
+		{
+			"name": "Spike",
+			"icon": get_game_sheet_icon(Rect2(0, 130, 64, 64)),
+			"scene_path": "res://scenes/objects/spike.tscn"
+		},
+		{
+			"name": "Clear Block",
+			"icon": get_game_sheet_icon(Rect2(65, 130, 64, 64)),
+			"scene_path": "res://scenes/objects/clear_block.tscn"
+		},
+		{
+			"name": "Clear Spike",
+			"icon": get_game_sheet_icon(Rect2(0, 65, 64, 64)),
+			"scene_path": "res://scenes/objects/clear_spike.tscn"
+		},
+		{
 			"name": "Sawblade1",
 			"icon": get_game_sheet_icon(Rect2(190, 0, 128, 128)),
 			"scene_path": "res://scenes/objects/sawblade1.tscn"
@@ -76,16 +103,6 @@ var pre_test_visibility: Dictionary = {}
 			"icon": get_game_sheet_icon(Rect2(65, 0, 113, 128)),
 			"scene_path": "res://scenes/objects/meteor.tscn"
 		},
-		{
-			"name": "Block",
-			"icon": get_game_sheet_icon(Rect2(0, 0, 64, 64)),
-			"scene_path": "res://scenes/objects/block.tscn"
-		},
-		{
-			"name": "Clear Spike",
-			"icon": get_game_sheet_icon(Rect2(0, 65, 64, 64)),
-			"scene_path": "res://scenes/objects/clear_spike.tscn"
-		}
 	],
 	"deco": [
 		{
@@ -165,6 +182,7 @@ func _ready() -> void:
 func _on_exit_button_pressed() -> void:
 	$ColorChannelNode.visible = false
 	$LevelSettingsNode.visible = false
+	$EditGroupNode.visible = false
 	get_parent().paused = false
 	
 	var music_player = get_parent().get_node_or_null("LevelMusic")
@@ -486,7 +504,6 @@ func update_song_ui(title: String, artist: String, id: String) -> void:
 func _on_play_button_pressed() -> void:
 	_toggle_playback(play_music_btn)
 
-# Unified play toggle logic so both tabs can use it
 func _toggle_playback(btn_node: Button) -> void:
 	var music_player = get_parent().get_node_or_null("LevelMusic")
 	if music_player and music_player.stream != null:
@@ -496,3 +513,66 @@ func _toggle_playback(btn_node: Button) -> void:
 		else:
 			music_player.play()
 			btn_node.text = "Stop"
+			
+func _on_edit_group_button_pressed() -> void:
+	edit_group_node.visible = true
+	get_parent().paused = true
+	refresh_group_ui()
+
+func refresh_group_ui() -> void:
+	# Clear out the old buttons
+	for child in active_groups_container.get_children():
+		child.queue_free()
+		
+	if current_selected_objects.is_empty():
+		return
+		
+	# Find all unique groups across everything currently selected
+	var unique_groups = {}
+	for obj in current_selected_objects:
+		if obj.has_meta("groups"):
+			for g_id in obj.get_meta("groups"):
+				unique_groups[g_id] = true
+				
+	# Generate a removal button for each group found
+	for g_id in unique_groups.keys():
+		var btn = Button.new()
+		btn.text = str(g_id)
+		
+		# Use a lambda function to pass the specific ID to the removal function
+		btn.pressed.connect(func(): _remove_group_from_selection(g_id))
+		active_groups_container.add_child(btn)
+
+func _on_add_group_id_button_pressed() -> void:
+	var input_text = group_id_input.text.strip_edges()
+	
+	# Stop if they typed letters instead of numbers
+	if not input_text.is_valid_int():
+		return 
+		
+	var new_group = input_text.to_int()
+	
+	for obj in current_selected_objects:
+		var groups = []
+		if obj.has_meta("groups"):
+			# Always duplicate arrays when getting them from meta to avoid shared reference bugs
+			groups = obj.get_meta("groups").duplicate() 
+			
+		if not groups.has(new_group):
+			groups.append(new_group)
+			
+		obj.set_meta("groups", groups)
+		
+	group_id_input.text = "" 
+	refresh_group_ui()
+
+func _remove_group_from_selection(group_id: int) -> void:
+	for obj in current_selected_objects:
+		if obj.has_meta("groups"):
+			var groups = obj.get_meta("groups").duplicate()
+			if groups.has(group_id):
+				groups.erase(group_id)
+				obj.set_meta("groups", groups)
+				
+	# Rebuild the UI now that the group is gone
+	refresh_group_ui()
