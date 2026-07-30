@@ -19,6 +19,8 @@ var ng_mp3_url: String = ""
 var ng_title: String = ""
 var ng_artist: String = ""
 
+var current_song_id: String = ""
+
 @onready var ncs_http_request: HTTPRequest = $HTTPRequest
 @onready var ng_http_request: HTTPRequest = $NG_HTTPRequest
 
@@ -29,6 +31,7 @@ func _ready() -> void:
 
 func fetch_ncs(song_id: String) -> void:
 	if song_id != "":
+		current_song_id = song_id
 		status_updated.emit("Fetching NCS link...", true)
 		is_fetching_html = true
 		regular_download_url = ""
@@ -58,6 +61,7 @@ func download_ncs_instrumental() -> void:
 
 func fetch_newgrounds(song_id: String) -> void:
 	if song_id != "":
+		current_song_id = song_id
 		status_updated.emit("Fetching Newgrounds link...", false)
 		is_ng_fetching_html = true
 		var url = "https://www.newgrounds.com/audio/listen/" + song_id
@@ -107,10 +111,8 @@ func _on_ncs_http_request_request_completed(result: int, response_code: int, _he
 			return
 
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			# We need a way to pass song_id back; assuming we track it or read it from parent if needed. 
-			# For now, we broadcast the metadata completion.
 			status_updated.emit("Download complete!", true)
-			download_complete.emit(fallback_title, fallback_artist, "", body)
+			download_complete.emit(fallback_title, fallback_artist, current_song_id, body)
 		else:
 			status_updated.emit("Download failed! Code: " + str(response_code), true)
 
@@ -165,6 +167,6 @@ func _on_ng_http_request_request_completed(result: int, response_code: int, _hea
 	else:
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
 			status_updated.emit("Download complete!", false)
-			download_complete.emit(ng_title, ng_artist, "", body)
+			download_complete.emit(ng_title, ng_artist, current_song_id, body)
 		else:
 			status_updated.emit("Download failed! Code: " + str(response_code), false)

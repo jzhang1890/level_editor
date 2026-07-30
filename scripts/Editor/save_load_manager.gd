@@ -327,6 +327,23 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 		
 	print("Background thread complete! Level safely saved to: ", path)
 
+func save_downloaded_song(song_id: String, song_title: String, song_artist: String, audio_data: PackedByteArray) -> void:
+	# Update the metadata so it saves to the JSON level file
+	current_song_id = song_id
+	current_song_name = song_title
+	current_song_artist = song_artist
+
+	# Create the songs folder if it doesn't exist
+	if not DirAccess.dir_exists_absolute("user://songs"):
+		DirAccess.make_dir_absolute("user://songs")
+
+	# Write the raw MP3 bytes to disk
+	var file_path = "user://songs/" + song_id + ".mp3"
+	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	if file:
+		file.store_buffer(audio_data)
+		file.close()
+
 #  Converts the saved MP3 file back into playable audio
 func load_song_to_editor(song_id: String) -> void:
 	var file_path = "user://songs/" + song_id + ".mp3"

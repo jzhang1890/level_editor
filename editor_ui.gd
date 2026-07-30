@@ -151,11 +151,10 @@ func _ready() -> void:
 	populate_object_list(deco_list, item_database["deco"])
 	populate_actions_tab()
 	
-	# Connect NCS UI option buttons
-	regular_btn.pressed.connect(_on_regular_button_pressed)
-	instrumental_btn.pressed.connect(_on_instrumental_button_pressed)
+	# Hide regular and instrumental buttons
 	song_option_container.hide()
 	
+	# Connect music downloader signals
 	music_downloader.status_updated.connect(_on_status_updated)
 	music_downloader.download_complete.connect(_on_download_complete)
 	music_downloader.ncs_options_available.connect(_on_ncs_options_available)
@@ -308,6 +307,9 @@ func _on_ncs_options_available(regular_url: String, inst_url: String) -> void:
 
 func _on_download_complete(title: String, artist: String, song_id: String, audio_data: PackedByteArray) -> void:
 	update_song_ui(title, artist, song_id)
+	
+	# Send the data to the save manager to store locally
+	get_parent().save_manager.save_downloaded_song(song_id, title, artist, audio_data)
 	
 	# Convert the raw bytes into a playable MP3
 	var new_audio = AudioStreamMP3.new()

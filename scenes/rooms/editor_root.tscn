@@ -711,6 +711,8 @@ text = "Save and Quit"
 [connection signal="pressed" from="EditorUI/EditGroupNode/EditGroupMenu/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton" to="EditorUI" method="_on_regular_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton" to="EditorUI" method="_on_instrumental_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
 [connection signal="item_selected" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]
