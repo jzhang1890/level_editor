@@ -10,18 +10,7 @@ signal edit_action_requested(action_name: String)
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
 
-# Tracks if we are scraping the HTML or downloading the MP3
-var is_fetching_html: bool = false
-var is_primary_download: bool = false
-var fallback_mp3_url: String = ""
-var fallback_title: String = ""
-var fallback_artist: String = ""
-var regular_download_url: String = ""
-var instrumental_download_url: String = ""
-var is_instrumental_download: bool = false
-
 # NCS UI REFERENCES
-@onready var ncs_http_request: HTTPRequest = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest
 @onready var ncs_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
 @onready var ncs_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
 
@@ -30,7 +19,6 @@ var is_instrumental_download: bool = false
 @onready var instrumental_btn: Button = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
 
 # NEWGROUNDS UI REFERENCES
-@onready var ng_http_request: HTTPRequest = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest
 @onready var ng_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
 @onready var ng_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
 
@@ -50,10 +38,7 @@ var is_instrumental_download: bool = false
 @onready var artist_label: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/ArtistLabel
 @onready var song_id_display: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/SongIDLabel
 
-var is_ng_fetching_html: bool = false
-var ng_mp3_url: String = ""
-var ng_title: String = ""
-var ng_artist: String = ""
+@onready var music_downloader: Node = $LevelSettingsNode/LevelSettingsMenu/MusicDownloader
 
 var current_selected_objects: Array = []
 
@@ -170,6 +155,10 @@ func _ready() -> void:
 	regular_btn.pressed.connect(_on_regular_button_pressed)
 	instrumental_btn.pressed.connect(_on_instrumental_button_pressed)
 	song_option_container.hide()
+	
+	music_downloader.status_updated.connect(_on_status_updated)
+	music_downloader.download_complete.connect(_on_download_complete)
+	music_downloader.ncs_options_available.connect(_on_ncs_options_available)
 	
 	var objects_container = $EditorPanel/MainTabContainer/Build/ObjectsContainer
 	if objects_container is TabContainer:
@@ -288,210 +277,46 @@ func toggle_playtest_ui(is_testing: bool) -> void:
 
 # NCS LOGIC
 func _on_regular_button_pressed() -> void:
-	if regular_download_url == "":
-		return
-	ncs_status_label.text = "Downloading MP3..."
-	is_fetching_html = false
-	is_primary_download = true
-	is_instrumental_download = false
-	
-	get_parent().save_manager.current_song_name = fallback_title
-	get_parent().save_manager.current_song_artist = fallback_artist
-	
-	ncs_http_request.timeout = 10.0
-	ncs_http_request.request(regular_download_url)
+	music_downloader.download_ncs_regular()
 
 func _on_instrumental_button_pressed() -> void:
-	if instrumental_download_url == "":
-		return
-	ncs_status_label.text = "Downloading Instrumental MP3..."
-	is_fetching_html = false
-	is_primary_download = false
-	is_instrumental_download = true
-	
-	get_parent().save_manager.current_song_name = fallback_title + " (Instrumental)"
-	get_parent().save_manager.current_song_artist = fallback_artist
-	
-	ncs_http_request.timeout = 0
-	ncs_http_request.request(instrumental_download_url)
+	music_downloader.download_ncs_instrumental()
+
 				
 func _on_get_button_pressed() -> void:
 	var song_id = ncs_song_id_input.text.strip_edges()
 	if song_id != "":
-		ncs_status_label.text = "Fetching NCS link..."
-		is_fetching_html = true 
-		var url = "https://ncs.io/" + song_id
-		ncs_http_request.request(url)
-
-func _on_ncs_http_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	if is_fetching_html:
-		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			var html_string = body.get_string_from_utf8()
-			
-			if "<title>" in html_string:
-				var raw_title = html_string.get_slice("<title>", 1).get_slice("</title>", 0).xml_unescape().replace(" on NCS", "")
-				var title_parts = raw_title.split(" by ")
-				if title_parts.size() >= 2:
-					fallback_title = title_parts[0].strip_edges()
-					fallback_artist = title_parts[1].strip_edges()
-			if "id=\"player\" data-url=\"" in html_string:
-				fallback_mp3_url = html_string.get_slice("id=\"player\" data-url=\"", 1).get_slice("\"", 0)
-
-			var href_chunks = html_string.split("href=\"/track/download/")
-			for i in range(1, href_chunks.size()):
-				var chunk = href_chunks[i]
-				var href_path = chunk.get_slice("\"", 0).replace(" ", "%20")
-				var full_link = "https://ncs.io/track/download/" + href_path
-				
-				if "data-version=\"Instrumental\"" in chunk or "/i%20" in href_path or "/i " in chunk:
-					instrumental_download_url = full_link
-				elif "data-version=\"Regular\"" in chunk or regular_download_url == "":
-					regular_download_url = full_link
-
-			if regular_download_url != "":
-				song_option_container.show()
-				regular_btn.show()
-				if instrumental_download_url != "":
-					instrumental_btn.show()
-				else:
-					instrumental_btn.hide()
-				ncs_status_label.text = "Select a song version:"
-				is_fetching_html = false
-			else:
-				_start_fallback_download()
-		else:
-			ncs_status_label.text = "Failed to load track page!"
-			is_fetching_html = false
-
-	else:
-		if is_primary_download and not is_instrumental_download and (result != HTTPRequest.RESULT_SUCCESS or response_code != 200):
-			print("Regular download failed. Falling back...")
-			_start_fallback_download()
-			return
-
-		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			var song_id = ncs_song_id_input.text.strip_edges()
-			var save_directory = "user://songs/"
-			var file_path = save_directory + song_id + ".mp3"
-			
-			if not DirAccess.dir_exists_absolute(save_directory):
-				DirAccess.make_dir_absolute(save_directory)
-				
-			var file = FileAccess.open(file_path, FileAccess.WRITE)
-			if file:
-				file.store_buffer(body)
-				file.close()
-				ncs_status_label.text = "Saved to: " + file_path
-				
-			get_parent().save_manager.current_song_id = song_id
-			get_parent().save_manager.load_song_to_editor(song_id)
-			
-			update_song_ui(
-				get_parent().save_manager.current_song_name, 
-				get_parent().save_manager.current_song_artist, 
-				song_id
-			)
-		else:
-			ncs_status_label.text = "Download failed! Code: " + str(response_code)
-
-func _start_fallback_download() -> void:
-	if fallback_mp3_url != "":
-		ncs_status_label.text = "Downloading MP3..."
-		get_parent().save_manager.current_song_name = fallback_title
-		get_parent().save_manager.current_song_artist = fallback_artist
-		
-		is_fetching_html = false
-		is_primary_download = false
-		ncs_http_request.timeout = 0
-		ncs_http_request.request(fallback_mp3_url)
-	else:
-		ncs_status_label.text = "MP3 link not found!"
-		is_fetching_html = false
+		music_downloader.fetch_ncs(song_id)
 
 # NEWGROUNDS LOGIC
 func _on_ng_get_button_pressed() -> void:
 	var song_id = ng_song_id_input.text.strip_edges()
 	if song_id != "":
-		ng_status_label.text = "Fetching Newgrounds link..."
-		is_ng_fetching_html = true
-		var url = "https://www.newgrounds.com/audio/listen/" + song_id
-		ng_http_request.request(url)
+		music_downloader.fetch_newgrounds(song_id)
 
-# Newgrounds http request
-func _on_ng_http_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	if is_ng_fetching_html:
-		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			var html_string = body.get_string_from_utf8()
-			
-			# 1 & 2. Extract Title, Artist, and URL from NgAudioPlayer script payload
-			var found_url = false
-			
-			if "NgAudioPlayer.fromListenPage({" in html_string:
-				# Isolate the payload to avoid accidentally matching other parts of the page
-				var payload = html_string.get_slice("NgAudioPlayer.fromListenPage({", 1)
-				
-				# Extract Author (Artist)
-				if "'author': \"" in payload:
-					ng_artist = payload.get_slice("'author': \"", 1).get_slice("\"", 0).xml_unescape()
-				else:
-					ng_artist = "Unknown"
-					
-				# Extract Title
-				if "'title': \"" in payload:
-					ng_title = payload.get_slice("'title': \"", 1).get_slice("\"", 0).xml_unescape()
-				else:
-					ng_title = "Unknown"
-				
-				# Extract URL and fix the escaped slashes (\/)
-				if "'url': \"" in payload:
-					var raw_url = payload.get_slice("'url': \"", 1).get_slice("\"", 0)
-					ng_mp3_url = raw_url.replace("\\/", "/")
-					found_url = true
-			
-			if found_url:
-				ng_status_label.text = "Downloading Newgrounds MP3..."
-				is_ng_fetching_html = false
-				
-				# Push metadata to save manager
-				get_parent().save_manager.current_song_name = ng_title
-				get_parent().save_manager.current_song_artist = ng_artist
-				
-				ng_http_request.timeout = 0
-				ng_http_request.request(ng_mp3_url)
-			else:
-				ng_status_label.text = "Could not find MP3 file"
-				is_ng_fetching_html = false
-		else:
-			ng_status_label.text = "Failed to load Newgrounds page"
-			is_ng_fetching_html = false
-
+func _on_status_updated(message: String, is_ncs: bool) -> void:
+	if is_ncs:
+		ncs_status_label.text = message
 	else:
-		# 3. Save the actual MP3 bytes to user directory
-		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			var song_id = ng_song_id_input.text.strip_edges()
-			var save_directory = "user://songs/"
-			var file_path = save_directory + song_id + ".mp3"
-			
-			if not DirAccess.dir_exists_absolute(save_directory):
-				DirAccess.make_dir_absolute(save_directory)
-				
-			var file = FileAccess.open(file_path, FileAccess.WRITE)
-			if file:
-				file.store_buffer(body)
-				file.close()
-				ng_status_label.text = "Saved to: " + file_path
-				
-			get_parent().save_manager.current_song_id = song_id
-			get_parent().save_manager._on_save_button_pressed()
-			get_parent().save_manager.load_song_to_editor(song_id)
-			
-			update_song_ui(
-				get_parent().save_manager.current_song_name, 
-				get_parent().save_manager.current_song_artist, 
-				song_id
-			)
-		else:
-			ng_status_label.text = "Download failed! Code: " + str(response_code)
+		ng_status_label.text = message
+
+func _on_ncs_options_available(regular_url: String, inst_url: String) -> void:
+	song_option_container.show()
+	regular_btn.disabled = (regular_url == "")
+	# Only show the button if there is a valid link
+	instrumental_btn.visible = (inst_url != "")
+
+func _on_download_complete(title: String, artist: String, song_id: String, audio_data: PackedByteArray) -> void:
+	update_song_ui(title, artist, song_id)
+	
+	# Convert the raw bytes into a playable MP3
+	var new_audio = AudioStreamMP3.new()
+	new_audio.data = audio_data
+	
+	# Assign it to your music player node
+	var music_player = get_parent().get_node_or_null("LevelMusic")
+	if music_player:
+		music_player.stream = new_audio
 
 func update_song_ui(title: String, artist: String, id: String) -> void:
 	song_name_label.text = "Song: " + title

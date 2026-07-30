@@ -10,6 +10,7 @@
 [ext_resource type="Theme" uid="uid://cl0g3cwxl3k38" path="res://Theme/new_theme.tres" id="6_5dt4k"]
 [ext_resource type="Script" uid="uid://bp8i1hrufqta7" path="res://scripts/Editor/undo_redo_manager.gd" id="8_uank4"]
 [ext_resource type="Script" uid="uid://co0q6xvm301gg" path="res://scripts/Editor/save_load_manager.gd" id="9_b4iia"]
+[ext_resource type="Script" uid="uid://b0ihw12rxib34" path="res://scripts/Editor/music_downloader.gd" id="11_0esmb"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_xxn6o"]
 
@@ -497,8 +498,6 @@ current_tab = 0
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=2006054138]
-
 [node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=42146442]
 layout_mode = 0
 offset_left = 61.75
@@ -540,8 +539,6 @@ text = "Instrumental"
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
-
-[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1443580158]
 
 [node name="NG_SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1889757240]
 layout_mode = 0
@@ -627,6 +624,13 @@ offset_top = 373.25
 offset_right = 630.75
 offset_bottom = 430.25
 
+[node name="MusicDownloader" type="Node" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu" unique_id=1712061681]
+script = ExtResource("11_0esmb")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicDownloader" unique_id=2006054138]
+
+[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicDownloader" unique_id=1443580158]
+
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 visible = false
 anchors_preset = 15
@@ -706,12 +710,12 @@ text = "Save and Quit"
 [connection signal="pressed" from="EditorUI/EditGroupNode/EditGroupMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/EditGroupNode/EditGroupMenu/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/HTTPRequest" to="EditorUI" method="_on_ncs_http_request_request_completed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_HTTPRequest" to="EditorUI" method="_on_ng_http_request_request_completed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
 [connection signal="item_selected" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicDownloader/HTTPRequest" to="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicDownloader" method="_on_ncs_http_request_request_completed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicDownloader/NG_HTTPRequest" to="EditorUI/LevelSettingsNode/LevelSettingsMenu/MusicDownloader" method="_on_ng_http_request_request_completed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]
