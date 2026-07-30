@@ -538,14 +538,22 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 			
 		# Apply transformation to the current 'obj' in the loop
 		match action_name:
-			"move_up_tiny":
+			"move_up_small":
 				obj.global_position.y -= GRID_SIZE/16
-			"move_down_tiny":
+			"move_down_small":
 				obj.global_position.y += GRID_SIZE/16
-			"move_left_tiny":
+			"move_left_small":
 				obj.global_position.x -= GRID_SIZE/16
-			"move_right_tiny":
+			"move_right_small":
 				obj.global_position.x += GRID_SIZE/16
+			"move_up_medium":
+				obj.global_position.y -= GRID_SIZE
+			"move_down_medium":
+				obj.global_position.y += GRID_SIZE
+			"move_left_medium":
+				obj.global_position.x -= GRID_SIZE
+			"move_right_medium":
+				obj.global_position.x += GRID_SIZE
 			"rotate_left":
 				# 1. Rotate the object itself 
 				var new_rot = obj.get_meta("base_rotation", obj.rotation_degrees) - 30

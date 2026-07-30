@@ -117,12 +117,16 @@ var pre_test_visibility: Dictionary = {}
 }
 
 var edit_actions: Array = [
-	{"icon": preload("res://Resources/Icons/move_up.svg"), "action": "move_up_tiny"},
-	{"icon": preload("res://Resources/Icons/move_down.svg"), "action": "move_down_tiny"},
-	{"icon": preload("res://Resources/Icons/move_left.svg"), "action": "move_left_tiny"},
-	{"icon": preload("res://Resources/Icons/move_right.svg"), "action": "move_right_tiny"},
-	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_left"},
-	{"icon": preload("res://Resources/icon.svg"), "action": "rotate_right"},
+	{"icon": preload("res://Resources/Icons/move_up_small.svg"), "action": "move_up_small"},
+	{"icon": preload("res://Resources/Icons/move_down_small.svg"), "action": "move_down_small"},
+	{"icon": preload("res://Resources/Icons/move_left_small.svg"), "action": "move_left_small"},
+	{"icon": preload("res://Resources/Icons/move_right_small.svg"), "action": "move_right_small"},
+	{"icon": preload("res://Resources/Icons/move_up_medium.png"), "action": "move_up_medium"},
+	{"icon": preload("res://Resources/Icons/move_down_medium.png"), "action": "move_down_medium"},
+	{"icon": preload("res://Resources/Icons/move_left_medium.png"), "action": "move_left_medium"},
+	{"icon": preload("res://Resources/Icons/move_right_medium.png"), "action": "move_right_medium"},
+	{"icon": preload("res://Resources/Icons/rotate_left_30.png"), "action": "rotate_left"},
+	{"icon": preload("res://Resources/Icons/rotate_right_30.png"), "action": "rotate_right"},
 	{"icon": preload("res://Resources/icon.svg"), "action": "show_hide_gizmo"}
 ]
 

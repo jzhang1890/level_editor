@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckh4leiwu30ax"
-path="res://.godot/imported/move_down.svg-6b3c59d73dcda0f0f624b4d7cf16daef.ctex"
+uid="uid://btlpw7canchfo"
+path="res://.godot/imported/move_down_medium.png-95ac77790021feb65ab27fb7d369cd4e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Icons/move_down.svg"
-dest_files=["res://.godot/imported/move_down.svg-6b3c59d73dcda0f0f624b4d7cf16daef.ctex"]
+source_file="res://Resources/Icons/move_down_medium.png"
+dest_files=["res://.godot/imported/move_down_medium.png-95ac77790021feb65ab27fb7d369cd4e.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

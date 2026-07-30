@@ -5,7 +5,7 @@ class_name BasePlayer
 signal player_died
 
 enum GameMode { SHIP, BALL }
-var current_mode: GameMode = GameMode.BALL
+var current_mode: GameMode = GameMode.SHIP
 
 @export var speedY := 450 
 
