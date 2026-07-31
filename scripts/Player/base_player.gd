@@ -79,6 +79,13 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		
 	if area is Obstacle and not is_noclip:
 		dead = true
+		
+		# Hide player sprite
+		$Sprite2D.visible = false
+		# Play the death animation
+		$AnimatedSprite2D.visible = true
+		$AnimatedSprite2D.play("player_explosion")
+		
 		player_died.emit()
 		
 func toggle_hitbox(is_hitbox_visible: bool) -> void:

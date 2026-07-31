@@ -386,6 +386,7 @@ func _on_player_player_died() -> void:
 	level_completed = false
 	
 	# Reset player
+	$Player/Sprite2D.visible = true
 	$Player/Sprite2D.rotation = 0
 	player.ball_target_rotation = 0.0 # Reset the interpolation target
 	player.global_position = spawn_position

@@ -6,10 +6,103 @@
 [ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Resources/Ships/Ship1/outline.png" id="4_tuyoq"]
 [ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Objects/hitboxsheet.png" id="5_uiqp4"]
 [ext_resource type="Script" uid="uid://boa5scnw8xkf7" path="res://scripts/Player/player_camera.gd" id="6_hvfru"]
+[ext_resource type="Texture2D" uid="uid://dauduq018b7ul" path="res://Resources/player_explosion.png" id="7_a06cl"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uiqp4"]
 atlas = ExtResource("5_uiqp4")
 region = Rect2(384, 128, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dl1wr"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(0, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wwtew"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(512, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uxo23"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(1024, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n7rn1"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(1536, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7tfl1"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(0, 512, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jxtnq"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(512, 512, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t6q27"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(1024, 512, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wyey8"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(1536, 512, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1bwnf"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(0, 1024, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tayva"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(512, 1024, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x8khf"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(1024, 1024, 512, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aciub"]
+atlas = ExtResource("7_a06cl")
+region = Rect2(1536, 1024, 512, 512)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hk2ix"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dl1wr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wwtew")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uxo23")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n7rn1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7tfl1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jxtnq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t6q27")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wyey8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1bwnf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tayva")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x8khf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aciub")
+}],
+"loop": false,
+"name": &"player_explosion",
+"speed": 24.0
+}]
 
 [node name="Player" type="CharacterBody2D" unique_id=1001688488]
 z_index = 4000
@@ -44,5 +137,10 @@ texture = SubResource("AtlasTexture_uiqp4")
 offset = Vector2(0, -220)
 zoom = Vector2(0.8, 0.8)
 script = ExtResource("6_hvfru")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=809912442]
+visible = false
+sprite_frames = SubResource("SpriteFrames_hk2ix")
+animation = &"player_explosion"
 
 [connection signal="area_entered" from="Hitbox" to="." method="_on_hitbox_area_entered"]
