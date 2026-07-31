@@ -72,20 +72,19 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	
 func _on_hitbox_area_entered(area: Area2D) -> void:
-	# Safely check if the parent has a noclip variable; default to false if it doesn't
+	# Checks if the parent has a noclip variable and default to false if it doesn't
 	var is_noclip = get_parent().get("noclip")
 	if is_noclip == null:
 		is_noclip = false
 		
 	if area is Obstacle and not is_noclip:
-		dead = true
-		
 		# Hide player sprite
 		$Sprite2D.visible = false
 		# Play the death animation
 		$AnimatedSprite2D.visible = true
 		$AnimatedSprite2D.play("player_explosion")
 		
+		dead = true
 		player_died.emit()
 		
 func toggle_hitbox(is_hitbox_visible: bool) -> void:
@@ -123,7 +122,7 @@ func process_ball(delta: float) -> void:
 		var distance_to_target = ball_target_x - global_position.x
 		var dir = sign(distance_to_target)
 		
-		# NEW: Dynamically scale your physics based on how many grid tiles you are jumping
+		# Dynamically scale physics based on how many grid tiles the player is jumping
 		var actual_max_speed = ball_max_speed * ball_speedX
 		var actual_acceleration = ball_acceleration * ball_speedX
 		var actual_deceleration = ball_deceleration * ball_speedX

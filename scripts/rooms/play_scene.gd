@@ -3,6 +3,7 @@ extends Node2D
 @onready var level_canvas: Node2D = $LevelCanvas
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
+@onready var music_player: AudioStreamPlayer = $LevelMusic
 
 # For the background texture
 @onready var bg_rect: TextureRect = $BackgroundCanvas/BackgroundLayer/Background
@@ -45,12 +46,12 @@ func _ready() -> void:
 	# After loading the level
 	spawn_position = player.global_position
 	
-	# Drop the player physically down 800 pixels so they start off screen
-	player.global_position.y = spawn_position.y + 300.0
-	
 	# Tell the camera where its starting line is
-	camera.spawn_y = spawn_position.y
+	camera.spawn_y = spawn_position.y - 300
 	camera.waiting_at_spawn = true
+	# Snap the camera immediately so it doesn't pop on frame 1
+	camera.global_position.y = camera.spawn_y
+	camera.global_position.x = spawn_position.x
 	
 	# Tell the player to match the play_scene's hitbox setting
 	if player.has_method("toggle_hitbox"):
@@ -65,7 +66,11 @@ func _ready() -> void:
 	# 1. Grab the level path from Global script
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
-	
+		
+			# Starts the music
+	if music_player and music_player.stream:
+			music_player.play()
+		
 	# Lock and hide the mouse so it stops generating motion events
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# Tell the engine to completely stop checking the mouse against collision objects
@@ -138,6 +143,21 @@ func load_level(target_path: String) -> void:
 			if level_data.has("level_name"):
 				level_name = level_data["level_name"]
 				level_name_label.text = level_name
+				
+			# Load the music file and play it
+			if level_data.has("song_id") and level_data["song_id"] != "":
+				var song_id = level_data["song_id"]
+				var file_path = "user://songs/" + song_id + ".mp3"
+				
+				if FileAccess.file_exists(file_path):
+					var audio_file = FileAccess.open(file_path, FileAccess.READ)
+					var stream = AudioStreamMP3.new()
+					
+					# Grab the raw bytes and turn them into an audio stream
+					stream.data = audio_file.get_buffer(audio_file.get_length())
+					audio_file.close()
+					
+					music_player.stream = stream
 				
 			# 1. Load the color palette into Global
 			if level_data.has("colors"):
@@ -379,11 +399,16 @@ func _process(_delta: float) -> void:
 		last_calculated_chunk = current_camera_chunk
 
 func _on_player_player_died() -> void:
+	if music_player and music_player.stream:
+		music_player.stop()
+		
 	if not restart_button_pressed:
 		await get_tree().create_timer(respawn_time, false).timeout
 	
-	# Reset level state so it can be finished again
-	level_completed = false
+	# Reset camera
+	camera.global_position = spawn_position 
+	camera.target_x = spawn_position.x 
+	camera.waiting_at_spawn = false
 	
 	# Reset player
 	$Player/Sprite2D.visible = true
@@ -394,13 +419,12 @@ func _on_player_player_died() -> void:
 	player.is_moving_x = false
 	player.dead = false
 	
+	# Reset level state so it can be finished again
+	level_completed = false
+	
 	# Reset the finish line states so they can move again
 	player.level_finished = false
 	player.set_physics_process(true)
-	
-	# Reset camera
-	camera.global_position = spawn_position 
-	camera.target_x = spawn_position.x 
 	
 	# Force the chunks to reset instantly on respawn 
 	last_calculated_chunk = -999 
@@ -414,6 +438,10 @@ func _on_player_player_died() -> void:
 	# Clear the list so it doesn't cause a memory leak freeze
 	modified_objects.clear()
 	restart_button_pressed = false
+	
+	# Restart the music 
+	if music_player and music_player.stream:
+		music_player.play()
 	
 func _on_pause_button_pressed() -> void:
 	# Prevent pausing if the end screen is active
