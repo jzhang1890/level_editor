@@ -11,7 +11,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		position -= event.relative * pan_speed / zoom.x
 		
 		# Fixing the bug where camera gets stuck at edge
-		# Force Godot to instantly calculate the camera's visual limits
+		# Force Godot to calculate the camera's visual limits
 		force_update_scroll()
 		
 		# Snap the actual node to the clamped visual center so it can't wander off

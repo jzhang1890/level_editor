@@ -30,13 +30,12 @@ func _physics_process(delta: float) -> void:
 		y_velocity = lerp(y_velocity, 0.0, 5.0 * delta)
 		global_position.y += y_velocity * delta
 	else:
-		# --- NEW WAITING LOGIC ---
+		# WAITING FOR PLAYER LOGIC
 		if waiting_at_spawn:
 			# Lock the camera to the start position
 			global_position.y = spawn_y
 			
 			# Check if the player has traveled high enough to cross the spawn line
-			# (Because going up is negative Y, the player crosses it when they are <= spawn_y)
 			if player.global_position.y <= spawn_y:
 				waiting_at_spawn = false
 		else:

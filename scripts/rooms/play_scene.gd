@@ -62,7 +62,7 @@ func _ready() -> void:
 	if level_end_screen:
 		level_end_screen.visible = false
 	
-	# 1. Grab the level path from your Global script
+	# 1. Grab the level path from Global script
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
 	

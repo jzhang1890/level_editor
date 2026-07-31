@@ -24,18 +24,18 @@ func get_level_name_fast(target_path: String) -> String:
 	# Jump instantly to the bottom of the file
 	file.seek(file_len - read_size)
 	
-	# Read only that tiny chunk into a string
+	# Read only that chunk into a string
 	var end_text = file.get_buffer(read_size).get_string_from_utf8()
 	file.close()
 	
-	# Instantly split the string to find the name
+	# Split the string to find the name
 	var parts = end_text.split('"level_name"')
 	if parts.size() > 1:
 		var right_side = parts[1]
 		var name_parts = right_side.split('"')
 		
 		# name_parts[0] will be the colon and space (e.g. ": ")
-		# name_parts[1] will be the actual level name!
+		# name_parts[1] will be the actual level name
 		if name_parts.size() >= 2: 
 			return name_parts[1]
 			

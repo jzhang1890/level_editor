@@ -315,7 +315,7 @@ func _on_download_complete(title: String, artist: String, song_id: String, audio
 	var new_audio = AudioStreamMP3.new()
 	new_audio.data = audio_data
 	
-	# Assign it to your music player node
+	# Assign it to music player node
 	var music_player = get_parent().get_node_or_null("LevelMusic")
 	if music_player:
 		music_player.stream = new_audio

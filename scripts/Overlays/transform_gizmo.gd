@@ -92,7 +92,7 @@ func _process(_delta: float) -> void:
 		# Force the box to redraw so the lines also adjust to the zoom
 		queue_redraw()
 
-# This is called by your main script whenever selection changes
+# This is called by main script whenever selection changes
 func update_selection(selected: Array[Node2D]) -> void:
 	# Add .duplicate() to safely isolate the data
 	target_objects = selected.duplicate()

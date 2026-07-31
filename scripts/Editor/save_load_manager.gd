@@ -48,11 +48,11 @@ func load_level(target_path: String) -> void:
 		# Check if the data is the Dictionary format
 		if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
 			
-			# Pass the saved dictionary straight into your new function
+			# Adds the level colors using level data
 			if level_data.has("colors"):
 				editor.apply_level_colors(level_data["colors"])
 			
-			# Grab the name to update the variable
+			# Sets the current name using level data
 			if level_data.has("level_name"):
 				current_level_name = level_data["level_name"]
 				print("Loading level: ", current_level_name)
@@ -129,7 +129,7 @@ func load_level(target_path: String) -> void:
 										parsed_groups.append(g_str.to_int())
 								item_dict["groups"] = parsed_groups
 							
-					# Instantiate the object exactly like before using our parsed dict!
+					# Instantiate the object using parsed dict
 					var resource = load(item_dict["scene_path"])
 					if resource:
 						var new_object = resource.instantiate()
@@ -325,7 +325,7 @@ func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
 		file.store_string(json_string)
 		file.close()
 		
-	print("Background thread complete! Level safely saved to: ", path)
+	print("Level safely saved to: ", path)
 
 func save_downloaded_song(song_id: String, song_title: String, song_artist: String, audio_data: PackedByteArray) -> void:
 	# Update the metadata so it saves to the JSON level file

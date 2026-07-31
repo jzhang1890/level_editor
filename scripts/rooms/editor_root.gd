@@ -115,7 +115,7 @@ func _ready() -> void:
 	if pause_menu:
 		pause_menu.visible = false
 	
-	# Manually connect the buttons and bind their specific channel ID
+	# Connect the buttons and bind their specific channel ID
 	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel0Button.pressed.connect(_on_color_channel_selected.bind(0))
 	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel1Button.pressed.connect(_on_color_channel_selected.bind(1))
 	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
@@ -706,7 +706,7 @@ func update_editor_chunks(center_chunk: int) -> void:
 	# Calculate the total vertical space currently visible to the camera
 	var visible_height: float = get_viewport_rect().size.y / camera.zoom.y
 
-	# Halve it (for a radius), divide by your chunk height, and add 2 as a safety buffer
+	# Halve it (for a radius), divide by chunk height, and add 2 as a safety buffer
 	var render_radius: int = int(ceil((visible_height / 2.0) / CHUNK_HEIGHT)) + 2
 	
 	var needed_chunks: Array[int] = []
@@ -742,7 +742,7 @@ func update_editor_chunks(center_chunk: int) -> void:
 						var target_color = Global.get_channel_color(channel)
 						
 						if obj is Sprite2D:
-							# CASE 1: Object IS the sprite (Decorations)
+							# CASE 1: Object is the sprite (Decorations)
 							if current_layer != 0 and current_layer != obj_layer:
 								target_color.a = 0.05
 							obj.modulate = target_color
@@ -789,7 +789,7 @@ func update_scrollbar_bounds() -> void:
 	var top_y: float = 0.0
 	var bottom_y: float = 0.0
 	
-	# Loop through all your active and sleeping chunks
+	# Loop through all active and sleeping chunks
 	for chunk_id in level_chunks:
 		for obj in level_chunks[chunk_id]:
 			if is_instance_valid(obj):

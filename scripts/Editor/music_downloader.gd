@@ -1,5 +1,6 @@
 extends Node
 
+# Signals for when something happens
 signal status_updated(message: String, is_ncs: bool)
 signal download_complete(title: String, artist: String, song_id: String, audio_data: PackedByteArray)
 signal ncs_options_available(regular_url: String, inst_url: String)
