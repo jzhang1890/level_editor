@@ -128,6 +128,8 @@ func load_level(target_path: String) -> void:
 									if g_str != "":
 										parsed_groups.append(g_str.to_int())
 								item_dict["groups"] = parsed_groups
+							"12": item_dict["custom_z_order"] = val.to_int()
+							"13": item_dict["z_layer"] = val.to_int()
 							
 					# Instantiate the object using parsed dict
 					var resource = load(item_dict["scene_path"])
@@ -155,10 +157,16 @@ func load_level(target_path: String) -> void:
 						# Apply skew (with a safe fallback to 0.0 for older saves)
 						new_object.skew = item_dict.get("skew", 0.0)
 						
-						# Apply layer data
+						# Apply layer and Z-order data
 						var loaded_layer = item_dict["layer"]
+						var loaded_z_layer = item_dict.get("z_layer", 0) 
+						var loaded_z_order = item_dict.get("custom_z_order", 2)
+
 						new_object.set_meta("layer", loaded_layer)
-						new_object.z_index = -loaded_layer
+						new_object.set_meta("z_layer", loaded_z_layer)
+						new_object.set_meta("custom_z_order", loaded_z_order)
+
+						new_object.z_index = (loaded_z_layer * 300) + loaded_z_order
 						
 						# Apply color channel data
 						new_object.set_meta("color_channel", item_dict["color_channel"])
@@ -274,6 +282,16 @@ func _on_save_button_pressed() -> void:
 					group_strings.append(str(g))
 				# Join them with a hyphen so it doesn't break the comma parsing
 				obj_parts.append("-".join(group_strings))
+			
+			# 12: Custom Z-Order 
+			var custom_z = object.get_meta("custom_z_order", 2)
+			obj_parts.append("12")
+			obj_parts.append(str(custom_z))
+			
+			# 13: Z-Layer Data
+			var z_layer = object.get_meta("z_layer", 0)
+			obj_parts.append("13")
+			obj_parts.append(str(z_layer))
 			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))

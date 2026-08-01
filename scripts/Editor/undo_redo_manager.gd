@@ -29,7 +29,9 @@ func serialize_objects(objects: Array) -> Array:
 			"layer": obj.get_meta("layer", 1),
 			"unique_id": obj.get_meta("unique_id", ""),
 			"tree_index": obj.get_index(), 
-			"color_channel": obj.get_meta("color_channel", 0)
+			"color_channel": obj.get_meta("color_channel", 0),
+			"z_layer": obj.get_meta("z_layer", 0),
+			"custom_z_order": obj.get_meta("custom_z_order", 2)
 		})
 	return data_array
 
@@ -102,8 +104,16 @@ func recreate_objects(data_array: Array) -> void:
 			new_object.scale = item["scale"]
 			new_object.skew = item.get("skew", 0.0)
 			new_object.set_meta("base_rotation", item["base_rotation"])
-			new_object.set_meta("layer", item["layer"])
-			new_object.z_index = -item["layer"]
+			
+			var loaded_layer = item.get("layer", 1)
+			var loaded_z_layer = item.get("z_layer", 0)
+			var loaded_z = item.get("custom_z_order", 2)
+			
+			new_object.set_meta("layer", loaded_layer) # Use new_object.set_meta in recreate_objects()
+			new_object.set_meta("z_layer", loaded_z_layer)
+			new_object.set_meta("custom_z_order", loaded_z)
+			
+			new_object.z_index = (loaded_z_layer * 300) + loaded_z
 			
 			var loaded_channel = item.get("color_channel", 0)
 			new_object.set_meta("color_channel", loaded_channel)
@@ -172,8 +182,16 @@ func apply_object_state(data_array: Array) -> void:
 			obj.scale = item["scale"]
 			obj.skew = item.get("skew", 0.0)
 			obj.set_meta("base_rotation", item["base_rotation"])
-			obj.set_meta("layer", item["layer"])
-			obj.z_index = -item["layer"]
+			
+			var loaded_layer = item.get("layer", 1)
+			var loaded_z_layer = item.get("z_layer", 0)
+			var loaded_z = item.get("custom_z_order", 2)
+			
+			obj.set_meta("layer", loaded_layer) # Use new_object.set_meta in recreate_objects()
+			obj.set_meta("z_layer", loaded_z_layer)
+			obj.set_meta("custom_z_order", loaded_z)
+			
+			obj.z_index = (loaded_z_layer * 300) + loaded_z
 			
 			var loaded_channel = item.get("color_channel", 0)
 			obj.set_meta("color_channel", loaded_channel)

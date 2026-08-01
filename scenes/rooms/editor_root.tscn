@@ -374,6 +374,72 @@ offset_right = 709.0
 offset_bottom = 152.0
 color = Color(1, 1, 1, 1)
 
+[node name="ZLayerContainer" type="HBoxContainer" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1253825435]
+layout_mode = 0
+offset_left = 57.0
+offset_top = 166.0
+offset_right = 97.0
+offset_bottom = 206.0
+
+[node name="B5Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=415539771]
+layout_mode = 2
+toggle_mode = true
+text = "B5"
+
+[node name="B4Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=693725603]
+layout_mode = 2
+toggle_mode = true
+text = "B4"
+
+[node name="B3Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=1910211805]
+layout_mode = 2
+toggle_mode = true
+text = "B3"
+
+[node name="B2Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=1596936790]
+layout_mode = 2
+toggle_mode = true
+text = "B2"
+
+[node name="B1Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=1806839502]
+layout_mode = 2
+toggle_mode = true
+text = "B1"
+
+[node name="T1Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=36892695]
+layout_mode = 2
+toggle_mode = true
+text = "T1"
+
+[node name="T2Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=373506662]
+layout_mode = 2
+toggle_mode = true
+text = "T2"
+
+[node name="T3Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=63788889]
+layout_mode = 2
+toggle_mode = true
+text = "T3"
+
+[node name="T4Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=1592528446]
+layout_mode = 2
+toggle_mode = true
+text = "T4"
+
+[node name="T5Button" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer" unique_id=879024171]
+layout_mode = 2
+toggle_mode = true
+text = "T5"
+
+[node name="ZOrderSpinBox" type="SpinBox" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1492682566]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 226.0
+offset_right = 137.1875
+offset_bottom = 256.0
+min_value = -99.0
+max_value = 99.0
+
 [node name="ExitButton" type="Button" parent="EditorUI/ColorChannelNode/ColorChannelMenu" unique_id=1965459271]
 layout_mode = 0
 offset_left = 649.0
@@ -706,6 +772,7 @@ text = "Save and Quit"
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="EditorUI/TestButton" to="EditorUI" method="_on_test_button_pressed"]
 [connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
+[connection signal="value_changed" from="EditorUI/ColorChannelNode/ColorChannelMenu/ZOrderSpinBox" to="." method="_on_z_order_spinbox_value_changed"]
 [connection signal="pressed" from="EditorUI/ColorChannelNode/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/EditGroupNode/EditGroupMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/EditGroupNode/EditGroupMenu/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]

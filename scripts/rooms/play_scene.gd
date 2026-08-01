@@ -215,6 +215,8 @@ func load_level(target_path: String) -> void:
 							"8": item_dict["layer"] = val.to_int()
 							"9": item_dict["skew"] = val.to_float()
 							"10": item_dict["color_channel"] = val.to_int()
+							"12": item_dict["custom_z_order"] = val.to_int()
+							"13": item_dict["z_layer"] = val.to_int()
 					
 					# Track the highest point in the level
 					if item_dict.has("y") and item_dict["y"] < highest_obj_y:
@@ -223,46 +225,39 @@ func load_level(target_path: String) -> void:
 					#  THE FILTER INTERCEPT 
 					var path = item_dict["scene_path"]
 					
-					# Check if the path contains our new Deco folder
+					# 1. Check if the path contains the Deco folder
 					if "/deco/" in path.to_lower():
-						# Group them by path AND layer so depth sorting still works
-						var layer = item_dict.get("layer", 1)
-						var batch_key = path + "_" + str(layer)
-						
+						var z_layer = item_dict.get("z_layer", 0)
+						var custom_z = item_dict.get("custom_z_order", 6)
+
+						# Include z_layer in the key so they batch correctly
+						var batch_key = path + "_" + str(z_layer) + "_" + str(custom_z)
+
 						if not deco_batches.has(batch_key):
 							deco_batches[batch_key] = {
 								"path": path,
-								"layer": layer,
+								"z_layer": z_layer,
+								"custom_z_order": custom_z,
 								"transforms": [],
 								"colors": []
 							}
-							
-						# Build the raw math matrix (Transform2D) for the GPU
+								
 						var rot_rad = deg_to_rad(item_dict.get("rotation", 0.0))
 						var pos = Vector2(item_dict.get("x", 0.0), item_dict.get("y", 0.0))
 						var obj_scale = Vector2(item_dict.get("scale_x", 1.0), item_dict.get("scale_y", 1.0))
-
-						# 1. Grab the skew from the dictionary (defaults to 0.0 if not found)
 						var obj_skew = item_dict.get("skew", 0.0) 
 
-						# 2. Invert the local Y scale to counteract the QuadMesh 3D axis flip
 						obj_scale.y *= -1.0 
-
-						# 3. Use the Godot 4 master constructor: Transform2D(rotation, scale, skew, origin)
-						# Feed it Vector2.ZERO for the origin first so it flips and skews locally
+						
 						var gpu_transform = Transform2D(rot_rad, obj_scale, obj_skew, Vector2.ZERO)
-
-						# 4. Add the position in AFTER the transform is built
 						gpu_transform.origin = pos
 
-						# Add it to the array and skip instantiation completely
 						deco_batches[batch_key]["transforms"].append(gpu_transform)
 						
-						# Capture color for this specific GPU instance
 						var channel = item_dict.get("color_channel", 0)
 						deco_batches[batch_key]["colors"].append(Global.get_channel_color(channel))
 						
-						continue # Skip the rest of the loop so it doesn't become a node
+						continue
 
 					# ONLY HAZARDS AND TRIGGERS MAKE IT PAST THE CONTINUE 
 					# ACTUALLY INSTANTIATES INDIVIDUAL OBJECTS
@@ -293,9 +288,9 @@ func load_level(target_path: String) -> void:
 						# Apply the saved ID
 						new_object.set_meta("unique_id", item_dict["id"])
 						
-						# Apply z-index using the layer
-						var loaded_layer = item_dict["layer"]
-						new_object.z_index = -loaded_layer
+						# Apply z-index using the newly separated math
+						var loaded_z_layer = item_dict.get("z_layer", 0)
+						new_object.z_index = (loaded_z_layer * 300) + item_dict.get("custom_z_order", 2)
 						
 						# Apply color channel data
 						var loaded_channel = item_dict["color_channel"]
@@ -305,7 +300,7 @@ func load_level(target_path: String) -> void:
 						var sprite = new_object.get_node_or_null("Sprite2D")
 						
 						if sprite:
-							# Apply full color AND alpha directly to the sprite
+							# Apply full color and alpha directly to the sprite
 							sprite.modulate = target_color
 							# Keep root opaque so hitboxes show
 							new_object.modulate = Color(1, 1, 1, 1.0) 
@@ -373,7 +368,7 @@ func load_level(target_path: String) -> void:
 						var mm_inst = MultiMeshInstance2D.new()
 						mm_inst.multimesh = mm
 						mm_inst.texture = tex
-						mm_inst.z_index = -batch_data["layer"]
+						mm_inst.z_index = (batch_data["z_layer"] * 300) + batch_data["custom_z_order"]
 						
 						# Add the single MultiMesh to the canvas
 						level_canvas.add_child(mm_inst)

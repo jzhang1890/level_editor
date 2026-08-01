@@ -26,6 +26,8 @@ extends Node2D
 
 @onready var scrollbar: VSlider = $EditorUI/VSlider
 
+@onready var z_order_spinbox: SpinBox = $EditorUI/ColorChannelNode/ColorChannelMenu/ZOrderSpinBox
+
 @onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelNode/ColorChannelMenu/ColorPickerButton
 var color_before_edit: Color
 var current_editing_channel: int = 0
@@ -46,6 +48,8 @@ var last_calculated_chunk: int = -999
 # 0 represents the "All" layer, 0 is the starting layer
 var current_layer: int = 0
 var max_layer: int = 1
+# Tracks the Z-Layer (-5 to 5)
+var current_z_layer: int = 0
 
 # Editor modes
 enum EditorMode { BUILD, EDIT, DELETE }
@@ -93,7 +97,7 @@ var zoom_step: float = 0.2 # How much the buttons zoom per click
 var is_playtesting: bool = false
 var test_player: BasePlayer = null
 var pre_test_camera_pos: Vector2 = Vector2.ZERO
-var playtest_trail: Line2D = null # NEW: Tracks the path
+var playtest_trail: Line2D = null 
 
 # The player to spawn when playtesting
 const PLAYER_SCENE = preload("res://scenes/Player/player.tscn")
@@ -127,6 +131,19 @@ func _ready() -> void:
 	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
 	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
 	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
+	
+	# Bind Z-Layer buttons to their integer values
+	var z_layer_menu = $EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer
+	z_layer_menu.get_node("B5Button").pressed.connect(_on_z_layer_selected.bind(-5))
+	z_layer_menu.get_node("B4Button").pressed.connect(_on_z_layer_selected.bind(-4))
+	z_layer_menu.get_node("B3Button").pressed.connect(_on_z_layer_selected.bind(-3))
+	z_layer_menu.get_node("B2Button").pressed.connect(_on_z_layer_selected.bind(-2))
+	z_layer_menu.get_node("B1Button").pressed.connect(_on_z_layer_selected.bind(-1))
+	z_layer_menu.get_node("T1Button").pressed.connect(_on_z_layer_selected.bind(1))
+	z_layer_menu.get_node("T2Button").pressed.connect(_on_z_layer_selected.bind(2))
+	z_layer_menu.get_node("T3Button").pressed.connect(_on_z_layer_selected.bind(3))
+	z_layer_menu.get_node("T4Button").pressed.connect(_on_z_layer_selected.bind(4))
+	z_layer_menu.get_node("T5Button").pressed.connect(_on_z_layer_selected.bind(5))
 	
 	color_picker_btn.pressed.connect(_on_color_picker_pressed)
 	color_picker_btn.popup_closed.connect(_on_color_picker_closed)
@@ -267,6 +284,27 @@ func apply_zoom_at_mouse(requested_zoom: float) -> void:
 	# 4. Apply the actual zoom
 	apply_zoom(new_zoom)
 
+func _on_z_layer_selected(layer_val: int) -> void:
+	# 1. Visually untoggle all other buttons instantly
+	update_z_layer_ui(layer_val)
+	current_z_layer = layer_val
+	
+	# Stop here if just pre-selecting a layer without having an object highlighted
+	if selected_objects.is_empty():
+		return
+
+	# 2. Snap the start state for undo/redo manager
+	var start_state = undo_manager.serialize_objects(selected_objects)
+
+	for obj in selected_objects:
+		if is_instance_valid(obj):
+			obj.set_meta("z_layer", layer_val)
+			var custom_z = obj.get_meta("custom_z_order", 2)
+			obj.z_index = (layer_val * 300) + custom_z
+
+	var end_state = undo_manager.serialize_objects(selected_objects)
+	undo_manager.commit_action("edit", start_state, end_state)
+
 # Zoom buttons
 func _on_zoom_in_button_pressed() -> void:
 	# Add the step to our current zoom
@@ -314,7 +352,7 @@ func check_for_object_at(pos: Vector2, is_press: bool = false) -> Node2D:
 								if local_rect.has_point(local_pos):
 									is_clicked = true
 							
-							# If clicked, check the layer and add to the cache!
+							# If clicked, check the layer and add to the cache
 							if is_clicked:
 								var obj_layer = obj.get_meta("layer", 1)
 								if current_layer == 0 or current_layer == obj_layer:
@@ -366,6 +404,21 @@ func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
 	if ui_layer:
 		ui_layer.update_selected_target(selected_objects)
 		
+	# Update the UI Spinbox and Buttons to match the selected object
+	if selected_objects.size() == 1:
+		var current_z = selected_objects[0].get_meta("custom_z_order", 2)
+		if z_order_spinbox:
+			z_order_spinbox.set_value_no_signal(current_z)
+			
+		# Read the object's Z-layer and update the UI buttons to match
+		var obj_z_layer = selected_objects[0].get_meta("z_layer", 0)
+		update_z_layer_ui(obj_z_layer)
+		
+	# Clear the UI if nothing is selected or if multiple objects are selected
+	else:
+		update_z_layer_ui(0) 
+		current_z_layer = 0
+		
 	# Update the transform gizmo
 	if has_node("Foreground/TransformGizmo"):
 		$Foreground/TransformGizmo.update_selection(selected_objects)
@@ -374,7 +427,7 @@ func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
 func place_object(pos: Vector2, is_painting: bool = false) -> void:
 	var path = ui_layer.selected_scene_path
 	
-	# If we haven't loaded this object yet, load it from disk and save it to memory
+	# If wthis object hsn't been loaded yet, load it from disk and save it to memory
 	if not resource_cache.has(path):
 		resource_cache[path] = load(path)
 		
@@ -396,7 +449,7 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		new_object.set_meta("unique_id", unique_id)
 		new_object.set_meta("base_rotation", 0.0)
 		
-		# Register the new object instantly
+		# Register the new object
 		object_registry[unique_id] = new_object
 		
 		new_object.set_meta("groups", [])
@@ -405,9 +458,21 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		var assigned_layer = current_layer
 		if assigned_layer == 0:
 			assigned_layer = 1
-			
+
 		new_object.set_meta("layer", assigned_layer)
-		new_object.z_index = -assigned_layer
+
+		# Determine defaults based on folder path
+		var is_deco = "/deco/" in path.to_lower()
+		var custom_z = -2 if is_deco else 2
+		var default_z_layer = -1 if is_deco else 1 # -1 is B1, 1 is T1
+
+		new_object.set_meta("custom_z_order", custom_z)
+
+		# If the UI is on the starting default (0), use the object's default. Otherwise, respect the UI choice.
+		var applied_z_layer = default_z_layer if current_z_layer == 0 else current_z_layer
+		
+		new_object.set_meta("z_layer", applied_z_layer)
+		new_object.z_index = (applied_z_layer * 300) + custom_z
 		
 		new_object.set_meta("color_channel", 0)
 		var target_color = Global.get_channel_color(0)
@@ -519,7 +584,7 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 	if action_name == "show_hide_gizmo":
 		if has_node("Foreground/TransformGizmo"):
 			$Foreground/TransformGizmo.toggle_visibility()
-		return # Exit early so we don't trigger undo/redo saves or loop through objects
+		return # Exit early so it doesn't trigger undo/redo saves or loop through objects
 	
 	# Make sure the array isn't empty before performing edit action
 	if selected_objects.is_empty():
@@ -649,7 +714,7 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 	var size = Vector2(abs(start_p.x - end_p.x), abs(start_p.y - end_p.y))
 	var selection_rect = Rect2(pos, size)
 	
-	# Flag to track if we actually grabbed anything
+	# Flag to track if anything is actually grabbed
 	var selection_changed: bool = false 
 	
 	# Create a temporary dictionary for O(1) lookups 
@@ -665,7 +730,7 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 					if child is Node2D:
 						var obj_layer = child.get_meta("layer", 1)
 						
-						# Make sure we only grab objects on the active layer
+						# Make sure to only grab objects on the active layer
 						if current_layer == 0 or current_layer == obj_layer:
 							# Check if the object's center point is inside our rectangle
 							if selection_rect.has_point(child.global_position):
@@ -673,14 +738,14 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 								# Fixes bad time complexity: Check the dictionary instead of the array 
 								if not fast_selection_check.has(child):
 									selected_objects.append(child)
-									fast_selection_check[child] = true # Add it so we don't grab duplicates later
+									fast_selection_check[child] = true # Add it so it doesn't grab duplicates later
 									
 									if child.has_method("set_highlight"):
 										child.set_highlight(true)
 									
 									selection_changed = true 
 							
-	# Only force UI and Gizmo updates if we caught something new
+	# Only force UI and Gizmo updates if something new is caught
 	if selection_changed:
 		if selection_menu:
 			selection_menu.visible = selected_objects.size() > 0
@@ -782,6 +847,21 @@ func _on_v_slider_value_changed(value: float) -> void:
 		var inverted_y = scrollbar.max_value + scrollbar.min_value - value
 		camera.global_position.y = inverted_y
 
+func _on_z_order_spinbox_value_changed(value: float) -> void:
+	if selected_objects.is_empty():
+		return
+		
+	var start_state = undo_manager.serialize_objects(selected_objects)
+	
+	for obj in selected_objects:
+		if is_instance_valid(obj):
+			var z_layer = obj.get_meta("z_layer", 0)
+			obj.set_meta("custom_z_order", int(value))
+			obj.z_index = (z_layer * 300) + int(value)
+			
+	var end_state = undo_manager.serialize_objects(selected_objects)
+	undo_manager.commit_action("edit", start_state, end_state)
+
 func update_scrollbar_bounds() -> void:
 	if not scrollbar: return
 	
@@ -823,7 +903,7 @@ func _on_color_channel_selected(channel_id: int) -> void:
 	var end_state = undo_manager.serialize_objects(selected_objects)
 	undo_manager.commit_action("edit", start_state, end_state)
 
-	# 1. Tell the editor which channel we are currently editing
+	# 1. Tell the editor which channel its currently editing
 	current_editing_channel = channel_id
 	
 	# 2. Force the color box to physically change to the correct color
@@ -833,7 +913,7 @@ func apply_level_colors(json_color_data: Dictionary) -> void:
 	# 1. Wipe the colors from the previous level
 	Global.reset_colors()
 	
-	# 2. Loop through the new JSON data
+	# 2. Loop through the JSON data
 	for channel_id_str in json_color_data.keys():
 		
 		# JSON keys are always strings, so convert the ID back to an integer
@@ -1042,7 +1122,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 								is_touching_gizmo = true
 								break
 
-				# If we clicked our selection, are NOT holding Ctrl, and are NOT using the Gizmo, start dragging!
+				# If we clicked our selection, are NOT holding Ctrl, and are NOT using the Gizmo, start dragging
 				if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
 					is_dragging_objects = true
 					previous_mouse_pos = click_pos
@@ -1050,7 +1130,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					# Save the objects' original positions for the Undo system
 					undo_manager.drag_start_state = undo_manager.serialize_objects(selected_objects)
 					
-					# Freeze the camera so we don't accidentally pan while moving the objects
+					# Freeze the camera so user won't accidentally pan while moving the objects
 					camera.set_process_unhandled_input(false)
 					camera.set_process_input(false)
 					camera.set_process(false)
@@ -1075,7 +1155,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			if is_dragging_objects:
 				is_dragging_objects = false
 				
-				# If we actually dragged them (crossed the threshold), commit the final positions to the Undo stack
+				# If user actually dragged them (crossed the threshold), commit the final positions to the Undo stack
 				if is_dragging:
 					var drag_end_state = undo_manager.serialize_objects(selected_objects)
 					undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
@@ -1158,10 +1238,10 @@ func start_playtest() -> void:
 		playtest_trail.width = 4.0
 		# Bright orange color so it stands out, with slight transparency
 		playtest_trail.default_color = Color(1.0, 0.5, 0.0, 0.8) 
-		playtest_trail.z_index = 100 # Force it to draw on top of the grid and objects
+		playtest_trail.z_index = 4000
 		room_canvas.add_child(playtest_trail)
 	else:
-		# Wipe the previous playtest's line clean
+		# Wipe the previous playtest's line 
 		playtest_trail.clear_points()
 
 	# 1. Save where the editor camera was looking
@@ -1228,4 +1308,20 @@ func stop_playtest() -> void:
 	var music_player = get_node_or_null("LevelMusic")
 	if music_player and music_player.playing:
 		music_player.stop()
+		
+func update_z_layer_ui(target_layer: int) -> void:
+	var z_layer_menu = $EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer
+	
+	# Map integers to the physical button names
+	var layer_mapping = {
+		-5: "B5Button", -4: "B4Button", -3: "B3Button", -2: "B2Button", -1: "B1Button",
+		1: "T1Button", 2: "T2Button", 3: "T3Button", 4: "T4Button", 5: "T5Button"
+	}
+	
+	# Loop through all buttons and only toggle the one that matches the target
+	for key in layer_mapping.keys():
+		var btn = z_layer_menu.get_node_or_null(layer_mapping[key])
+		if btn:
+			# set_pressed_no_signal visually toggles the button without triggering its connected function
+			btn.set_pressed_no_signal(key == target_layer)
 	

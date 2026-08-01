@@ -30,7 +30,9 @@ func copy_selection() -> void:
 				"scale": obj.scale,
 				"skew": obj.skew,
 				"layer": obj.get_meta("layer", 1),
-				"color_channel": obj.get_meta("color_channel", 0)
+				"z_layer": obj.get_meta("z_layer", 0),
+				"color_channel": obj.get_meta("color_channel", 0),
+				"custom_z_order": obj.get_meta("custom_z_order", 2)
 			}
 			clipboard.append(item_data)
 
@@ -59,9 +61,17 @@ func paste_clipboard() -> void:
 			new_object.skew = item.get("skew", 0.0)
 			
 			# Apply metadata and layer sorting
+			var loaded_layer = item.get("layer", 1)
+			var loaded_z_layer = item.get("z_layer", 0)
+			var loaded_z = item.get("custom_z_order", 2)
+			
 			new_object.set_meta("base_rotation", item["base_rotation"])
-			new_object.set_meta("layer", item["layer"])
-			new_object.z_index = -item["layer"]
+			new_object.set_meta("layer", loaded_layer)
+			new_object.set_meta("z_layer", loaded_z_layer)
+			new_object.set_meta("custom_z_order", loaded_z)
+			
+			# Apply the new clamped depth formula
+			new_object.z_index = (loaded_z_layer * 300) + loaded_z
 
 			# Apply Color Channel
 			var loaded_channel = item.get("color_channel", 0)
