@@ -40,7 +40,7 @@ var level_completed: bool = false
 @export var end_padding: float = 150.0 # Pixels above the highest object where the level ends
 
 # Array to track objects altered by triggers or gameplay
-var modified_objects: Array[Obstacle] = []
+var modified_objects: Array = []
 
 func _ready() -> void:
 	# After loading the level

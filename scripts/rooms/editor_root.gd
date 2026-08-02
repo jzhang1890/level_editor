@@ -103,6 +103,9 @@ var playtest_trail: Line2D = null
 # The player to spawn when playtesting
 const PLAYER_SCENE = preload("res://scenes/Player/player.tscn")
 
+# Array to track objects altered by triggers or gameplay
+var modified_objects: Array = []
+
 # Game state
 var paused: bool = false:
 	set(value):
@@ -1309,6 +1312,12 @@ func stop_playtest() -> void:
 	# 4. Restore the editor UI
 	ui_layer.toggle_playtest_ui(false)
 	$EditorUI/TestButton.text = "Play"
+	
+	# Reset any triggered objects before going back to Build Mode
+	for obj in modified_objects:
+		if is_instance_valid(obj):
+			obj.reset()
+	modified_objects.clear()
 	
 	# 5. Snap the chunks back to the editor camera instantly
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
