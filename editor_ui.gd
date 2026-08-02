@@ -121,36 +121,41 @@ var pre_test_visibility: Dictionary = {}
 		{
 			"name": "Touch Orb",
 			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
-			"scene_path": "res://scenes/objects/touch_orb.tscn"
+			"scene_path": "res://scenes/objects/orbs/touch_orb.tscn"
+		},
+		{
+			"name": "Move Orb",
+			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/orbs/move_orb.tscn"
 		},
 	]
 }
 
 var edit_actions: Array = [
-	{"icon": preload("res://Resources/Icons/move_up_small.svg"), "action": "move_up_small"},
-	{"icon": preload("res://Resources/Icons/move_down_small.svg"), "action": "move_down_small"},
-	{"icon": preload("res://Resources/Icons/move_left_small.svg"), "action": "move_left_small"},
-	{"icon": preload("res://Resources/Icons/move_right_small.svg"), "action": "move_right_small"},
-	{"icon": preload("res://Resources/Icons/move_up_medium.png"), "action": "move_up_medium"},
-	{"icon": preload("res://Resources/Icons/move_down_medium.png"), "action": "move_down_medium"},
-	{"icon": preload("res://Resources/Icons/move_left_medium.png"), "action": "move_left_medium"},
-	{"icon": preload("res://Resources/Icons/move_right_medium.png"), "action": "move_right_medium"},
-	{"icon": preload("res://Resources/Icons/rotate_left_30.png"), "action": "rotate_left"},
-	{"icon": preload("res://Resources/Icons/rotate_right_30.png"), "action": "rotate_right"},
-	{"icon": preload("res://Resources/icon.svg"), "action": "show_hide_gizmo"}
+	{"icon": preload("res://resources/icons/move_up_small.svg"), "action": "move_up_small"},
+	{"icon": preload("res://resources/icons/move_down_small.svg"), "action": "move_down_small"},
+	{"icon": preload("res://resources/icons/move_left_small.svg"), "action": "move_left_small"},
+	{"icon": preload("res://resources/icons/move_right_small.svg"), "action": "move_right_small"},
+	{"icon": preload("res://resources/icons/move_up_medium.png"), "action": "move_up_medium"},
+	{"icon": preload("res://resources/icons/move_down_medium.png"), "action": "move_down_medium"},
+	{"icon": preload("res://resources/icons/move_left_medium.png"), "action": "move_left_medium"},
+	{"icon": preload("res://resources/icons/move_right_medium.png"), "action": "move_right_medium"},
+	{"icon": preload("res://resources/icons/rotate_left_30.png"), "action": "rotate_left"},
+	{"icon": preload("res://resources/icons/rotate_right_30.png"), "action": "rotate_right"},
+	{"icon": preload("res://resources/icon.svg"), "action": "show_hide_gizmo"}
 ]
 
 var selected_scene_path: String = ""
 
 func get_sheet_icon(region: Rect2) -> AtlasTexture:
 	var atlas = AtlasTexture.new()
-	atlas.atlas = preload("res://Resources/Objects/decosheet.png")
+	atlas.atlas = preload("res://resources/objects/decosheet.png")
 	atlas.region = region
 	return atlas
 	
 func get_game_sheet_icon(region: Rect2) -> AtlasTexture:
 	var atlas = AtlasTexture.new()
-	atlas.atlas = preload("res://Resources/Objects/gamesheet.png") 
+	atlas.atlas = preload("res://resources/objects/gamesheet.png") 
 	atlas.region = region
 	return atlas
 	
@@ -174,7 +179,7 @@ func _ready() -> void:
 	settings_color_picker.color_changed.connect(_on_settings_color_changed)
 	grounds_container.tab_changed.connect(_on_grounds_tab_changed)
 		
-	load_images_from_folder($LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background, "res://Resources/Backgrounds")
+	load_images_from_folder($LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background, "res://resources/backgrounds")
 
 func _on_exit_button_pressed() -> void:
 	$ColorChannelNode.visible = false

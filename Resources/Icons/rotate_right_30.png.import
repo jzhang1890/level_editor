@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://epw8df2568tj"
-path="res://.godot/imported/rotate_right_30.png-065092a46596f08e69773caa6a36a270.ctex"
+path="res://.godot/imported/rotate_right_30.png-7260d3bbd0e6294776e6355871974e86.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Icons/rotate_right_30.png"
-dest_files=["res://.godot/imported/rotate_right_30.png-065092a46596f08e69773caa6a36a270.ctex"]
+source_file="res://resources/icons/rotate_right_30.png"
+dest_files=["res://.godot/imported/rotate_right_30.png-7260d3bbd0e6294776e6355871974e86.ctex"]
 
 [params]
 

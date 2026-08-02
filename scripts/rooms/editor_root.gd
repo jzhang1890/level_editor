@@ -101,7 +101,7 @@ var pre_test_camera_pos: Vector2 = Vector2.ZERO
 var playtest_trail: Line2D = null 
 
 # The player to spawn when playtesting
-const PLAYER_SCENE = preload("res://scenes/Player/player.tscn")
+const PLAYER_SCENE = preload("res://scenes/player/player.tscn")
 
 # Array to track objects altered by triggers or gameplay
 var modified_objects: Array = []
@@ -473,8 +473,9 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 
 		# Determine defaults based on folder path
 		var is_deco = "/deco/" in path.to_lower()
-		var custom_z = -2 if is_deco else 2
-		var default_z_layer = -1 if is_deco else 1 # -1 is B1, 1 is T1
+		var is_orb = "/orbs/" in path.to_lower()
+		var custom_z = -2 if is_deco or is_orb else 2
+		var default_z_layer = -1 if is_deco or is_orb else 1 # -1 is B1, 1 is T1
 
 		new_object.set_meta("custom_z_order", custom_z)
 
@@ -1244,6 +1245,12 @@ func toggle_playtest() -> void:
 
 func start_playtest() -> void:
 	is_playtesting = true
+	
+	for chunk_id in level_chunks:
+		for obj in level_chunks[chunk_id]:
+			# Check if the object is valid and has a base_position variable
+			if is_instance_valid(obj) and "base_position" in obj:
+				obj.base_position = obj.global_position
 	
 	# PLAYER TRAIL LOGIC
 	if not is_instance_valid(playtest_trail):

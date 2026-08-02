@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://cqow47bch5ocs"]
 
-[ext_resource type="Script" uid="uid://rf4srb2pfo05" path="res://scripts/Player/base_player.gd" id="1_uiqp4"]
-[ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://Resources/Ships/Ship1/body.png" id="2_dqkch"]
-[ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://Resources/Ships/Ship1/misc.png" id="3_qlg0r"]
-[ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://Resources/Ships/Ship1/outline.png" id="4_tuyoq"]
-[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Objects/hitboxsheet.png" id="5_uiqp4"]
-[ext_resource type="Script" uid="uid://boa5scnw8xkf7" path="res://scripts/Player/player_camera.gd" id="6_hvfru"]
-[ext_resource type="Texture2D" uid="uid://dauduq018b7ul" path="res://Resources/player_explosion.png" id="7_a06cl"]
+[ext_resource type="Script" uid="uid://rf4srb2pfo05" path="res://scripts/player/base_player.gd" id="1_uiqp4"]
+[ext_resource type="Texture2D" uid="uid://bxkpjutxahnov" path="res://resources/ships/Ship1/body.png" id="2_dqkch"]
+[ext_resource type="Texture2D" uid="uid://dn22l2xcl6lcp" path="res://resources/ships/Ship1/misc.png" id="3_qlg0r"]
+[ext_resource type="Texture2D" uid="uid://d25q0sasjedqi" path="res://resources/ships/Ship1/outline.png" id="4_tuyoq"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="5_uiqp4"]
+[ext_resource type="Script" uid="uid://boa5scnw8xkf7" path="res://scripts/player/player_camera.gd" id="6_hvfru"]
+[ext_resource type="Texture2D" uid="uid://dauduq018b7ul" path="res://resources/player_explosion.png" id="7_a06cl"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uiqp4"]
 atlas = ExtResource("5_uiqp4")

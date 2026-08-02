@@ -2,15 +2,15 @@
 
 [ext_resource type="Script" uid="uid://bc1ws4485cqip" path="res://scripts/rooms/editor_root.gd" id="1_eufpp"]
 [ext_resource type="Script" uid="uid://crrim6fs5r7pm" path="res://camera_2d.gd" id="2_5dt4k"]
-[ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://Resources/Backgrounds/background2.png" id="3_xxn6o"]
+[ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://resources/backgrounds/background2.png" id="3_xxn6o"]
 [ext_resource type="Script" uid="uid://d210fgxhcoeiv" path="res://room_canvas.gd" id="4_uank4"]
-[ext_resource type="Script" uid="uid://bdt0dnwafgxxn" path="res://scripts/Editor/clipboard_manager.gd" id="4_ybtv8"]
+[ext_resource type="Script" uid="uid://bdt0dnwafgxxn" path="res://scripts/editor/clipboard_manager.gd" id="4_ybtv8"]
 [ext_resource type="Script" uid="uid://b5d70mqbd8735" path="res://editor_ui.gd" id="5_b4iia"]
-[ext_resource type="PackedScene" uid="uid://cshpi4x7dmqd2" path="res://scenes/Overlays/transform_gizmo.tscn" id="5_xxn6o"]
-[ext_resource type="Theme" uid="uid://cl0g3cwxl3k38" path="res://Theme/new_theme.tres" id="6_5dt4k"]
-[ext_resource type="Script" uid="uid://bp8i1hrufqta7" path="res://scripts/Editor/undo_redo_manager.gd" id="8_uank4"]
-[ext_resource type="Script" uid="uid://co0q6xvm301gg" path="res://scripts/Editor/save_load_manager.gd" id="9_b4iia"]
-[ext_resource type="Script" uid="uid://b0ihw12rxib34" path="res://scripts/Editor/music_downloader.gd" id="11_0esmb"]
+[ext_resource type="PackedScene" uid="uid://cshpi4x7dmqd2" path="res://scenes/overlays/transform_gizmo.tscn" id="5_xxn6o"]
+[ext_resource type="Theme" uid="uid://cl0g3cwxl3k38" path="res://theme/new_theme.tres" id="6_5dt4k"]
+[ext_resource type="Script" uid="uid://bp8i1hrufqta7" path="res://scripts/editor/undo_redo_manager.gd" id="8_uank4"]
+[ext_resource type="Script" uid="uid://co0q6xvm301gg" path="res://scripts/editor/save_load_manager.gd" id="9_b4iia"]
+[ext_resource type="Script" uid="uid://b0ihw12rxib34" path="res://scripts/editor/music_downloader.gd" id="11_0esmb"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_xxn6o"]
 

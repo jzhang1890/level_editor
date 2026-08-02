@@ -29,6 +29,7 @@ func reset() -> void:
 	if scale_tween:
 		scale_tween.kill()
 	$Sprite2D.scale = base_sprite_scale
+	$Sprite2D.modulate.a = 1.0
 
 # Turns the green selection tint on/off for the editor
 func set_highlight(active: bool) -> void:

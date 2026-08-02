@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dinaflq0y8njs"
-path="res://.godot/imported/hitboxsheet.png-f174acfaa47eb7a14616aff31e5ffe7e.ctex"
+path="res://.godot/imported/hitboxsheet.png-468fb77e1a177d5fe4d7e5586279576c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Objects/hitboxsheet.png"
-dest_files=["res://.godot/imported/hitboxsheet.png-f174acfaa47eb7a14616aff31e5ffe7e.ctex"]
+source_file="res://resources/objects/hitboxsheet.png"
+dest_files=["res://.godot/imported/hitboxsheet.png-468fb77e1a177d5fe4d7e5586279576c.ctex"]
 
 [params]
 

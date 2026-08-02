@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b4o8c5eil2xgy"
-path="res://.godot/imported/move_left_medium.png-6ffb91a9f73fc7b1347b906ca345df01.ctex"
+path="res://.godot/imported/move_left_medium.png-0855132f1c438627c6bda18d9f1af42f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Icons/move_left_medium.png"
-dest_files=["res://.godot/imported/move_left_medium.png-6ffb91a9f73fc7b1347b906ca345df01.ctex"]
+source_file="res://resources/icons/move_left_medium.png"
+dest_files=["res://.godot/imported/move_left_medium.png-0855132f1c438627c6bda18d9f1af42f.ctex"]
 
 [params]
 

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dsjeomtwsue1q"]
 
-[ext_resource type="Script" uid="uid://bwue2bnrp4hbv" path="res://scripts/Overlays/game_overlay.gd" id="1_i6bnf"]
+[ext_resource type="Script" uid="uid://bwue2bnrp4hbv" path="res://scripts/overlays/game_overlay.gd" id="1_i6bnf"]
 
 [node name="GameOverlay" type="CanvasLayer" unique_id=117800239]
 script = ExtResource("1_i6bnf")

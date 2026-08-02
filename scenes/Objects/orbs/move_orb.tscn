@@ -1,34 +1,36 @@
-[gd_scene format=3 uid="uid://da1pyxpbd52sn"]
+[gd_scene format=3 uid="uid://df166uy42l3ap"]
 
-[ext_resource type="Script" uid="uid://cgmntlpxt0jih" path="res://scripts/Objects/touch_orb.gd" id="1_fgumk"]
-[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://Resources/Objects/gamesheet.png" id="2_byoup"]
-[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Objects/hitboxsheet.png" id="3_gdgcb"]
+[ext_resource type="Script" uid="uid://2jlt3saj2ffv" path="res://scripts/objects/move_orb.gd" id="1_vyhsr"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://resources/objects/gamesheet.png" id="2_swjc2"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="3_7hk57"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4g0po"]
-atlas = ExtResource("2_byoup")
+atlas = ExtResource("2_swjc2")
 region = Rect2(325, 0, 64, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
 size = Vector2(54, 54)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1qrot"]
-atlas = ExtResource("3_gdgcb")
+atlas = ExtResource("3_7hk57")
 region = Rect2(0, 0, 128, 128)
 
-[node name="TouchOrb" type="Area2D" unique_id=1858188644]
+[node name="MoveOrb" type="Area2D" unique_id=1858188644]
+scale = Vector2(1.1, 1.1)
 collision_layer = 2
-script = ExtResource("1_fgumk")
+script = ExtResource("1_vyhsr")
 metadata/_custom_type_script = "uid://ckysrtiopsb71"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
 texture = SubResource("AtlasTexture_4g0po")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
+scale = Vector2(1.4, 1.4)
 shape = SubResource("RectangleShape2D_als3r")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
 visible = false
 z_index = 4090
-position = Vector2(-0.5000002, -0.49999923)
-scale = Vector2(0.5234375, 0.5234375)
+position = Vector2(-0.90909266, -9.536743e-07)
+scale = Vector2(0.5965908, 0.5965908)
 texture = SubResource("AtlasTexture_1qrot")

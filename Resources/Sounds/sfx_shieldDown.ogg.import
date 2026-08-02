@@ -3,12 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://botf4be7iiatc"
-path="res://.godot/imported/sfx_shieldDown.ogg-67cf73bdcfcd4be412564ade83454c31.oggvorbisstr"
+path="res://.godot/imported/sfx_shieldDown.ogg-fdfdebea4e1b080ef4934b7845a619b4.oggvorbisstr"
 
 [deps]
 
-source_file="res://Resources/Sounds/sfx_shieldDown.ogg"
-dest_files=["res://.godot/imported/sfx_shieldDown.ogg-67cf73bdcfcd4be412564ade83454c31.oggvorbisstr"]
+source_file="res://resources/sounds/sfx_shieldDown.ogg"
+dest_files=["res://.godot/imported/sfx_shieldDown.ogg-fdfdebea4e1b080ef4934b7845a619b4.oggvorbisstr"]
 
 [params]
 

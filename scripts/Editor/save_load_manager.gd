@@ -18,7 +18,7 @@ var current_song_artist: String = "Unknown"
 var current_level_name: String = "Untitled"
 
 # Default background path
-var current_bg_path: String = "res://Resources/Backgrounds/background1.png"
+var current_bg_path: String = "res://resources/backgrounds/background1.png"
 
 # Tab 0: Background, Tab 1: Middleground, Tab 2: Foreground
 var ground_colors: Dictionary = {

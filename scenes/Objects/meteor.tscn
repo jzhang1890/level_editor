@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://krec82ca1xe8"]
 
-[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/Objects/obstacle.gd" id="1_cyiuj"]
-[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://Resources/Objects/gamesheet.png" id="2_cyiuj"]
-[ext_resource type="Script" uid="uid://bj65afvy2h2b2" path="res://scripts/Objects/spinning_object.gd" id="3_sbkq2"]
-[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://Resources/Objects/hitboxsheet.png" id="4_iu3ty"]
+[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/objects/obstacle.gd" id="1_cyiuj"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://resources/objects/gamesheet.png" id="2_cyiuj"]
+[ext_resource type="Script" uid="uid://bj65afvy2h2b2" path="res://scripts/objects/spinning_object.gd" id="3_sbkq2"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="4_iu3ty"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cyiuj"]
 atlas = ExtResource("2_cyiuj")
