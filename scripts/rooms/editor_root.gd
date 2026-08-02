@@ -73,6 +73,7 @@ var previous_mouse_pos: Vector2 = Vector2.ZERO
 var is_box_selecting: bool = false
 var mouse_down_world_pos: Vector2 = Vector2.ZERO
 var box_current_pos: Vector2 = Vector2.ZERO
+var selection_drawer: Node2D
 
 # Tracking for selection
 var selected_objects: Array[Node2D] = []
@@ -149,6 +150,12 @@ func _ready() -> void:
 	color_picker_btn.popup_closed.connect(_on_color_picker_closed)
 	
 	color_picker_btn.color_changed.connect(_on_picker_color_changed)
+	
+	# Create a dedicated node for drawing the box above everything else
+	selection_drawer = Node2D.new()
+	selection_drawer.z_index = 4096 # Maximum 2D Z-index
+	selection_drawer.draw.connect(_draw_selection_box)
+	add_child(selection_drawer)
 	
 	# Turn the editor mouse features back on from when they were turned off during play_scene
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -732,8 +739,12 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 						
 						# Make sure to only grab objects on the active layer
 						if current_layer == 0 or current_layer == obj_layer:
-							# Check if the object's center point is inside our rectangle
-							if selection_rect.has_point(child.global_position):
+							# 1. Build a mathematical bounding box around the object
+							var half_size = GRID_SIZE / 2.0
+							var obj_rect = Rect2(child.global_position - Vector2(half_size, half_size), Vector2(GRID_SIZE, GRID_SIZE))
+							
+							# 2. Check if the selection box overlaps the object's box
+							if selection_rect.intersects(obj_rect):
 								
 								# Fixes bad time complexity: Check the dictionary instead of the array 
 								if not fast_selection_check.has(child):
@@ -754,18 +765,17 @@ func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
 		if has_node("Foreground/TransformGizmo"):
 			$Foreground/TransformGizmo.update_selection(selected_objects)
 
-# Godot's built-in drawing engine
-func _draw() -> void:
+func _draw_selection_box() -> void:
 	if is_box_selecting:
 		var pos = Vector2(min(mouse_down_world_pos.x, box_current_pos.x), min(mouse_down_world_pos.y, box_current_pos.y))
 		var size = Vector2(abs(mouse_down_world_pos.x - box_current_pos.x), abs(mouse_down_world_pos.y - box_current_pos.y))
 		var rect = Rect2(pos, size)
 		
-		# Draw translucent blue fill
-		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.3), true)
+		# Draw translucent blue fill directly onto the new drawer node
+		selection_drawer.draw_rect(rect, Color(0.2, 0.6, 1.0, 0.3), true)
 		
 		# Draw solid blue outline with width of 2 pixels
-		draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
+		selection_drawer.draw_rect(rect, Color(0.2, 0.6, 1.0, 0.8), false, 2.0)
 
 func update_editor_chunks(center_chunk: int) -> void:
 	# Calculate the total vertical space currently visible to the camera
@@ -1029,7 +1039,7 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 			camera.set_process_input(false)
 			camera.set_process(false)
 			
-			queue_redraw() 
+			selection_drawer.queue_redraw()
 			get_viewport().set_input_as_handled()
 			return
 			
@@ -1170,7 +1180,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			# 3. Finish Box Selection
 			if is_box_selecting:
 				is_box_selecting = false
-				queue_redraw() # Clears the blue visual box 
+				selection_drawer.queue_redraw() # Clears the blue visual box 
 				perform_box_selection(mouse_down_world_pos, get_global_mouse_position())
 				get_viewport().set_input_as_handled()
 				return
