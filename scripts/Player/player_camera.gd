@@ -8,6 +8,9 @@ var y_velocity: float = 0.0
 var waiting_at_spawn: bool = true
 var spawn_y: float = 0.0
 
+var focusing_on_death: bool = false
+var death_focus_y: float = 0.0
+
 # Percentage of the half-screen size before the camera starts shifting (0.8 = 80%)
 @export_range(0.5, 0.95) var edge_threshold: float = 0.50
 
@@ -24,6 +27,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not player:
 		return
+		
+	# Hijack the camera to look at the missed orb
+	if focusing_on_death:
+		global_position.y = lerp(global_position.y, death_focus_y, follow_speed * delta)
+		return # Skip the rest of normal player-tracking logic
 		
 	if camera_locked:
 		# Smoothly ease the velocity down to 0 and apply it
@@ -64,3 +72,7 @@ func _physics_process(delta: float) -> void:
 	# Run the lerp unconditionally
 	# The camera will smoothly glide to target_x, then settle.
 	global_position.x = lerp(global_position.x, target_x, follow_speed * delta)
+
+func focus_on_missed_orb(orb_y: float) -> void:
+	focusing_on_death = true
+	death_focus_y = orb_y

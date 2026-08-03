@@ -12,6 +12,8 @@ var scale_tween: Tween
 var player_inside: BasePlayer = null
 
 func _ready() -> void:
+	# Add this orb to a global group so the player can find it
+	add_to_group("orbs")
 	# Anchor the starting position the moment the level loads
 	base_position = global_position
 	# Anchor the starting scale
@@ -40,6 +42,10 @@ func set_highlight(active: bool) -> void:
 		$Sprite2D.modulate = Global.get_channel_color(current_channel)
 
 func _on_area_entered(area: Area2D) -> void:
+	# Ignore death line
+	if area.name == "TrailingDeathLine":
+		return
+	
 	if area.get_parent() is BasePlayer:
 		player_inside = area.get_parent()
 		
@@ -62,6 +68,9 @@ func _on_area_entered(area: Area2D) -> void:
 		_on_player_entered()
 
 func _on_area_exited(area: Area2D) -> void:
+	# Ignore death line
+	if area.name == "TrailingDeathLine":
+		return
 	if area.get_parent() is BasePlayer:
 		player_inside = null
 		
@@ -77,6 +86,15 @@ func _on_area_exited(area: Area2D) -> void:
 		
 		# Call a virtual function that child classes can use
 		_on_player_exited()
+
+func show_missed_warning() -> void:
+	var blink_tween = create_tween().set_loops(2)
+	# Modulate to red
+	blink_tween.tween_property($Sprite2D, "modulate", Color(1, 0, 0, 1), 0.15)
+	
+	# Fetch the original color so it perfectly reverts to whatever channel it was using
+	var original_color = Global.get_channel_color(get_meta("color_channel", 0))
+	blink_tween.tween_property($Sprite2D, "modulate", original_color, 0.15)
 
 # Virtual Function for subclasses
 # These do nothing here, but allow child classes to easily inject their own logic

@@ -388,7 +388,7 @@ func _process(_delta: float) -> void:
 	# Check where the camera currently is on the Y-axis
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
 	
-	# If we crossed into a new chunk, run the update
+	# If user crossed into a new chunk, run the update
 	if current_camera_chunk != last_calculated_chunk:
 		update_chunks(current_camera_chunk)
 		last_calculated_chunk = current_camera_chunk
@@ -401,6 +401,8 @@ func _on_player_player_died() -> void:
 		await get_tree().create_timer(respawn_time, false).timeout
 	
 	# Reset camera
+	# Turn off the death focus 
+	camera.focusing_on_death = false
 	camera.global_position = spawn_position 
 	camera.target_x = spawn_position.x 
 	camera.waiting_at_spawn = false
@@ -413,7 +415,7 @@ func _on_player_player_died() -> void:
 	player.velocity = Vector2(0, player.speedY)
 	player.is_moving_x = false
 	player.dead = false
-	
+
 	# Reset level state so it can be finished again
 	level_completed = false
 	

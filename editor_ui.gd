@@ -4,9 +4,9 @@ extends CanvasLayer
 signal edit_action_requested(action_name: String)
 
 # The build tab items
+@onready var orbs_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Orbs
 @onready var obstacles_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles
 @onready var deco_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration
-@onready var orbs_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Orbs
 
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
@@ -58,6 +58,18 @@ var pre_test_visibility: Dictionary = {}
 @onready var grounds_container: TabContainer = $LevelSettingsNode/LevelSettingsMenu/GroundsContainer
 
 @onready var item_database: Dictionary = {
+	"orbs": [
+		{
+			"name": "Touch Orb",
+			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/orbs/touch_orb.tscn"
+		},
+		{
+			"name": "Move Orb",
+			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/orbs/move_orb.tscn"
+		},
+	],
 	"obstacles": [
 		{
 			"name": "Block",
@@ -117,18 +129,6 @@ var pre_test_visibility: Dictionary = {}
 			"scene_path": "res://scenes/objects/deco/half_square.tscn"
 		},
 	],
-	"orbs": [
-		{
-			"name": "Touch Orb",
-			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
-			"scene_path": "res://scenes/objects/orbs/touch_orb.tscn"
-		},
-		{
-			"name": "Move Orb",
-			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
-			"scene_path": "res://scenes/objects/orbs/move_orb.tscn"
-		},
-	]
 }
 
 var edit_actions: Array = [
@@ -160,9 +160,9 @@ func get_game_sheet_icon(region: Rect2) -> AtlasTexture:
 	return atlas
 	
 func _ready() -> void:
+	populate_object_list(orbs_list, item_database["orbs"])
 	populate_object_list(obstacles_list, item_database["obstacles"])
 	populate_object_list(deco_list, item_database["deco"])
-	populate_object_list(orbs_list, item_database["orbs"])
 	populate_actions_tab()
 	
 	# Hide regular and instrumental buttons
@@ -235,15 +235,15 @@ func _on_objects_container_tab_changed(tab: int) -> void:
 		var selected = orbs_list.get_selected_items()
 		if selected.size() > 0:
 			_on_orbs_item_selected(selected[0])
+	
+func _on_orbs_item_selected(index: int) -> void:
+	selected_scene_path = orbs_list.get_item_metadata(index)
 
 func _on_object_item_selected(index: int) -> void:
 	selected_scene_path = obstacles_list.get_item_metadata(index)
 	
 func _on_decoration_item_selected(index: int) -> void:
 	selected_scene_path = deco_list.get_item_metadata(index)
-	
-func _on_orbs_item_selected(index: int) -> void:
-	selected_scene_path = orbs_list.get_item_metadata(index)
 
 func _on_actions_item_selected(index: int) -> void:
 	var action_name = actions_list.get_item_metadata(index)

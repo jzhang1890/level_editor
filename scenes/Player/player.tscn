@@ -140,6 +140,7 @@ script = ExtResource("6_hvfru")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=809912442]
 visible = false
+z_index = 4000
 sprite_frames = SubResource("SpriteFrames_hk2ix")
 animation = &"player_explosion"
 

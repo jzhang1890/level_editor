@@ -27,12 +27,10 @@ var ball_target_rotation: float = 0.0
 @export var ship_max_rotation: float = 0.2
 @export var ship_rotation_speed: float = 1.0
 
+@export var orb_death_margin: float = 200.0
+
 var dead = false
 var level_finished = false
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -40,10 +38,35 @@ func _process(_delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	if dead:
-		# Reset movement when dead
-		is_moving_x = false 
-		ball_target_rotation = 0.0 # Clear the ball target rotation
+		is_moving_x = false
+		ball_target_rotation = 0.0
 		return
+		
+	# Camera Death Check 
+	var active_camera = get_viewport().get_camera_2d()
+	if active_camera:
+		# Calculate the bottom edge, then pull it up by the margin amount
+		var screen_bottom_y = active_camera.global_position.y + (get_viewport_rect().size.y / 2.0) / active_camera.zoom.y - orb_death_margin
+		
+		# Loop through all the orbs in the scene
+		for orb in get_tree().get_nodes_in_group("orbs"):
+			# If an orb is uncollected AND its center passes our adjusted bottom line
+			if not orb.triggered and orb.global_position.y > screen_bottom_y:
+				
+				# Keep your existing noclip logic so playtesting is still easy
+				var is_noclip = get_parent().get("noclip")
+				if is_noclip == null:
+					is_noclip = false
+					
+				if not is_noclip:
+					# Trigger the blink and camera pan
+					if orb.has_method("show_missed_warning"):
+						orb.show_missed_warning()
+					if active_camera.has_method("focus_on_missed_orb"):
+						active_camera.focus_on_missed_orb(orb.global_position.y)
+					
+					trigger_death()
+					break # Player is dead, stop checking the rest of the orbs
 		
 	# Take away horizontal controls when the level is beat and slow down
 	if level_finished:
@@ -53,8 +76,8 @@ func _physics_process(delta: float) -> void:
 		# ROTATION HANDLING ON LEVEL END
 		match current_mode:
 			GameMode.SHIP:
-				# Smoothly straighten the ship upright (0.0 rad)
-				rotation = move_toward(rotation, 0.0, ship_rotation_speed * delta)
+				# Smoothly straighten the sprite upright (0.0 rad)
+				$Sprite2D.rotation = move_toward($Sprite2D.rotation, 0.0, ship_rotation_speed * delta)
 			GameMode.BALL:
 				# Keep interpolating the ball toward its target rotation
 				$Sprite2D.rotation_degrees = lerp($Sprite2D.rotation_degrees, ball_target_rotation, ball_rotation_speed * delta)
@@ -71,6 +94,18 @@ func _physics_process(delta: float) -> void:
 	# Move the body after the specific state has calculated the velocity
 	move_and_slide()
 	
+# Death helper function
+func trigger_death() -> void:
+	# Hide player sprite
+	$Sprite2D.visible = false
+	# Play the death animation
+	$AnimatedSprite2D.visible = true
+	$AnimatedSprite2D.play("player_explosion")
+	
+	dead = true
+	player_died.emit()
+
+# Player entered hitbox
 func _on_hitbox_area_entered(area: Area2D) -> void:
 	# Checks if the parent has a noclip variable and default to false if it doesn't
 	var is_noclip = get_parent().get("noclip")
@@ -78,15 +113,8 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		is_noclip = false
 		
 	if area is Obstacle and not is_noclip:
-		# Hide player sprite
-		$Sprite2D.visible = false
-		# Play the death animation
-		$AnimatedSprite2D.visible = true
-		$AnimatedSprite2D.play("player_explosion")
-		
-		dead = true
-		player_died.emit()
-		
+		trigger_death()
+
 func toggle_hitbox(is_hitbox_visible: bool) -> void:
 	var hitbox = get_node_or_null("HitboxSprite")
 	if hitbox:
@@ -166,14 +194,20 @@ func process_ship(delta: float) -> void:
 	velocity.y = -speedY
 	
 	# Rotation physics
-	if direction > 0 and rotation < ship_max_rotation:
-		rotation += ship_rotation_speed * delta
-	elif direction < 0 and rotation > -ship_max_rotation:
-		rotation -= ship_rotation_speed * delta
+	if direction > 0 and $Sprite2D.rotation < ship_max_rotation:
+		$Sprite2D.rotation += ship_rotation_speed * delta
+	elif direction < 0 and $Sprite2D.rotation > -ship_max_rotation:
+		$Sprite2D.rotation -= ship_rotation_speed * delta
 	elif direction == 0:
-		if rotation < 0:
-			rotation += ship_rotation_speed * delta
-			if rotation > 0: rotation = 0
-		elif rotation > 0:
-			rotation -= ship_rotation_speed * delta
-			if rotation < 0: rotation = 0
+		if $Sprite2D.rotation < 0:
+			$Sprite2D.rotation += ship_rotation_speed * delta
+			if $Sprite2D.rotation > 0: $Sprite2D.rotation = 0
+		elif $Sprite2D.rotation > 0:
+			$Sprite2D.rotation -= ship_rotation_speed * delta
+			if $Sprite2D.rotation < 0: $Sprite2D.rotation = 0
+			
+	# Sync the hitbox rotation to match the sprite 
+	if has_node("Hitbox"):
+		$Hitbox.rotation = $Sprite2D.rotation
+	if has_node("HitboxSprite"):
+		$HitboxSprite.rotation = $Sprite2D.rotation
