@@ -7,7 +7,7 @@ signal player_died
 enum GameMode { SHIP, BALL }
 var current_mode: GameMode = GameMode.SHIP
 
-@export var speedY := 450 
+@export var speedY := 450
 
 var is_moving_x: bool = false
 
@@ -126,7 +126,7 @@ func process_ball(delta: float) -> void:
 	
 	if Input.is_action_just_pressed("right"):
 		# Always base the new target on the current position, overriding the old one
-		ball_target_x = global_position.x + (ball_speedX * 64.0) 
+		ball_target_x = global_position.x + (ball_speedX * 64.0)
 		
 		# Base the new rotation target on the sprite's current angle
 		ball_target_rotation = $Sprite2D.rotation_degrees + 90.0

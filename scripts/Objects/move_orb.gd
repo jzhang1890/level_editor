@@ -22,9 +22,7 @@ func apply_boost(direction: int) -> void:
 	scale_tween.tween_property($Sprite2D, "scale", $Sprite2D.scale * 1.5, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	scale_tween.parallel().tween_property($Sprite2D, "modulate:a", 0.0, 0.2)
 	
-	if player_inside.current_mode == BasePlayer.GameMode.SHIP:
-		player_inside.velocity.x = boost_amount * direction
+	player_inside.velocity.x = boost_amount * direction
 		
-	elif player_inside.current_mode == BasePlayer.GameMode.BALL:
-		player_inside.ball_target_x = player_inside.global_position.x + (boost_amount * direction * 0.1)
+	if player_inside.current_mode == BasePlayer.GameMode.BALL:
 		player_inside.is_moving_x = true

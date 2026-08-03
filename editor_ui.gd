@@ -66,7 +66,7 @@ var pre_test_visibility: Dictionary = {}
 		},
 		{
 			"name": "Move Orb",
-			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
+			"icon": get_game_sheet_icon(Rect2(390, 0, 64, 64)), 
 			"scene_path": "res://scenes/objects/orbs/move_orb.tscn"
 		},
 	],
@@ -394,7 +394,7 @@ func refresh_group_ui() -> void:
 func _on_add_group_id_button_pressed() -> void:
 	var input_text = group_id_input.text.strip_edges()
 	
-	# Stop if they typed letters instead of numbers
+	# Stop if user typed letters instead of numbers
 	if not input_text.is_valid_int():
 		return 
 		

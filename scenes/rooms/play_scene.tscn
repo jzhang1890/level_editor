@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bhn2em66b2a7" path="res://scripts/rooms/play_scene.gd" id="1_x1qvo"]
 [ext_resource type="PackedScene" uid="uid://cqow47bch5ocs" path="res://scenes/player/player.tscn" id="2_qf7ku"]
 [ext_resource type="Texture2D" uid="uid://chpalhh8twddv" path="res://resources/backgrounds/background2.png" id="3_qf7ku"]
+[ext_resource type="AudioStream" uid="uid://cht8081ohison" path="res://resources/sounds/player-dead1.mp3" id="4_4g8qc"]
 
 [node name="PlayScene" type="Node2D" unique_id=621862255]
 script = ExtResource("1_x1qvo")
@@ -152,6 +153,11 @@ layout_mode = 2
 text = "Quit"
 
 [node name="LevelMusic" type="AudioStreamPlayer" parent="." unique_id=421998354]
+
+[node name="DeathSoundPlayer" type="AudioStreamPlayer" parent="." unique_id=1624075817]
+stream = ExtResource("4_4g8qc")
+volume_db = -16.086
+pitch_scale = 0.76
 
 [connection signal="player_died" from="Player" to="." method="_on_player_player_died"]
 [connection signal="pressed" from="GameOverlay/PauseButton" to="." method="_on_pause_button_pressed"]

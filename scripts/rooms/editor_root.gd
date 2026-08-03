@@ -210,8 +210,17 @@ func _input(event: InputEvent) -> void:
 					camera._input(event)
 					
 			get_viewport().set_input_as_handled()
-			
+
 func _unhandled_input(event: InputEvent) -> void:
+	# 1. Catch the pause toggle before the paused block ignores inputs
+	if event.is_action_pressed("escape"):
+		if paused:
+			_on_resume_button_pressed()
+		else:
+			_on_pause_button_pressed()
+		return # Stop processing this specific input event
+
+	# 2. Block all other inputs if the editor is paused
 	if paused: return
 	
 	# Scrollbar fix: Force scrollbar to let go on click
@@ -1245,6 +1254,8 @@ func toggle_playtest() -> void:
 
 func start_playtest() -> void:
 	is_playtesting = true
+	
+	change_selection(null, false)
 	
 	for chunk_id in level_chunks:
 		for obj in level_chunks[chunk_id]:

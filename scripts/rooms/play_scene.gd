@@ -4,6 +4,7 @@ extends Node2D
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/Camera2D
 @onready var music_player: AudioStreamPlayer = $LevelMusic
+@onready var death_sound: AudioStreamPlayer = $DeathSoundPlayer
 
 # For the background texture
 @onready var bg_rect: TextureRect = $BackgroundCanvas/BackgroundLayer/Background
@@ -84,7 +85,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 		
 	# Check if the player pressed ESC
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+	if event.is_action_pressed("escape"):
 		if paused:
 			_on_resume_button_pressed()
 		else:
@@ -396,7 +397,11 @@ func _process(_delta: float) -> void:
 func _on_player_player_died() -> void:
 	if music_player and music_player.stream:
 		music_player.stop()
-		
+	
+	# Dead sound
+	if death_sound:
+		death_sound.play()
+	
 	if not restart_button_pressed:
 		await get_tree().create_timer(respawn_time, false).timeout
 	
@@ -537,8 +542,11 @@ func trigger_level_end() -> void:
 	# 1. Lock the player's horizontal movement
 	player.level_finished = true
 	
-	# Wait 2 seconds
-	await get_tree().create_timer(2).timeout
+	# Wait 1.5 seconds
+	await get_tree().create_timer(1.5).timeout
+	
+	if not level_completed or player.dead:
+		return
 	
 	if level_end_screen:
 		level_end_screen.visible = true
