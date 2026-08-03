@@ -43,13 +43,15 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.get_parent() is BasePlayer:
 		player_inside = area.get_parent()
 		
-		# Stop shrinking if currently shrinking
-		if scale_tween:
-			scale_tween.kill() 
-			
-		# Animate the Sprite2D getting 30% larger over 0.2 seconds
-		scale_tween = create_tween()
-		scale_tween.tween_property($Sprite2D, "scale", base_sprite_scale * 1.3, 0.2).set_trans(Tween.TRANS_SINE)
+		# ONLY do the hover animation if the orb hasn't been used yet
+		if not triggered:
+			# Stop shrinking if currently shrinking
+			if scale_tween:
+				scale_tween.kill() 
+				
+			# Animate the Sprite2D getting 30% larger over 0.2 seconds
+			scale_tween = create_tween()
+			scale_tween.tween_property($Sprite2D, "scale", base_sprite_scale * 1.3, 0.2).set_trans(Tween.TRANS_SINE)
 		
 		# Call a virtual function that child classes can use
 		_on_player_entered()
@@ -58,13 +60,15 @@ func _on_area_exited(area: Area2D) -> void:
 	if area.get_parent() is BasePlayer:
 		player_inside = null
 		
-		# Stop growing if currently growing
-		if scale_tween:
-			scale_tween.kill() 
-			
-		# Animate the Sprite2D shrinking back to normal over 0.25 seconds
-		scale_tween = create_tween()
-		scale_tween.tween_property($Sprite2D, "scale", base_sprite_scale, 0.25).set_trans(Tween.TRANS_SINE)
+		# ONLY do the shrink animation if the orb hasn't been used yet
+		if not triggered:
+			# Stop growing if currently growing
+			if scale_tween:
+				scale_tween.kill() 
+				
+			# Animate the Sprite2D shrinking back to normal over 0.25 seconds
+			scale_tween = create_tween()
+			scale_tween.tween_property($Sprite2D, "scale", base_sprite_scale, 0.25).set_trans(Tween.TRANS_SINE)
 		
 		# Call a virtual function that child classes can use
 		_on_player_exited()
