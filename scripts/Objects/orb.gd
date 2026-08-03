@@ -5,7 +5,7 @@ var base_position: Vector2
 var base_sprite_scale: Vector2 # Stores original size
 var triggered: bool = false
 
-# Keeps track of the animation so we can interrupt it safely
+# Keeps track of the animation so it can be interrupted safely
 var scale_tween: Tween 
 
 # Tracks the player while they are inside the orb's collision shape
@@ -43,7 +43,12 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.get_parent() is BasePlayer:
 		player_inside = area.get_parent()
 		
-		# ONLY do the hover animation if the orb hasn't been used yet
+		# Register the orb immediately so hover animations always reset 
+		var current_level = get_tree().current_scene
+		if "modified_objects" in current_level and not self in current_level.modified_objects:
+			current_level.modified_objects.append(self)
+			
+		# Only do the hover animation if the orb hasn't been used yet
 		if not triggered:
 			# Stop shrinking if currently shrinking
 			if scale_tween:
@@ -60,7 +65,7 @@ func _on_area_exited(area: Area2D) -> void:
 	if area.get_parent() is BasePlayer:
 		player_inside = null
 		
-		# ONLY do the shrink animation if the orb hasn't been used yet
+		# Only do the shrink animation if the orb hasn't been used yet
 		if not triggered:
 			# Stop growing if currently growing
 			if scale_tween:
@@ -73,7 +78,7 @@ func _on_area_exited(area: Area2D) -> void:
 		# Call a virtual function that child classes can use
 		_on_player_exited()
 
-# --- VIRTUAL FUNCTIONS FOR SUBCLASSES ---
+# Virtual Function for subclasses
 # These do nothing here, but allow child classes to easily inject their own logic
 
 func _on_player_entered() -> void:
