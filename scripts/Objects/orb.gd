@@ -31,15 +31,16 @@ func reset() -> void:
 	if scale_tween:
 		scale_tween.kill()
 	$Sprite2D.scale = base_sprite_scale
-	$Sprite2D.modulate.a = 1.0
+	
+	# Reset the full color, not just the alpha
+	$Sprite2D.modulate = Color(1, 1, 1, 1)
 
 # Turns the green selection tint on/off for the editor
 func set_highlight(active: bool) -> void:
 	if active:
 		$Sprite2D.modulate = Color(0.5, 1.5, 0.5) 
 	else:
-		var current_channel = get_meta("color_channel", 0)
-		$Sprite2D.modulate = Global.get_channel_color(current_channel)
+		$Sprite2D.modulate = Color(1, 1, 1, 1)
 
 func _on_area_entered(area: Area2D) -> void:
 	# Ignore death line
@@ -92,9 +93,8 @@ func show_missed_warning() -> void:
 	# Modulate to red
 	blink_tween.tween_property($Sprite2D, "modulate", Color(1, 0, 0, 1), 0.15)
 	
-	# Fetch the original color so it perfectly reverts to whatever channel it was using
-	var original_color = Global.get_channel_color(get_meta("color_channel", 0))
-	blink_tween.tween_property($Sprite2D, "modulate", original_color, 0.15)
+	# Just tween back to white
+	blink_tween.tween_property($Sprite2D, "modulate", Color(1, 1, 1, 1), 0.15)
 
 # Virtual Function for subclasses
 # These do nothing here, but allow child classes to easily inject their own logic

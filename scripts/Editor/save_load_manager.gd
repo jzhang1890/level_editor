@@ -130,6 +130,7 @@ func load_level(target_path: String) -> void:
 								item_dict["groups"] = parsed_groups
 							"12": item_dict["custom_z_order"] = val.to_int()
 							"13": item_dict["z_layer"] = val.to_int()
+							"14": item_dict["trigger_color"] = val
 							
 					# Instantiate the object using parsed dict
 					var resource = load(item_dict["scene_path"])
@@ -170,8 +171,30 @@ func load_level(target_path: String) -> void:
 						
 						# Apply color channel data
 						new_object.set_meta("color_channel", item_dict["color_channel"])
-						# Actually physically paints the object
-						new_object.modulate = Global.get_channel_color(item_dict["color_channel"])
+						
+						# 1. Check the path to catch Orbs and Triggers BEFORE _ready() fires
+						var saved_path = item_dict["scene_path"].to_lower()
+						if "/orbs/" in saved_path or "/triggers/" in saved_path:
+							new_object.set_meta("ignore_color", true)
+							
+						# 2. Port your updated editor logic for coloring Sprite2D vs Root
+						if not new_object.has_meta("ignore_color"):
+							var target_color = Global.get_channel_color(item_dict["color_channel"])
+							
+							if new_object is Sprite2D:
+								new_object.modulate = target_color
+							else:
+								var sprite = new_object.get_node_or_null("Sprite2D")
+								if sprite:
+									sprite.modulate = target_color
+									new_object.modulate = Color(1, 1, 1, 1.0)
+								else:
+									new_object.modulate = target_color
+									
+						elif item_dict.has("trigger_color"):
+							# Just store the metadata, don't tint the actual sprite
+							var saved_color = Color(item_dict["trigger_color"])
+							new_object.set_meta("trigger_color", saved_color)
 						
 						# Expand the max_layer limit
 						if loaded_layer > editor.max_layer:
@@ -292,6 +315,12 @@ func _on_save_button_pressed() -> void:
 			var z_layer = object.get_meta("z_layer", 0)
 			obj_parts.append("13")
 			obj_parts.append(str(z_layer))
+			
+			# 14: Custom Trigger Color
+			if object.has_meta("trigger_color"):
+				var hex = object.get_meta("trigger_color").to_html()
+				obj_parts.append("14")
+				obj_parts.append(hex)
 			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))

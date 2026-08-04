@@ -98,6 +98,7 @@ var zoom_step: float = 0.2 # How much the buttons zoom per click
 var is_playtesting: bool = false
 var test_player: BasePlayer = null
 var pre_test_camera_pos: Vector2 = Vector2.ZERO
+var pre_test_colors: Dictionary = {}
 var playtest_trail: Line2D = null 
 
 # The player to spawn when playtesting
@@ -117,6 +118,8 @@ var paused: bool = false:
 @export var hitboxes_on := false
 
 func _ready() -> void:
+	add_to_group("level_editor")
+	
 	# Hide the all menus at the start
 	if selection_menu:
 		selection_menu.visible = false
@@ -483,10 +486,16 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		# Determine defaults based on folder path
 		var is_deco = "/deco/" in path.to_lower()
 		var is_orb = "/orbs/" in path.to_lower()
+		var is_trigger = "/triggers/" in path.to_lower() 
+		
 		var custom_z = -2 if is_deco or is_orb else 2
-		var default_z_layer = -1 if is_deco or is_orb else 1 # -1 is B1, 1 is T1
+		var default_z_layer = -1 if is_deco or is_orb else 1 
 
 		new_object.set_meta("custom_z_order", custom_z)
+
+		# Give the orb AND trigger the tag
+		if is_orb or is_trigger:
+			new_object.set_meta("ignore_color", true)
 
 		# If the UI is on the starting default (0), use the object's default. Otherwise, respect the UI choice.
 		var applied_z_layer = default_z_layer if current_z_layer == 0 else current_z_layer
@@ -497,15 +506,17 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		new_object.set_meta("color_channel", 0)
 		var target_color = Global.get_channel_color(0)
 		
-		if new_object is Sprite2D:
-			new_object.modulate = target_color
-		else:
-			var sprite = new_object.get_node_or_null("Sprite2D")
-			if sprite:
-				sprite.modulate = target_color
-				new_object.modulate = Color(1, 1, 1, 1.0) # Explicitly keep root opaque
-			else:
+		# Modulates the object if we don't ignore color
+		if not new_object.has_meta("ignore_color"):
+			if new_object is Sprite2D:
 				new_object.modulate = target_color
+			else:
+				var sprite = new_object.get_node_or_null("Sprite2D")
+				if sprite:
+					sprite.modulate = target_color
+					new_object.modulate = Color(1, 1, 1, 1.0) # Explicitly keep root opaque
+				else:
+					new_object.modulate = target_color
 		
 		# CHUNKING PLACEMENT
 		var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
@@ -716,22 +727,24 @@ func refresh_layer_visibility() -> void:
 					var channel = child.get_meta("color_channel", 0)
 					var target_color = Global.get_channel_color(channel)
 					
-					if current_layer == 0 or current_layer == obj_layer:
-						if child is Sprite2D:
-							child.modulate = target_color
+					# Check to ignore modulation or not
+					if not child.has_meta("is_trigger") and not child.has_meta("ignore_color"):
+						if current_layer == 0 or current_layer == obj_layer:
+							if child is Sprite2D:
+								child.modulate = target_color
+							else:
+								var sprite = child.get_node_or_null("Sprite2D")
+								if sprite:
+									sprite.modulate = target_color
+								child.modulate = Color(1, 1, 1, 1.0) # Keeps root container opaque so hitboxes stay visible
 						else:
-							var sprite = child.get_node_or_null("Sprite2D")
-							if sprite:
-								sprite.modulate = target_color
-							child.modulate = Color(1, 1, 1, 1.0) # Keeps root container opaque so hitboxes stay visible
-					else:
-						# Faded out for inactive layers
-						if child is Sprite2D:
-							var faded_color = target_color
-							faded_color.a *= 0.08
-							child.modulate = faded_color
-						else:
-							child.modulate = Color(1, 1, 1, 0.08)
+							# Faded out for inactive layers
+							if child is Sprite2D:
+								var faded_color = target_color
+								faded_color.a *= 0.08
+								child.modulate = faded_color
+							else:
+								child.modulate = Color(1, 1, 1, 0.08)
 		
 # BOX SELECTION LOGIC
 func perform_box_selection(start_p: Vector2, end_p: Vector2) -> void:
@@ -834,22 +847,24 @@ func update_editor_chunks(center_chunk: int) -> void:
 						var obj_layer = obj.get_meta("layer", 1)
 						var target_color = Global.get_channel_color(channel)
 						
-						if obj is Sprite2D:
-							# CASE 1: Object is the sprite (Decorations)
-							if current_layer != 0 and current_layer != obj_layer:
-								target_color.a = 0.05
-							obj.modulate = target_color
-						else: # CASE 2: Object has sprite as a child
-							var sprite = obj.get_node_or_null("Sprite2D")
-							if sprite:
-								# Apply full color AND alpha directly to the sprite
-								sprite.modulate = target_color 
-				
-							# Not on the layer, so fade every node in the object including hitbox
-							if current_layer != 0 and current_layer != obj_layer:
-								obj.modulate = Color(1, 1, 1, 0.05) # Faded out
-							else: # The object is on the current layer, so keep main object completely opaque so hitbox show
-								obj.modulate = Color(1, 1, 1, 1.0) # Keep root opaque so hitboxes show
+						# Check if object should be modulated or not
+						if not obj.has_meta("is_trigger") and not obj.has_meta("ignore_color"):
+							if obj is Sprite2D:
+								# CASE 1: Object is the sprite (Decorations)
+								if current_layer != 0 and current_layer != obj_layer:
+									target_color.a = 0.05
+								obj.modulate = target_color
+							else: # CASE 2: Object has sprite as a child
+								var sprite = obj.get_node_or_null("Sprite2D")
+								if sprite:
+									# Apply full color AND alpha directly to the sprite
+									sprite.modulate = target_color 
+					
+								# Not on the layer, so fade every node in the object including hitbox
+								if current_layer != 0 and current_layer != obj_layer:
+									obj.modulate = Color(1, 1, 1, 0.05) # Faded out
+								else: # The object is on the current layer, so keep main object completely opaque so hitbox show
+									obj.modulate = Color(1, 1, 1, 1.0) # Keep root opaque so hitboxes show
 						
 						# Fix o(n): Check the Dictionary instead of the Array 
 						if fast_selection_check.has(obj) and obj.has_method("set_highlight"):
@@ -968,6 +983,9 @@ func _on_picker_color_changed(new_color: Color) -> void:
 				if is_instance_valid(obj):
 					# If the object is on this channel, update its tint
 					if obj.get_meta("color_channel", 0) == current_editing_channel:
+						# Skip triggers AND orbs so they keep their default colors
+						if obj.has_meta("is_trigger") or obj.has_meta("ignore_color"):
+							continue
 						
 						# Use dictionary for better time complexity
 						if fast_selection_check.has(obj):
@@ -1282,9 +1300,11 @@ func start_playtest() -> void:
 
 	# 1. Save where the editor camera was looking
 	pre_test_camera_pos = camera.global_position
+	pre_test_colors = Global.active_level_colors.duplicate()
 	
 	# 2. Spawn the player
 	test_player = PLAYER_SCENE.instantiate()
+	test_player.add_to_group("player")
 	
 	# Spawn the player exactly at 0,0
 	test_player.global_position = Vector2(0, 0)
@@ -1336,15 +1356,21 @@ func stop_playtest() -> void:
 	ui_layer.toggle_playtest_ui(false)
 	$EditorUI/TestButton.text = "Play"
 	
+	# Restore the global color dictionary
+	Global.active_level_colors = pre_test_colors.duplicate()
+	
+	# 5. Snap the chunks back to the editor camera
+	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
+	update_editor_chunks(current_camera_chunk)
+
+	# Force the objects on screen to visually revert to the original colors
+	refresh_layer_visibility()
+	
 	# Reset any triggered objects before going back to Build Mode
 	for obj in modified_objects:
 		if is_instance_valid(obj):
 			obj.reset()
 	modified_objects.clear()
-	
-	# 5. Snap the chunks back to the editor camera instantly
-	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
-	update_editor_chunks(current_camera_chunk)
 	
 	# 6. Stop the music
 	var music_player = get_node_or_null("LevelMusic")
@@ -1366,4 +1392,22 @@ func update_z_layer_ui(target_layer: int) -> void:
 		if btn:
 			# set_pressed_no_signal visually toggles the button without triggering its connected function
 			btn.set_pressed_no_signal(key == target_layer)
-	
+
+func update_gameplay_colors(channel: int, new_color: Color) -> void:
+	# Sweep through ACTIVE chunks only
+	for chunk_id in active_chunks:
+		if level_chunks.has(chunk_id):
+			for obj in level_chunks[chunk_id]:
+				if is_instance_valid(obj):
+					# Skip triggers AND orbs so they keep their default colors
+					if obj.has_meta("is_trigger") or obj.has_meta("ignore_color"):
+						continue
+					
+					# If the object is on this channel, update its tint
+					if obj.get_meta("color_channel", 0) == channel:
+						if obj is Sprite2D:
+							obj.modulate = new_color
+						else:
+							var sprite = obj.get_node_or_null("Sprite2D")
+							if sprite:
+								sprite.modulate = new_color

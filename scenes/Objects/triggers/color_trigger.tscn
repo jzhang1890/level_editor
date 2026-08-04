@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://cltk2a6baig20"]
+
+[ext_resource type="Script" uid="uid://bsae58xd2xudi" path="res://scripts/objects/color_trigger.gd" id="1_sgggg"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://resources/objects/gamesheet.png" id="2_83j1r"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="3_4hqwf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4g0po"]
+atlas = ExtResource("2_83j1r")
+region = Rect2(325, 0, 64, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
+size = Vector2(54, 54)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1qrot"]
+atlas = ExtResource("3_4hqwf")
+region = Rect2(0, 0, 128, 128)
+
+[node name="ColorTrigger" type="Area2D" unique_id=1329445669]
+scale = Vector2(1.1, 1.1)
+collision_layer = 2
+script = ExtResource("1_sgggg")
+metadata/_custom_type_script = "uid://dgvpwgsrj6t5l"
+
+[node name="Line2D" type="Line2D" parent="." unique_id=1978426024]
+z_index = -4000
+points = PackedVector2Array(27271.816, 0, -27273.635, 0)
+width = 2.0
+default_color = Color(0.09019608, 1, 1, 1)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
+texture = SubResource("AtlasTexture_4g0po")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
+scale = Vector2(1.4, 1.4)
+shape = SubResource("RectangleShape2D_als3r")
+
+[node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
+visible = false
+z_index = 4090
+position = Vector2(-0.90909266, -9.536743e-07)
+scale = Vector2(0.5965908, 0.5965908)
+texture = SubResource("AtlasTexture_1qrot")

@@ -131,7 +131,11 @@ var pre_test_visibility: Dictionary = {}
 		},
 	],
 	"triggers": [
-		
+		{
+			"name": "Color Trigger",
+			"icon": preload("res://resources/icon.svg"), 
+			"scene_path": "res://scenes/objects/triggers/color_trigger.tscn"
+		},
 	],
 }
 
@@ -146,7 +150,7 @@ var edit_actions: Array = [
 	{"icon": preload("res://resources/icons/move_right_medium.png"), "action": "move_right_medium"},
 	{"icon": preload("res://resources/icons/rotate_left_30.png"), "action": "rotate_left"},
 	{"icon": preload("res://resources/icons/rotate_right_30.png"), "action": "rotate_right"},
-		{"icon": preload("res://resources/icons/flip_horizontal.png"), "action": "flip_horizontal"},
+	{"icon": preload("res://resources/icons/flip_horizontal.png"), "action": "flip_horizontal"},
 	{"icon": preload("res://resources/icons/flip_vertical.png"), "action": "flip_vertical"},
 	{"icon": preload("res://resources/icon.svg"), "action": "show_hide_gizmo"},
 ]
@@ -192,6 +196,7 @@ func _on_exit_button_pressed() -> void:
 	$ColorChannelMenu.visible = false
 	$LevelSettingsMenu.visible = false
 	$EditGroupMenu.visible = false
+	$ColorTriggerMenu.visible = false
 	get_parent().paused = false
 	
 	var music_player = get_parent().get_node_or_null("LevelMusic")
@@ -231,17 +236,17 @@ func populate_actions_tab() -> void:
 func _on_objects_container_tab_changed(tab: int) -> void:
 	selected_scene_path = ""
 	if tab == 0: 
-		var selected = obstacles_list.get_selected_items()
-		if selected.size() > 0:
-			_on_object_item_selected(selected[0])		
-	elif tab == 1: 
-		var selected = deco_list.get_selected_items()
-		if selected.size() > 0:
-			_on_decoration_item_selected(selected[0])
-	elif tab == 2: 
 		var selected = orbs_list.get_selected_items()
 		if selected.size() > 0:
 			_on_orbs_item_selected(selected[0])
+	elif tab == 1: 
+		var selected = obstacles_list.get_selected_items()
+		if selected.size() > 0:
+			_on_object_item_selected(selected[0])		
+	elif tab == 2: 
+		var selected = deco_list.get_selected_items()
+		if selected.size() > 0:
+			_on_decoration_item_selected(selected[0])
 	elif tab == 3: 
 		var selected = triggers_list.get_selected_items()
 		if selected.size() > 0:
@@ -265,18 +270,36 @@ func _on_actions_item_selected(index: int) -> void:
 	actions_list.deselect_all()
 	
 func _on_edit_object_button_pressed() -> void:
-	$ColorChannelMenu.visible = true 
-	get_parent().paused  = true
-	if current_selected_objects:
-		for obj in current_selected_objects:
-			if obj.has_meta("color_channel"):
-				var channel = obj.get_meta("color_channel")
-				var button_name = "Channel" + str(channel) + "Button"
-				var target_button = $ColorChannelMenu/ColorChannelMenu.get_node(button_name)
-				if target_button:
-					target_button.button_pressed = true
-					$ColorChannelMenu/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
-					get_parent().current_editing_channel = channel
+	get_parent().paused = true
+	
+	if current_selected_objects and current_selected_objects.size() > 0:
+		var first_obj = current_selected_objects[0]
+		
+		if first_obj.has_meta("is_color_trigger"):
+			# Show the menu for color triggers
+			$ColorTriggerMenu.visible = true
+			
+			# Read the saved data off the trigger
+			var current_channel = first_obj.get_meta("target_channel", 0)
+			var current_color = first_obj.get_meta("trigger_color", Color(1, 1, 1, 1))
+			
+			# Push that data into your UI nodes
+			$ColorTriggerMenu/ColorTriggerMenu/ChannelInput.text = str(current_channel)
+			$ColorTriggerMenu/ColorTriggerMenu/ColorPicker.color = current_color
+			
+		else:
+			# It's a standard object, show the normal menu
+			$ColorChannelMenu.visible = true
+			$ColorChannelMenu.visible = true 
+			for obj in current_selected_objects:
+				if obj.has_meta("color_channel"):
+					var channel = obj.get_meta("color_channel")
+					var button_name = "Channel" + str(channel) + "Button"
+					var target_button = $ColorChannelMenu/ColorChannelMenu.get_node(button_name)
+					if target_button:
+						target_button.button_pressed = true
+						$ColorChannelMenu/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
+						get_parent().current_editing_channel = channel
 
 func _on_background_item_selected(index: int) -> void:
 	var selected_path = $LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
@@ -438,3 +461,19 @@ func _remove_group_from_selection(group_id: int) -> void:
 				
 	# Rebuild the UI now that the group is gone
 	refresh_group_ui()
+
+func _on_trigger_channel_input_text_changed(new_text: String) -> void:
+	# Make sure they actually typed a number
+	if not new_text.is_valid_int():
+		return
+		
+	var new_channel = new_text.to_int()
+	
+	for obj in current_selected_objects:
+		if obj.has_meta("is_color_trigger"):
+			obj.set_meta("target_channel", new_channel)
+
+func _on_trigger_color_picker_color_changed(new_color: Color) -> void:
+	for obj in current_selected_objects:
+		if obj.has_meta("is_color_trigger"):
+			obj.set_meta("trigger_color", new_color)

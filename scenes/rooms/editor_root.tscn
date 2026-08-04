@@ -16,7 +16,6 @@
 
 [node name="EditorRoot" type="Node2D" unique_id=134942868]
 script = ExtResource("1_eufpp")
-hitboxes_on = true
 
 [node name="UndoRedoManager" type="Node" parent="." unique_id=677643816]
 script = ExtResource("8_uank4")
@@ -117,6 +116,9 @@ metadata/_tab_index = 2
 [node name="Triggers" type="ItemList" parent="EditorUI/EditorPanel/MainTabContainer/Build/ObjectsContainer" unique_id=1751814741]
 visible = false
 layout_mode = 2
+max_columns = 0
+icon_mode = 0
+fixed_icon_size = Vector2i(75, 75)
 metadata/_tab_index = 3
 
 [node name="Edit" type="MarginContainer" parent="EditorUI/EditorPanel/MainTabContainer" unique_id=1665621497]
@@ -713,6 +715,7 @@ script = ExtResource("11_0esmb")
 [node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" unique_id=1443580158]
 
 [node name="ColorTriggerMenu" type="Control" parent="EditorUI" unique_id=1570847708]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -738,6 +741,14 @@ offset_right = 1027.0
 offset_bottom = 565.0
 color = Color(0.2, 0.2, 0.2, 0.78431374)
 
+[node name="ExitButton" type="Button" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=683600580]
+layout_mode = 0
+offset_left = 654.5
+offset_top = 30.5
+offset_right = 713.5
+offset_bottom = 77.5
+text = "X"
+
 [node name="ColorPicker" type="ColorPicker" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=1536727731]
 layout_mode = 1
 anchors_preset = 8
@@ -746,9 +757,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -149.0
-offset_top = -199.0
+offset_top = -170.0
 offset_right = 149.0
-offset_bottom = 99.0
+offset_bottom = 128.0
 grow_horizontal = 2
 grow_vertical = 2
 edit_alpha = false
@@ -857,6 +868,9 @@ text = "Save and Quit"
 [connection signal="item_selected" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]
 [connection signal="request_completed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader/HTTPRequest" to="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" method="_on_ncs_http_request_request_completed"]
 [connection signal="request_completed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader/NG_HTTPRequest" to="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" method="_on_ng_http_request_request_completed"]
+[connection signal="pressed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="color_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ColorPicker" to="EditorUI" method="_on_trigger_color_picker_color_changed"]
+[connection signal="text_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelInput" to="EditorUI" method="_on_trigger_channel_input_text_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]
