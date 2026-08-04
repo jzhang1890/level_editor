@@ -26,9 +26,9 @@ extends Node2D
 
 @onready var scrollbar: VSlider = $EditorUI/VSlider
 
-@onready var z_order_spinbox: SpinBox = $EditorUI/ColorChannelNode/ColorChannelMenu/ZOrderSpinBox
+@onready var z_order_spinbox: SpinBox = $EditorUI/ColorChannelMenu/ColorChannelMenu/ZOrderSpinBox
 
-@onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelNode/ColorChannelMenu/ColorPickerButton
+@onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorChannelMenu/ColorPickerButton
 var color_before_edit: Color
 var current_editing_channel: int = 0
 
@@ -124,20 +124,20 @@ func _ready() -> void:
 		pause_menu.visible = false
 	
 	# Connect the buttons and bind their specific channel ID
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel0Button.pressed.connect(_on_color_channel_selected.bind(0))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel1Button.pressed.connect(_on_color_channel_selected.bind(1))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel3Button.pressed.connect(_on_color_channel_selected.bind(3))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel4Button.pressed.connect(_on_color_channel_selected.bind(4))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel5Button.pressed.connect(_on_color_channel_selected.bind(5))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel6Button.pressed.connect(_on_color_channel_selected.bind(6))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel7Button.pressed.connect(_on_color_channel_selected.bind(7))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
-	$EditorUI/ColorChannelNode/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel0Button.pressed.connect(_on_color_channel_selected.bind(0))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel1Button.pressed.connect(_on_color_channel_selected.bind(1))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel2Button.pressed.connect(_on_color_channel_selected.bind(2))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel3Button.pressed.connect(_on_color_channel_selected.bind(3))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel4Button.pressed.connect(_on_color_channel_selected.bind(4))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel5Button.pressed.connect(_on_color_channel_selected.bind(5))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel6Button.pressed.connect(_on_color_channel_selected.bind(6))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel7Button.pressed.connect(_on_color_channel_selected.bind(7))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
 	
 	# Bind Z-Layer buttons to their integer values
-	var z_layer_menu = $EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer
+	var z_layer_menu = $EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer
 	z_layer_menu.get_node("B5Button").pressed.connect(_on_z_layer_selected.bind(-5))
 	z_layer_menu.get_node("B4Button").pressed.connect(_on_z_layer_selected.bind(-4))
 	z_layer_menu.get_node("B3Button").pressed.connect(_on_z_layer_selected.bind(-3))
@@ -670,6 +670,11 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
+			"flip_horizontal":
+				obj.scale.x *= -1.0
+				
+			"flip_vertical":
+				obj.scale.y *= -1.0
 				
 	var end_state = undo_manager.serialize_objects(selected_objects)
 	undo_manager.commit_action("edit", start_state, end_state)
@@ -1347,7 +1352,7 @@ func stop_playtest() -> void:
 		music_player.stop()
 		
 func update_z_layer_ui(target_layer: int) -> void:
-	var z_layer_menu = $EditorUI/ColorChannelNode/ColorChannelMenu/ZLayerContainer
+	var z_layer_menu = $EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer
 	
 	# Map integers to the physical button names
 	var layer_mapping = {

@@ -7,39 +7,40 @@ signal edit_action_requested(action_name: String)
 @onready var orbs_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Orbs
 @onready var obstacles_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles
 @onready var deco_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration
+@onready var triggers_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Triggers
 
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
 
 # NCS UI REFERENCES
-@onready var ncs_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
-@onready var ncs_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
+@onready var ncs_song_id_input: LineEdit = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
+@onready var ncs_status_label: Label = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
 
-@onready var song_option_container: Control = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer
-@onready var regular_btn: Button = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton
-@onready var instrumental_btn: Button = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
+@onready var song_option_container: Control = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer
+@onready var regular_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton
+@onready var instrumental_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
 
 # NEWGROUNDS UI REFERENCES
-@onready var ng_song_id_input: LineEdit = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
-@onready var ng_status_label: Label = $LevelSettingsNode/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
+@onready var ng_song_id_input: LineEdit = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
+@onready var ng_status_label: Label = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
 
 # GROUP ID UI REFERENCES
-@onready var edit_group_node: Node = $EditGroupNode
-@onready var edit_group_menu: Control = $EditGroupNode/EditGroupMenu
-@onready var group_id_input: LineEdit = $EditGroupNode/EditGroupMenu/GroupIDInput
-@onready var add_group_btn: Button = $EditGroupNode/EditGroupMenu/AddGroupIDButton
-@onready var active_groups_container: Container = $EditGroupNode/EditGroupMenu/ActiveGroupsContainer
+@onready var edit_group_node: Node = $EditGroupMenu
+@onready var edit_group_menu: Control = $EditGroupMenu/EditGroupMenu
+@onready var group_id_input: LineEdit = $EditGroupMenu/EditGroupMenu/GroupIDInput
+@onready var add_group_btn: Button = $EditGroupMenu/EditGroupMenu/AddGroupIDButton
+@onready var active_groups_container: Container = $EditGroupMenu/EditGroupMenu/ActiveGroupsContainer
 @onready var edit_group_btn: Button = $SelectionMenu/EditGroupButton
 
 # Unified Play Button
-@onready var play_music_btn: Button = $LevelSettingsNode/LevelSettingsMenu/PlayButton
+@onready var play_music_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/PlayButton
 
 # Unified Song Info UI references
-@onready var song_name_label: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/SongNameLabel
-@onready var artist_label: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/ArtistLabel
-@onready var song_id_display: Label = $LevelSettingsNode/LevelSettingsMenu/SongInfoContainer/SongIDLabel
+@onready var song_name_label: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/SongNameLabel
+@onready var artist_label: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/ArtistLabel
+@onready var song_id_display: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/SongIDLabel
 
-@onready var music_downloader: Node = $LevelSettingsNode/LevelSettingsMenu/MusicDownloader
+@onready var music_downloader: Node = $LevelSettingsMenu/LevelSettingsMenu/MusicDownloader
 
 var current_selected_objects: Array = []
 
@@ -54,8 +55,8 @@ var ground_colors: Dictionary = {
 # Dictionary to remember what was visible before playtesting
 var pre_test_visibility: Dictionary = {}
 
-@onready var settings_color_picker: ColorPickerButton = $LevelSettingsNode/LevelSettingsMenu/ColorPickerButton 
-@onready var grounds_container: TabContainer = $LevelSettingsNode/LevelSettingsMenu/GroundsContainer
+@onready var settings_color_picker: ColorPickerButton = $LevelSettingsMenu/LevelSettingsMenu/ColorPickerButton 
+@onready var grounds_container: TabContainer = $LevelSettingsMenu/LevelSettingsMenu/GroundsContainer
 
 @onready var item_database: Dictionary = {
 	"orbs": [
@@ -129,6 +130,9 @@ var pre_test_visibility: Dictionary = {}
 			"scene_path": "res://scenes/objects/deco/half_square.tscn"
 		},
 	],
+	"triggers": [
+		
+	],
 }
 
 var edit_actions: Array = [
@@ -142,7 +146,9 @@ var edit_actions: Array = [
 	{"icon": preload("res://resources/icons/move_right_medium.png"), "action": "move_right_medium"},
 	{"icon": preload("res://resources/icons/rotate_left_30.png"), "action": "rotate_left"},
 	{"icon": preload("res://resources/icons/rotate_right_30.png"), "action": "rotate_right"},
-	{"icon": preload("res://resources/icon.svg"), "action": "show_hide_gizmo"}
+		{"icon": preload("res://resources/icons/flip_horizontal.png"), "action": "flip_horizontal"},
+	{"icon": preload("res://resources/icons/flip_vertical.png"), "action": "flip_vertical"},
+	{"icon": preload("res://resources/icon.svg"), "action": "show_hide_gizmo"},
 ]
 
 var selected_scene_path: String = ""
@@ -163,6 +169,7 @@ func _ready() -> void:
 	populate_object_list(orbs_list, item_database["orbs"])
 	populate_object_list(obstacles_list, item_database["obstacles"])
 	populate_object_list(deco_list, item_database["deco"])
+	populate_object_list(triggers_list, item_database["triggers"])
 	populate_actions_tab()
 	
 	# Hide regular and instrumental buttons
@@ -179,12 +186,12 @@ func _ready() -> void:
 	settings_color_picker.color_changed.connect(_on_settings_color_changed)
 	grounds_container.tab_changed.connect(_on_grounds_tab_changed)
 		
-	load_images_from_folder($LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background, "res://resources/backgrounds")
+	load_images_from_folder($LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background, "res://resources/backgrounds")
 
 func _on_exit_button_pressed() -> void:
-	$ColorChannelNode.visible = false
-	$LevelSettingsNode.visible = false
-	$EditGroupNode.visible = false
+	$ColorChannelMenu.visible = false
+	$LevelSettingsMenu.visible = false
+	$EditGroupMenu.visible = false
 	get_parent().paused = false
 	
 	var music_player = get_parent().get_node_or_null("LevelMusic")
@@ -235,6 +242,10 @@ func _on_objects_container_tab_changed(tab: int) -> void:
 		var selected = orbs_list.get_selected_items()
 		if selected.size() > 0:
 			_on_orbs_item_selected(selected[0])
+	elif tab == 3: 
+		var selected = triggers_list.get_selected_items()
+		if selected.size() > 0:
+			_on_triggers_item_selected(selected[0])
 	
 func _on_orbs_item_selected(index: int) -> void:
 	selected_scene_path = orbs_list.get_item_metadata(index)
@@ -245,31 +256,34 @@ func _on_object_item_selected(index: int) -> void:
 func _on_decoration_item_selected(index: int) -> void:
 	selected_scene_path = deco_list.get_item_metadata(index)
 
+func _on_triggers_item_selected(index: int) -> void:
+	selected_scene_path = triggers_list.get_item_metadata(index)
+
 func _on_actions_item_selected(index: int) -> void:
 	var action_name = actions_list.get_item_metadata(index)
 	edit_action_requested.emit(action_name)
 	actions_list.deselect_all()
 	
 func _on_edit_object_button_pressed() -> void:
-	$ColorChannelNode.visible = true 
+	$ColorChannelMenu.visible = true 
 	get_parent().paused  = true
 	if current_selected_objects:
 		for obj in current_selected_objects:
 			if obj.has_meta("color_channel"):
 				var channel = obj.get_meta("color_channel")
 				var button_name = "Channel" + str(channel) + "Button"
-				var target_button = $ColorChannelNode/ColorChannelMenu.get_node(button_name)
+				var target_button = $ColorChannelMenu/ColorChannelMenu.get_node(button_name)
 				if target_button:
 					target_button.button_pressed = true
-					$ColorChannelNode/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
+					$ColorChannelMenu/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
 					get_parent().current_editing_channel = channel
 
 func _on_background_item_selected(index: int) -> void:
-	var selected_path = $LevelSettingsNode/LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
+	var selected_path = $LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
 	get_parent().change_background(selected_path)
 	
 func _on_level_settings_button_pressed() -> void:
-	$LevelSettingsNode.visible = true
+	$LevelSettingsMenu.visible = true
 	get_parent().paused = true
 	
 func _on_grounds_tab_changed(tab: int) -> void:

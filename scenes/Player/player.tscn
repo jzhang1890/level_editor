@@ -124,7 +124,7 @@ texture = ExtResource("4_tuyoq")
 collision_mask = 2
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hitbox" unique_id=1046002813]
-polygon = PackedVector2Array(0, -35, 25, 30, -26, 30)
+polygon = PackedVector2Array(0, -36, 26, 30, -26, 30)
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=539775691]
 visible = false

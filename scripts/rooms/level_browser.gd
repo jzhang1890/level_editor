@@ -12,6 +12,10 @@ func _ready() -> void:
 	# 2. Fill the list
 	populate_list()
 
+func _unhandled_input(event: InputEvent) -> void:
+		if event.is_action_pressed("escape"):
+			_on_back_button_pressed()
+
 # Looks at end of file to get level name
 func get_level_name_fast(target_path: String) -> String:
 	var file = FileAccess.open(target_path, FileAccess.READ)

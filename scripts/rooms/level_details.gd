@@ -41,6 +41,10 @@ func get_level_name_fast(target_path: String) -> String:
 			
 	return "Unknown Level"
 
+func _unhandled_input(event: InputEvent) -> void:
+		if event.is_action_pressed("escape"):
+			_on_back_button_pressed()
+
 # Renaming logic (RegEx) 
 func _on_name_edit_text_submitted(new_text: String) -> void:
 	var file = FileAccess.open(Global.level_to_load, FileAccess.READ)
