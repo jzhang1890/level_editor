@@ -44,8 +44,14 @@ var level_completed: bool = false
 var modified_objects: Array = []
 
 func _ready() -> void:
+	# Let the triggers know this scene can receive color updates
+	add_to_group("level_editor")
+	
 	# After loading the level
 	spawn_position = player.global_position
+	
+	# Tell the engine this is the active player for triggers to find
+	player.add_to_group("player")
 	
 	# Tell the camera where its starting line is
 	camera.spawn_y = spawn_position.y - 300
@@ -218,6 +224,9 @@ func load_level(target_path: String) -> void:
 							"10": item_dict["color_channel"] = val.to_int()
 							"12": item_dict["custom_z_order"] = val.to_int()
 							"13": item_dict["z_layer"] = val.to_int()
+							# Add these two lines:
+							"14": item_dict["trigger_color"] = val
+							"15": item_dict["target_channel"] = val.to_int()
 					
 					# Track the highest point in the level
 					if item_dict.has("y") and item_dict["y"] < highest_obj_y:
@@ -297,17 +306,36 @@ func load_level(target_path: String) -> void:
 						var loaded_channel = item_dict["color_channel"]
 						new_object.set_meta("color_channel", loaded_channel)
 						
-						var target_color = Global.get_channel_color(loaded_channel)
-						var sprite = new_object.get_node_or_null("Sprite2D")
+						if item_dict.has("trigger_color"):
+							new_object.set_meta("trigger_color", Color(item_dict["trigger_color"]))
+							
+						if item_dict.has("target_channel"):
+							new_object.set_meta("target_channel", item_dict["target_channel"])
 						
-						if sprite:
-							# Apply full color and alpha directly to the sprite
-							sprite.modulate = target_color
-							# Keep root opaque so hitboxes show
-							new_object.modulate = Color(1, 1, 1, 1.0) 
-						else:
-							# Fallback just in case
-							new_object.modulate = target_color
+						# Identify if it's a trigger or orb based on the path
+						var is_trigger = "/triggers/" in path.to_lower()
+						var is_orb = "/orbs/" in path.to_lower()
+						
+						if is_trigger or is_orb:
+							new_object.set_meta("ignore_color", true)
+							
+						if is_trigger:
+							new_object.set_meta("is_trigger", true)
+							new_object.visible = false # Make completely invisible in play mode
+						
+						# Modulates the object if color is not ignored
+						if not new_object.has_meta("ignore_color"):
+							var target_color = Global.get_channel_color(loaded_channel)
+							var sprite = new_object.get_node_or_null("Sprite2D")
+							
+							if sprite:
+								# Apply full color and alpha directly to the sprite
+								sprite.modulate = target_color
+								# Keep root opaque so hitboxes show
+								new_object.modulate = Color(1, 1, 1, 1.0) 
+							else:
+								# Fallback just in case
+								new_object.modulate = target_color
 						
 						var chunk_id = int(floor(new_object.global_position.y / CHUNK_HEIGHT))
 						
@@ -487,6 +515,7 @@ func _on_restart_button_pressed() -> void:
 	_on_player_player_died()
 	
 func _on_quit_button_pressed() -> void:
+	Global.reset_colors()
 	# Return to Level Browser scene
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/rooms/level_details.tscn")
@@ -528,7 +557,10 @@ func update_chunks(center_chunk: int) -> void:
 				for obj in level_chunks[chunk_id]:
 					if is_instance_valid(obj):
 						obj.process_mode = Node.PROCESS_MODE_INHERIT
-						obj.visible = true
+						
+						# Only make it visible if it's not a trigger
+						if not obj.has_meta("is_trigger"):
+							obj.visible = true
 						
 						var hitbox = obj.get_node_or_null("HitboxSprite")
 						if hitbox:
@@ -551,3 +583,22 @@ func trigger_level_end() -> void:
 	if level_end_screen:
 		level_end_screen.visible = true
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE # Bring mouse back for UI
+
+func update_gameplay_colors(channel: int, new_color: Color) -> void:
+	# Sweep through ACTIVE chunks only
+	for chunk_id in active_chunks:
+		if level_chunks.has(chunk_id):
+			for obj in level_chunks[chunk_id]:
+				if is_instance_valid(obj):
+					# Skip triggers AND orbs so they keep their default colors
+					if obj is Trigger or obj.has_meta("ignore_color"):
+						continue
+					
+					# If the object is on this channel, update its tint
+					if obj.get_meta("color_channel", 0) == channel:
+						if obj is Sprite2D:
+							obj.modulate = new_color
+						else:
+							var sprite = obj.get_node_or_null("Sprite2D")
+							if sprite:
+								sprite.modulate = new_color
