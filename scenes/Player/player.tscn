@@ -128,7 +128,7 @@ polygon = PackedVector2Array(0, -36, 26, 30, -26, 30)
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=539775691]
 visible = false
-z_index = 1
+z_index = 4090
 position = Vector2(2.3841858e-07, -1.0000043)
 scale = Vector2(0.59375, 0.62499994)
 texture = SubResource("AtlasTexture_uiqp4")

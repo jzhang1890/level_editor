@@ -1310,6 +1310,10 @@ func toggle_playtest() -> void:
 func start_playtest() -> void:
 	is_playtesting = true
 	
+	# Hide the trigger lines
+	if is_instance_valid(trigger_drawer):
+		trigger_drawer.visible = false
+	
 	change_selection(null, false)
 	
 	for chunk_id in level_chunks:
@@ -1375,6 +1379,10 @@ func stop_playtest() -> void:
 	if is_instance_valid(test_player):
 		test_player.queue_free()
 		test_player = null
+		
+	# Bring the trigger lines back
+	if is_instance_valid(trigger_drawer):
+		trigger_drawer.visible = true
 		
 	# 2. Force the editor camera to take visual control back
 	if camera:
