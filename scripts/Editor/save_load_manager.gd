@@ -177,7 +177,7 @@ func load_level(target_path: String) -> void:
 						if "/orbs/" in saved_path or "/triggers/" in saved_path:
 							new_object.set_meta("ignore_color", true)
 							
-						# 2. Port your updated editor logic for coloring Sprite2D vs Root
+						# 2. Port updated editor logic for coloring Sprite2D vs Root
 						if not new_object.has_meta("ignore_color"):
 							var target_color = Global.get_channel_color(item_dict["color_channel"])
 							

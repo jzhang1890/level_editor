@@ -32,7 +32,7 @@ signal edit_action_requested(action_name: String)
 @onready var active_groups_container: Container = $EditGroupMenu/EditGroupMenu/ActiveGroupsContainer
 @onready var edit_group_btn: Button = $SelectionMenu/EditGroupButton
 
-# Unified Play Button
+# Play Button
 @onready var play_music_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/PlayButton
 
 # Unified Song Info UI references
@@ -275,6 +275,7 @@ func _on_edit_object_button_pressed() -> void:
 	if current_selected_objects and current_selected_objects.size() > 0:
 		var first_obj = current_selected_objects[0]
 		
+		# It's a color trigger
 		if first_obj.has_meta("is_color_trigger"):
 			# Show the menu for color triggers
 			$ColorTriggerMenu.visible = true
@@ -283,7 +284,7 @@ func _on_edit_object_button_pressed() -> void:
 			var current_channel = first_obj.get_meta("target_channel", 0)
 			var current_color = first_obj.get_meta("trigger_color", Color(1, 1, 1, 1))
 			
-			# Push that data into your UI nodes
+			# Push data into UI nodes
 			$ColorTriggerMenu/ColorTriggerMenu/ChannelInput.text = str(current_channel)
 			$ColorTriggerMenu/ColorTriggerMenu/ColorPicker.color = current_color
 			
@@ -463,7 +464,7 @@ func _remove_group_from_selection(group_id: int) -> void:
 	refresh_group_ui()
 
 func _on_trigger_channel_input_text_changed(new_text: String) -> void:
-	# Make sure they actually typed a number
+	# Make sure user actually typed a number
 	if not new_text.is_valid_int():
 		return
 		

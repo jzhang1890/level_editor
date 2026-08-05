@@ -682,9 +682,31 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				# Apply the new offset to the center point
 				obj.global_position = group_center + rotated_offset
 			"flip_horizontal":
+				# 1. Flip the position relative to the group center
+				var offset = obj.global_position - group_center
+				offset.x *= -1.0
+				obj.global_position = group_center + offset
+				
+				# 2. Invert the angle to mirror rotation
+				var new_rot = obj.rotation_degrees * -1.0
+				obj.set_meta("base_rotation", new_rot)
+				obj.rotation_degrees = new_rot
+				
+				# 3. Keep original sprite flip
 				obj.scale.x *= -1.0
 				
 			"flip_vertical":
+				# 1. Flip the position relative to the group center
+				var offset = obj.global_position - group_center
+				offset.y *= -1.0
+				obj.global_position = group_center + offset
+				
+				# 2. Invert the angle to mirror rotation
+				var new_rot = obj.rotation_degrees * -1.0
+				obj.set_meta("base_rotation", new_rot)
+				obj.rotation_degrees = new_rot
+				
+				# 3. Keep original sprite flip
 				obj.scale.y *= -1.0
 				
 	var end_state = undo_manager.serialize_objects(selected_objects)
@@ -1261,9 +1283,9 @@ func update_ground_color(tab_index: int, new_color: Color) -> void:
 	if tab_index == 0:
 		bg_rect.modulate = new_color
 	elif tab_index == 1:
-		pass # Add your middleground rect modulate here later
+		pass # Add middleground rect modulate here later
 	elif tab_index == 2:
-		pass # Add your foreground rect modulate here later
+		pass # Add foreground rect modulate here later
 		
 	# Store the color as a hex string so the save manager can write it to JSON
 	save_manager.ground_colors[tab_index] = new_color.to_html()
