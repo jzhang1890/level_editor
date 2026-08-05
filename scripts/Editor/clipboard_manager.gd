@@ -3,7 +3,7 @@ extends Node
 # The main editor node
 @onready var editor: Node2D = get_parent()
 
-# Clipboard for Copy/Paste 
+# Clipboard for copy and paste 
 var clipboard: Array[Dictionary] = []
 
 func copy_selection() -> void:
@@ -22,17 +22,23 @@ func copy_selection() -> void:
 	# Save the exact state of every selected object using the sorted timeline
 	for obj in sorted_selection:
 		if obj.scene_file_path != "":
+			#  Grabs all the metadata from the object
+			var all_meta = {}
+			for meta_key in obj.get_meta_list():
+				var meta_value = obj.get_meta(meta_key)
+				if typeof(meta_value) == TYPE_ARRAY:
+					all_meta[meta_key] = meta_value.duplicate()
+				else:
+					all_meta[meta_key] = meta_value
+					
+			# Puts the item data
 			var item_data = {
 				"scene_path": obj.scene_file_path,
 				"global_position": obj.global_position,
 				"rotation_degrees": obj.rotation_degrees,
-				"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
 				"scale": obj.scale,
 				"skew": obj.skew,
-				"layer": obj.get_meta("layer", 1),
-				"z_layer": obj.get_meta("z_layer", 0),
-				"color_channel": obj.get_meta("color_channel", 0),
-				"custom_z_order": obj.get_meta("custom_z_order", 2)
+				"saved_metadata": all_meta # Uses all the metadata from all_meta above
 			}
 			clipboard.append(item_data)
 
@@ -51,6 +57,15 @@ func paste_clipboard() -> void:
 		if resource:
 			var new_object = resource.instantiate()
 			
+			# 1. APPLY ALL METADATA FIRST
+			if item.has("saved_metadata"):
+				for meta_key in item["saved_metadata"]:
+					var meta_value = item["saved_metadata"][meta_key]
+					if typeof(meta_value) == TYPE_ARRAY:
+						new_object.set_meta(meta_key, meta_value.duplicate())
+					else:
+						new_object.set_meta(meta_key, meta_value)
+			
 			# Offset the position by 1 grid blocks up
 			var new_pos = item["global_position"] + Vector2(0, editor.GRID_SIZE * -1)
 			new_object.global_position = new_pos
@@ -60,22 +75,15 @@ func paste_clipboard() -> void:
 			new_object.scale = item["scale"]
 			new_object.skew = item.get("skew", 0.0)
 			
-			# Apply metadata and layer sorting
-			var loaded_layer = item.get("layer", 1)
-			var loaded_z_layer = item.get("z_layer", 0)
-			var loaded_z = item.get("custom_z_order", 2)
-			
-			new_object.set_meta("base_rotation", item["base_rotation"])
-			new_object.set_meta("layer", loaded_layer)
-			new_object.set_meta("z_layer", loaded_z_layer)
-			new_object.set_meta("custom_z_order", loaded_z)
+			# 2. UPDATE THESE LINES to pull from new_object instead of item
+			var loaded_z_layer = new_object.get_meta("z_layer", 0)
+			var loaded_z = new_object.get_meta("custom_z_order", 2)
 			
 			# Apply the new clamped depth formula
 			new_object.z_index = (loaded_z_layer * 300) + loaded_z
 
 			# Apply Color Channel
-			var loaded_channel = item.get("color_channel", 0)
-			new_object.set_meta("color_channel", loaded_channel)
+			var loaded_channel = new_object.get_meta("color_channel", 0)
 			
 			var target_color = Global.get_channel_color(loaded_channel)
 			
@@ -89,7 +97,7 @@ func paste_clipboard() -> void:
 				else:
 					new_object.modulate = target_color
 			
-			# Generate a brand new unique ID for the clone
+			# Generate a new unique ID for the clone
 			var unique_id = str(Time.get_ticks_usec()) + str(randi() % 1000)
 			new_object.set_meta("unique_id", unique_id)
 			
@@ -103,7 +111,7 @@ func paste_clipboard() -> void:
 			if not editor.level_chunks.has(chunk_id):
 				editor.level_chunks[chunk_id] = []
 
-			# Add to canvas for perfect chronological layering
+			# Add to canvas for chronological layering
 			editor.room_canvas.add_child(new_object)
 			editor.level_chunks[chunk_id].append(new_object)
 			

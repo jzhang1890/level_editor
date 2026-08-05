@@ -59,7 +59,7 @@ var current_mode: EditorMode = EditorMode.BUILD
 # Tracking for drag vs click
 var mouse_down_screen_pos: Vector2 = Vector2.ZERO
 var is_dragging: bool = false
-var drag_threshold: float = 25.0
+var drag_threshold: float = 3.0
 var drawn_cells_this_stroke: Dictionary = {}
 var batched_paint_objects: Array = []
 # Tracks resources so we only load them from disk once
@@ -151,9 +151,6 @@ func _ready() -> void:
 	z_layer_menu.get_node("T3Button").pressed.connect(_on_z_layer_selected.bind(3))
 	z_layer_menu.get_node("T4Button").pressed.connect(_on_z_layer_selected.bind(4))
 	z_layer_menu.get_node("T5Button").pressed.connect(_on_z_layer_selected.bind(5))
-	
-	color_picker_btn.pressed.connect(_on_color_picker_pressed)
-	color_picker_btn.popup_closed.connect(_on_color_picker_closed)
 	
 	color_picker_btn.color_changed.connect(_on_picker_color_changed)
 	
@@ -493,7 +490,7 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 
 		new_object.set_meta("custom_z_order", custom_z)
 
-		# Give the orb AND trigger the tag
+		# Give the orb and trigger the tag
 		if is_orb or is_trigger:
 			new_object.set_meta("ignore_color", true)
 
@@ -506,7 +503,7 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		new_object.set_meta("color_channel", 0)
 		var target_color = Global.get_channel_color(0)
 		
-		# Modulates the object if we don't ignore color
+		# Modulates the object if color not ignored
 		if not new_object.has_meta("ignore_color"):
 			if new_object is Sprite2D:
 				new_object.modulate = target_color
@@ -872,11 +869,11 @@ func update_editor_chunks(center_chunk: int) -> void:
 						# Check if object should be modulated or not
 						if not obj.has_meta("is_trigger") and not obj.has_meta("ignore_color"):
 							if obj is Sprite2D:
-								# CASE 1: Object is the sprite (Decorations)
+								# Case 1: Object is the sprite (Decorations)
 								if current_layer != 0 and current_layer != obj_layer:
 									target_color.a = 0.05
 								obj.modulate = target_color
-							else: # CASE 2: Object has sprite as a child
+							else: # Case 2: Object has sprite as a child
 								var sprite = obj.get_node_or_null("Sprite2D")
 								if sprite:
 									# Apply full color AND alpha directly to the sprite
@@ -1023,19 +1020,6 @@ func _on_picker_color_changed(new_color: Color) -> void:
 								if sprite:
 									sprite.modulate = new_color
 
-func _on_color_picker_pressed() -> void:
-	# Snapshot the color right before the user starts messing with the wheel
-	color_before_edit = color_picker_btn.color
-
-func _on_color_picker_closed() -> void:
-	var final_color = color_picker_btn.color
-	
-	# Only commit to the undo stack if they actually changed the color
-	if final_color != color_before_edit:
-		var old_state = [{"channel": current_editing_channel, "color": color_before_edit}]
-		var new_state = [{"channel": current_editing_channel, "color": final_color}]
-		undo_manager.commit_action("color_change", old_state, new_state)
-
 func _handle_hotkeys(event: InputEventKey) -> bool:
 	# Backspace for deletion
 	if event.keycode == KEY_BACKSPACE:
@@ -1124,7 +1108,7 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
 		is_dragging = true
 		
-	if is_dragging_objects:
+	if is_dragging_objects and is_dragging:
 		var current_mouse_pos = get_global_mouse_position()
 		var mouse_delta = current_mouse_pos - previous_mouse_pos
 		

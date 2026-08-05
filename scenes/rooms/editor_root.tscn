@@ -775,8 +775,6 @@ offset_left = 572.0
 offset_top = 395.0
 offset_right = 633.1875
 offset_bottom = 431.0
-placeholder_text = "1"
-emoji_menu_enabled = false
 
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 visible = false

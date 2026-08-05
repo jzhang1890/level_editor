@@ -25,12 +25,11 @@ func set_highlight(active: bool) -> void:
 		$Sprite2D.modulate = Color(1, 1, 1, 1)
 
 
-# This is a virtual function. The base class does nothing, 
-# but the child classes will overwrite it with their own unique math.
+# The child classes will overwrite this with their own unique math.
 func fire_trigger() -> void:
 	pass
 
-# Hook this up to your death/respawn manager later!
+# Hook this up to your death/respawn manager later
 func reset() -> void:
 	is_triggered = false
 

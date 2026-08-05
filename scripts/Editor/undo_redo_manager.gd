@@ -19,6 +19,14 @@ func serialize_objects(objects: Array) -> Array:
 	
 	var data_array = []
 	for obj in valid_objects:
+		#  Grabs all the metadata from the object
+		var all_meta = {}
+		for meta_key in obj.get_meta_list():
+			var meta_value = obj.get_meta(meta_key)
+			if typeof(meta_value) == TYPE_ARRAY:
+				all_meta[meta_key] = meta_value.duplicate()
+			else:
+				all_meta[meta_key] = meta_value
 		data_array.append({
 			"scene_path": obj.scene_file_path,
 			"global_position": obj.global_position,
@@ -26,12 +34,9 @@ func serialize_objects(objects: Array) -> Array:
 			"base_rotation": obj.get_meta("base_rotation", obj.rotation_degrees),
 			"scale": obj.scale,
 			"skew": obj.skew,
-			"layer": obj.get_meta("layer", 1),
 			"unique_id": obj.get_meta("unique_id", ""),
 			"tree_index": obj.get_index(), 
-			"color_channel": obj.get_meta("color_channel", 0),
-			"z_layer": obj.get_meta("z_layer", 0),
-			"custom_z_order": obj.get_meta("custom_z_order", 2)
+			"saved_metadata": all_meta,
 		})
 	return data_array
 
@@ -99,36 +104,38 @@ func recreate_objects(data_array: Array) -> void:
 		var resource = load(item["scene_path"])
 		if resource:
 			var new_object = resource.instantiate()
+			if item.has("saved_metadata"):
+				for meta_key in item["saved_metadata"]:
+					var meta_value = item["saved_metadata"][meta_key]
+					if typeof(meta_value) == TYPE_ARRAY:
+						new_object.set_meta(meta_key, meta_value.duplicate())
+					else:
+						new_object.set_meta(meta_key, meta_value)
 			new_object.global_position = item["global_position"]
 			new_object.rotation_degrees = item["rotation_degrees"]
 			new_object.scale = item["scale"]
 			new_object.skew = item.get("skew", 0.0)
 			new_object.set_meta("base_rotation", item["base_rotation"])
-			
-			var loaded_layer = item.get("layer", 1)
-			var loaded_z_layer = item.get("z_layer", 0)
-			var loaded_z = item.get("custom_z_order", 2)
-			
-			new_object.set_meta("layer", loaded_layer) # Use new_object.set_meta in recreate_objects()
-			new_object.set_meta("z_layer", loaded_z_layer)
-			new_object.set_meta("custom_z_order", loaded_z)
+
+			var loaded_layer = new_object.get_meta("layer", 1)
+			var loaded_z_layer = new_object.get_meta("z_layer", 0)
+			var loaded_z = new_object.get_meta("custom_z_order", 2)
 			
 			new_object.z_index = (loaded_z_layer * 300) + loaded_z
 			
-			var loaded_channel = item.get("color_channel", 0)
-			new_object.set_meta("color_channel", loaded_channel)
+			var loaded_channel = new_object.get_meta("color_channel", 0)
 			
 			# OPACITY ROUTING 
 			var target_color = Global.get_channel_color(loaded_channel)
 			if new_object is Sprite2D:
-				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+				if editor.current_layer != 0 and editor.current_layer != loaded_layer:
 					target_color.a = 0.05
 				new_object.modulate = target_color
 			else: 
 				var sprite = new_object.get_node_or_null("Sprite2D")
 				if sprite:
 					sprite.modulate = target_color 
-				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+				if editor.current_layer != 0 and editor.current_layer != loaded_layer:
 					new_object.modulate = Color(1, 1, 1, 0.05) 
 				else: 
 					new_object.modulate = Color(1, 1, 1, 1.0) 
@@ -177,36 +184,42 @@ func apply_object_state(data_array: Array) -> void:
 		# O(1) lookup
 		var obj = editor.object_registry.get(item["unique_id"]) 
 		if obj:
+			if item.has("saved_metadata"):
+				for meta_key in item["saved_metadata"]:
+					# Skip color-related metadata so physical moves don't overwrite color edits
+					if meta_key in ["color_channel", "trigger_color"]:
+						continue
+					
+					var meta_value = item["saved_metadata"][meta_key]
+					if typeof(meta_value) == TYPE_ARRAY:
+						obj.set_meta(meta_key, meta_value.duplicate())
+					else:
+						obj.set_meta(meta_key, meta_value)
 			obj.global_position = item["global_position"]
 			obj.rotation_degrees = item["rotation_degrees"]
 			obj.scale = item["scale"]
 			obj.skew = item.get("skew", 0.0)
 			obj.set_meta("base_rotation", item["base_rotation"])
 			
-			var loaded_layer = item.get("layer", 1)
-			var loaded_z_layer = item.get("z_layer", 0)
-			var loaded_z = item.get("custom_z_order", 2)
-			
-			obj.set_meta("layer", loaded_layer) # Use new_object.set_meta in recreate_objects()
-			obj.set_meta("z_layer", loaded_z_layer)
-			obj.set_meta("custom_z_order", loaded_z)
+			var loaded_layer = obj.get_meta("layer", 1)
+			var loaded_z_layer = obj.get_meta("z_layer", 0)
+			var loaded_z = obj.get_meta("custom_z_order", 2)
 			
 			obj.z_index = (loaded_z_layer * 300) + loaded_z
 			
-			var loaded_channel = item.get("color_channel", 0)
-			obj.set_meta("color_channel", loaded_channel)
+			var loaded_channel = obj.get_meta("color_channel", 0)
 			
 			# OPACITY ROUTING 
 			var target_color = Global.get_channel_color(loaded_channel)
 			if obj is Sprite2D:
-				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+				if editor.current_layer != 0 and editor.current_layer != loaded_layer:
 					target_color.a = 0.05
 				obj.modulate = target_color
 			else: 
 				var sprite = obj.get_node_or_null("Sprite2D")
 				if sprite:
 					sprite.modulate = target_color 
-				if editor.current_layer != 0 and editor.current_layer != item["layer"]:
+				if editor.current_layer != 0 and editor.current_layer != loaded_layer:
 					obj.modulate = Color(1, 1, 1, 0.05) 
 				else: 
 					obj.modulate = Color(1, 1, 1, 1.0) 

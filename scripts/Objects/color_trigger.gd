@@ -6,7 +6,6 @@ func _ready() -> void:
 	super._ready()
 	
 	# Only set defaults if the save manager hasn't already injected data
-		
 	if not has_meta("is_color_trigger"):
 		set_meta("is_color_trigger", true)
 		
@@ -24,7 +23,7 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(player_ref):
 		player_ref = get_tree().get_first_node_in_group("player")
 		
-	# 2. If it is STILL null (meaning we are not playtesting), stop here
+	# 2. If it is still null (meaning we are not playtesting), stop here
 	if use_hitbox or is_triggered or not is_instance_valid(player_ref):
 		return
 		

@@ -5,11 +5,11 @@ extends Control
 const LEVEL_DIR: String = "user://Levels"
 
 func _ready() -> void:
-	# 1. Makes sure the folder exists on the computer
+	# Makes sure the folder exists on the computer
 	if not DirAccess.dir_exists_absolute(LEVEL_DIR):
 		DirAccess.make_dir_absolute(LEVEL_DIR)
 		
-	# 2. Fill the list
+	# Fill the list
 	populate_list()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -39,7 +39,7 @@ func get_level_name_fast(target_path: String) -> String:
 		var name_parts = right_side.split('"')
 		
 		# name_parts[0] will be the colon and space (e.g. ": ")
-		# name_parts[1] will be the actual level name!
+		# name_parts[1] will be the actual level name
 		if name_parts.size() >= 2: 
 			return name_parts[1]
 			
@@ -119,7 +119,6 @@ func _on_create_new_button_pressed() -> void:
 		
 	# 5. Refresh the UI list so the level shows up
 	populate_list()
-
 
 func _on_back_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/rooms/main_menu.tscn")

@@ -103,7 +103,7 @@ func _on_ncs_http_request_request_completed(result: int, response_code: int, _he
 			else:
 				_start_fallback_download()
 		else:
-			status_updated.emit("Failed to load track page!", true)
+			status_updated.emit("Failed to load track page", true)
 			is_fetching_html = false
 
 	else:
@@ -112,10 +112,10 @@ func _on_ncs_http_request_request_completed(result: int, response_code: int, _he
 			return
 
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			status_updated.emit("Download complete!", true)
+			status_updated.emit("Download complete", true)
 			download_complete.emit(fallback_title, fallback_artist, current_song_id, body)
 		else:
-			status_updated.emit("Download failed! Code: " + str(response_code), true)
+			status_updated.emit("Download failed, Code: " + str(response_code), true)
 
 func _start_fallback_download() -> void:
 	if fallback_mp3_url != "":
@@ -167,7 +167,7 @@ func _on_ng_http_request_request_completed(result: int, response_code: int, _hea
 
 	else:
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			status_updated.emit("Download complete!", false)
+			status_updated.emit("Download complete", false)
 			download_complete.emit(ng_title, ng_artist, current_song_id, body)
 		else:
-			status_updated.emit("Download failed! Code: " + str(response_code), false)
+			status_updated.emit("Download failed, Code: " + str(response_code), false)

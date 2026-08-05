@@ -152,7 +152,7 @@ var edit_actions: Array = [
 	{"icon": preload("res://resources/icons/rotate_right_30.png"), "action": "rotate_right"},
 	{"icon": preload("res://resources/icons/flip_horizontal.png"), "action": "flip_horizontal"},
 	{"icon": preload("res://resources/icons/flip_vertical.png"), "action": "flip_vertical"},
-	{"icon": preload("res://resources/icon.svg"), "action": "show_hide_gizmo"},
+	{"icon": preload("res://resources/icons/transform.png"), "action": "show_hide_gizmo"},
 ]
 
 var selected_scene_path: String = ""
