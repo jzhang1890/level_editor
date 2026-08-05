@@ -41,6 +41,8 @@ func copy_selection() -> void:
 				"saved_metadata": all_meta # Uses all the metadata from all_meta above
 			}
 			clipboard.append(item_data)
+			
+	editor.update_trigger_visuals()
 
 func paste_clipboard() -> void:
 	if clipboard.is_empty():
@@ -133,3 +135,5 @@ func paste_clipboard() -> void:
 	if not new_selection.is_empty():
 		var pasted_state = editor.undo_manager.serialize_objects(new_selection)
 		editor.undo_manager.commit_action("place", [], pasted_state)
+
+	editor.update_trigger_visuals()

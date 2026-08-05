@@ -7,6 +7,7 @@
 
 [node name="PlayScene" type="Node2D" unique_id=621862255]
 script = ExtResource("1_x1qvo")
+hitboxes_on = true
 
 [node name="Player" parent="." unique_id=1001688488 instance=ExtResource("2_qf7ku")]
 

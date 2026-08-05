@@ -21,12 +21,6 @@ collision_layer = 2
 script = ExtResource("1_sgggg")
 metadata/_custom_type_script = "uid://dgvpwgsrj6t5l"
 
-[node name="Line2D" type="Line2D" parent="." unique_id=1978426024]
-z_index = -4000
-points = PackedVector2Array(27271.816, 0, -27273.635, 0)
-width = 2.0
-default_color = Color(0.09019608, 1, 1, 1)
-
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
 texture = SubResource("AtlasTexture_4g0po")
 

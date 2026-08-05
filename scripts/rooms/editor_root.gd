@@ -75,6 +75,8 @@ var mouse_down_world_pos: Vector2 = Vector2.ZERO
 var box_current_pos: Vector2 = Vector2.ZERO
 var selection_drawer: Node2D
 
+var trigger_drawer: Node2D
+
 # Tracking for selection
 var selected_objects: Array[Node2D] = []
 
@@ -159,6 +161,12 @@ func _ready() -> void:
 	selection_drawer.z_index = 4096 # Maximum 2D Z-index
 	selection_drawer.draw.connect(_draw_selection_box)
 	add_child(selection_drawer)
+	
+	# Draws trigger lines
+	trigger_drawer = Node2D.new()
+	trigger_drawer.z_index = -10 
+	trigger_drawer.draw.connect(_draw_trigger_lines)
+	add_child(trigger_drawer)
 	
 	# Turn the editor mouse features back on from when they were turned off during play_scene
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -268,6 +276,7 @@ func _process(_delta: float) -> void:
 		var inverted_val = scrollbar.max_value + scrollbar.min_value - camera.global_position.y
 		scrollbar.set_value_no_signal(inverted_val)
 
+
 # Zoom logic
 func apply_zoom(target_zoom: float) -> void:
 	# Keeps zoom within min and max zoom limit by clamping it between the limits
@@ -302,6 +311,8 @@ func apply_zoom_at_mouse(requested_zoom: float) -> void:
 	
 	# 4. Apply the actual zoom
 	apply_zoom(new_zoom)
+	# Updates trigger lines thickness
+	update_trigger_visuals()
 
 func _on_z_layer_selected(layer_val: int) -> void:
 	# 1. Visually untoggle all other buttons instantly
@@ -547,7 +558,9 @@ func place_object(pos: Vector2, is_painting: bool = false) -> void:
 		else:
 			# Continuous stroke: queue it up for the undo batch and SKIP selection
 			batched_paint_objects.append(new_object)
-		
+	# Draws line when new trigger is placed		
+	update_trigger_visuals()	
+	
 # Deletion logic
 func delete_selected_object() -> void:
 	# Snaps action in undo manager
@@ -563,10 +576,17 @@ func delete_selected_object() -> void:
 			if uid != "":
 				object_registry.erase(uid)
 				
+			# Remove from the chunking array so it immediately disappears from math
+			var chunk_id = int(floor(obj.global_position.y / CHUNK_HEIGHT))
+			if level_chunks.has(chunk_id):
+				level_chunks[chunk_id].erase(obj)
+				
 			obj.queue_free()
 			
 	# Passing null without Ctrl pressed automatically clears the array and hides the menu
 	change_selection(null)
+	# Erases line when trigger is deleted
+	update_trigger_visuals()
 
 func _on_delete_button_pressed() -> void:
 	delete_selected_object()
@@ -708,7 +728,9 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				
 	var end_state = undo_manager.serialize_objects(selected_objects)
 	undo_manager.commit_action("edit", start_state, end_state)
-
+	# Updates triggers when moved with UI buttons
+	update_trigger_visuals()
+	
 func _on_left_arrow_button_pressed() -> void:
 	# Deselects objects when changing layers
 	change_selection(null, false)
@@ -894,7 +916,9 @@ func update_editor_chunks(center_chunk: int) -> void:
 							hitbox.visible = hitboxes_on
 							
 	active_chunks = needed_chunks
-
+	# Draw/hide lines when when chunks wake/go to sleep
+	update_trigger_visuals()
+	
 # Undo/Redo Buttons
 func _on_undo_button_pressed() -> void:
 	undo_manager.undo_action()
@@ -1123,7 +1147,9 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		# Moves transform gizmo with dragged objects
 		if has_node("Foreground/TransformGizmo"):
 			$Foreground/TransformGizmo.global_position += mouse_delta
-	
+		# Redraw line when dragging objects
+		update_trigger_visuals()
+		
 # Handles just clicks
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	# Zoom by scrolling the mouse wheel up or down
@@ -1417,3 +1443,30 @@ func update_gameplay_colors(channel: int, new_color: Color) -> void:
 							var sprite = obj.get_node_or_null("Sprite2D")
 							if sprite:
 								sprite.modulate = new_color
+
+func update_trigger_visuals() -> void:
+	if is_instance_valid(trigger_drawer) and not is_playtesting:
+		trigger_drawer.queue_redraw()
+
+func _draw_trigger_lines() -> void:
+	# Keep the line thickness consistent regardless of zoom
+	var thickness = 1.0 / camera.zoom.x
+	
+	# Only loop through the chunks currently on screen for O(1) performance
+	for chunk_id in active_chunks:
+		if level_chunks.has(chunk_id):
+			for obj in level_chunks[chunk_id]:
+				# Check if the object is actually a trigger
+				if is_instance_valid(obj) and obj is Trigger:
+					
+					# Default fallback color
+					var line_color = Color.WHITE 
+					
+					# Route the color based on the file path
+					var path = obj.scene_file_path.to_lower()
+					if "color" in path:
+						line_color = Color.CYAN
+						
+					# Draw horizontal line at the trigger's Y position
+					var y_pos = obj.global_position.y
+					trigger_drawer.draw_line(Vector2(-100000, y_pos), Vector2(100000, y_pos), line_color, thickness)

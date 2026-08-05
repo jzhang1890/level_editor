@@ -64,7 +64,9 @@ func undo_action() -> void:
 		"delete": recreate_objects(action["old_data"])
 		"edit": apply_object_state(action["old_data"])
 		"color_change": apply_global_color(action["old_data"])
-
+		
+	editor.update_trigger_visuals()
+	
 # 4. Redo Logic
 func redo_action() -> void:
 	if redo_stack.is_empty(): return
@@ -77,6 +79,7 @@ func redo_action() -> void:
 		"edit": apply_object_state(action["new_data"])
 		"color_change": apply_global_color(action["new_data"])
 
+	editor.update_trigger_visuals()
 
 # UNDO/REDO HELPER FUNCTIONS
 

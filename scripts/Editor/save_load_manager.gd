@@ -216,7 +216,6 @@ func load_level(target_path: String) -> void:
 							new_object.visible = false
 							
 	editor.update_scrollbar_bounds()
-	
 	# Visually updates the color box when the level finishes loading
 	editor.color_picker_btn.color = Global.get_channel_color(editor.current_editing_channel)
 

@@ -25,12 +25,12 @@ metadata/_custom_type_script = "uid://ckysrtiopsb71"
 texture = SubResource("AtlasTexture_4g0po")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
-scale = Vector2(1.4, 1.4)
+scale = Vector2(1.5, 1.5)
 shape = SubResource("RectangleShape2D_als3r")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
 visible = false
 z_index = 4090
-position = Vector2(-0.90909266, -9.536743e-07)
-scale = Vector2(0.5965908, 0.5965908)
+position = Vector2(-0.909091, -0.45454597)
+scale = Vector2(0.7670454, 0.7599431)
 texture = SubResource("AtlasTexture_1qrot")
