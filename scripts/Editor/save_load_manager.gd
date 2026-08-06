@@ -101,7 +101,8 @@ func load_level(target_path: String) -> void:
 						"scale_y": 1.0,
 						"layer": 1,
 						"color_channel": 0,
-						"groups": []
+						"groups": [],
+						"target_channel": 0,
 					}
 					
 					# Read through array in pairs (key, value)
@@ -131,6 +132,7 @@ func load_level(target_path: String) -> void:
 							"12": item_dict["custom_z_order"] = val.to_int()
 							"13": item_dict["z_layer"] = val.to_int()
 							"14": item_dict["trigger_color"] = val
+							"15": item_dict["target_channel"] = val.to_int()
 							
 					# Instantiate the object using parsed dict
 					var resource = load(item_dict["scene_path"])
@@ -320,6 +322,12 @@ func _on_save_button_pressed() -> void:
 				var hex = object.get_meta("trigger_color").to_html()
 				obj_parts.append("14")
 				obj_parts.append(hex)
+			
+			# 15: Target Channel
+			if object.has_meta("target_channel"):
+				var target_chan = object.get_meta("target_channel")
+				obj_parts.append("15")
+				obj_parts.append(str(target_chan))
 			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))

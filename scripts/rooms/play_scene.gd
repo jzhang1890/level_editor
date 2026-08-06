@@ -501,7 +501,7 @@ func update_chunks(center_chunk: int) -> void:
 						if not obj.has_meta("is_trigger"):
 							obj.visible = true
 							
-							# ARefresh the color dynamically on wake
+							# Refresh the color dynamically on wake
 							if not obj.has_meta("ignore_color"):
 								var channel = obj.get_meta("color_channel", 0)
 								var target_color = Global.get_channel_color(channel)
