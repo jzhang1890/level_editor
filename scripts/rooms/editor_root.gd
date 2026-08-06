@@ -1433,25 +1433,6 @@ func update_z_layer_ui(target_layer: int) -> void:
 			# set_pressed_no_signal visually toggles the button without triggering its connected function
 			btn.set_pressed_no_signal(key == target_layer)
 
-func update_gameplay_colors(channel: int, new_color: Color) -> void:
-	# Sweep through ACTIVE chunks only
-	for chunk_id in active_chunks:
-		if level_chunks.has(chunk_id):
-			for obj in level_chunks[chunk_id]:
-				if is_instance_valid(obj):
-					# Skip triggers AND orbs so they keep their default colors
-					if obj.has_meta("is_trigger") or obj.has_meta("ignore_color"):
-						continue
-					
-					# If the object is on this channel, update its tint
-					if obj.get_meta("color_channel", 0) == channel:
-						if obj is Sprite2D:
-							obj.modulate = new_color
-						else:
-							var sprite = obj.get_node_or_null("Sprite2D")
-							if sprite:
-								sprite.modulate = new_color
-
 func update_trigger_visuals() -> void:
 	if is_instance_valid(trigger_drawer) and not is_playtesting:
 		trigger_drawer.queue_redraw()

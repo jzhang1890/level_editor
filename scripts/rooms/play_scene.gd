@@ -42,10 +42,12 @@ var level_completed: bool = false
 
 # Array to track objects altered by triggers or gameplay
 var modified_objects: Array = []
+# Snapshot of colors to revert to on restart
+var initial_level_colors: Dictionary = {}
 
 func _ready() -> void:
 	# Let the triggers know this scene can receive color updates
-	add_to_group("level_editor")
+	add_to_group("play_scene")
 	
 	# After loading the level
 	spawn_position = player.global_position
@@ -173,6 +175,9 @@ func load_level(target_path: String) -> void:
 					var channel_id = int(channel_id_str)
 					var color_hex = level_data["colors"][channel_id_str]
 					Global.active_level_colors[channel_id] = Color(color_hex)
+					
+				# Take a snapshot of the starting colors
+				initial_level_colors = Global.active_level_colors.duplicate()
 			
 			var items_raw = level_data["items"]
 			
@@ -184,7 +189,6 @@ func load_level(target_path: String) -> void:
 				
 				# Setup cache
 				var scene_cache: Dictionary = {}
-				var deco_batches: Dictionary = {}
 				
 				# Loop through the objects in the compressed string
 				for item_str in item_strings:
@@ -201,7 +205,8 @@ func load_level(target_path: String) -> void:
 						"scale_x": 1.0,
 						"scale_y": 1.0,
 						"layer": 1,
-						"color_channel": 0
+						"color_channel": 0,
+						"groups": [],
 					}
 					
 					# Read through array in pairs (key, value)
@@ -222,9 +227,14 @@ func load_level(target_path: String) -> void:
 							"8": item_dict["layer"] = val.to_int()
 							"9": item_dict["skew"] = val.to_float()
 							"10": item_dict["color_channel"] = val.to_int()
+							"11": 
+								var parsed_groups = []
+								for g_str in val.split("-"):
+									if g_str != "":
+										parsed_groups.append(g_str.to_int())
+								item_dict["groups"] = parsed_groups
 							"12": item_dict["custom_z_order"] = val.to_int()
 							"13": item_dict["z_layer"] = val.to_int()
-							# Add these two lines:
 							"14": item_dict["trigger_color"] = val
 							"15": item_dict["target_channel"] = val.to_int()
 					
@@ -232,45 +242,7 @@ func load_level(target_path: String) -> void:
 					if item_dict.has("y") and item_dict["y"] < highest_obj_y:
 						highest_obj_y = item_dict["y"]
 					
-					#  THE FILTER INTERCEPT 
 					var path = item_dict["scene_path"]
-					
-					# 1. Check if the path contains the Deco folder
-					if "/deco/" in path.to_lower():
-						var z_layer = item_dict.get("z_layer", 0)
-						var custom_z = item_dict.get("custom_z_order", 6)
-
-						# Include z_layer in the key so they batch correctly
-						var batch_key = path + "_" + str(z_layer) + "_" + str(custom_z)
-
-						if not deco_batches.has(batch_key):
-							deco_batches[batch_key] = {
-								"path": path,
-								"z_layer": z_layer,
-								"custom_z_order": custom_z,
-								"transforms": [],
-								"colors": []
-							}
-								
-						var rot_rad = deg_to_rad(item_dict.get("rotation", 0.0))
-						var pos = Vector2(item_dict.get("x", 0.0), item_dict.get("y", 0.0))
-						var obj_scale = Vector2(item_dict.get("scale_x", 1.0), item_dict.get("scale_y", 1.0))
-						var obj_skew = item_dict.get("skew", 0.0) 
-
-						obj_scale.y *= -1.0 
-						
-						var gpu_transform = Transform2D(rot_rad, obj_scale, obj_skew, Vector2.ZERO)
-						gpu_transform.origin = pos
-
-						deco_batches[batch_key]["transforms"].append(gpu_transform)
-						
-						var channel = item_dict.get("color_channel", 0)
-						deco_batches[batch_key]["colors"].append(Global.get_channel_color(channel))
-						
-						continue
-
-					# ONLY HAZARDS AND TRIGGERS MAKE IT PAST THE CONTINUE 
-					# ACTUALLY INSTANTIATES INDIVIDUAL OBJECTS
 					
 					# Check cache before hitting the hard drive
 					if not scene_cache.has(path):
@@ -352,56 +324,6 @@ func load_level(target_path: String) -> void:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
 				
-				# BATCH GENERATE THE MULTIMESHES ONCE THE LOOP IS DONE
-				for batch_key in deco_batches:
-					var batch_data = deco_batches[batch_key]
-					var deco_path = batch_data["path"]
-					var transforms = batch_data["transforms"]
-					
-					# Load the scene ONCE to steal its texture
-					var dummy_scene = load(deco_path).instantiate()
-					var tex = null
-					
-					# Grab the texture whether it's on the root node or a Sprite2D child
-					if "texture" in dummy_scene and dummy_scene.texture != null:
-						tex = dummy_scene.texture
-					elif dummy_scene.has_node("Sprite2D"):
-						tex = dummy_scene.get_node("Sprite2D").texture
-						
-					dummy_scene.queue_free()
-					
-					if tex:
-						# ATLAS TEXTURE FIX 
-						if tex is AtlasTexture:
-							# Grab the raw image data from the massive sprite sheet
-							var atlas_img = tex.atlas.get_image()
-							# Crop out just the region actually wanted
-							var region_img = atlas_img.get_region(tex.region)
-							# Convert it back into a standard texture for the MultiMesh
-							tex = ImageTexture.create_from_image(region_img)
-							
-						# Create the GPU mesh matched to the image size
-						var quad = QuadMesh.new()
-						quad.size = tex.get_size()
-						
-						var mm = MultiMesh.new()
-						mm.mesh = quad
-						mm.use_colors = true # Switch this to TRUE
-						mm.instance_count = transforms.size()
-						
-						# Dump all the coordinates and colors into the GPU buffer natively
-						for i in range(transforms.size()):
-							mm.set_instance_transform_2d(i, transforms[i])
-							mm.set_instance_color(i, batch_data["colors"][i])
-							
-						var mm_inst = MultiMeshInstance2D.new()
-						mm_inst.multimesh = mm
-						mm_inst.texture = tex
-						mm_inst.z_index = (batch_data["z_layer"] * 300) + batch_data["custom_z_order"]
-						
-						# Add the single MultiMesh to the canvas
-						level_canvas.add_child(mm_inst)
-				
 				# Set the final trigger line
 				if highest_obj_y != 999999.0:
 					end_level_y = highest_obj_y - end_padding
@@ -464,7 +386,24 @@ func _on_player_player_died() -> void:
 	for obj in modified_objects:
 		if is_instance_valid(obj):
 			obj.reset()
+			
+	# Restore the original colors
+	Global.active_level_colors = initial_level_colors.duplicate()
 	
+	# Sweep active chunks to instantly snap their colors back
+	for chunk_id in active_chunks:
+		if level_chunks.has(chunk_id):
+			for obj in level_chunks[chunk_id]:
+				if is_instance_valid(obj) and not obj.has_meta("is_trigger") and not obj.has_meta("ignore_color"):
+					var channel = obj.get_meta("color_channel", 0)
+					var target_color = Global.get_channel_color(channel)
+					if obj is Sprite2D:
+						obj.modulate = target_color
+					else:
+						var sprite = obj.get_node_or_null("Sprite2D")
+						if sprite:
+							sprite.modulate = target_color
+							
 	# Clear the list so it doesn't cause a memory leak freeze
 	modified_objects.clear()
 	restart_button_pressed = false
@@ -561,6 +500,20 @@ func update_chunks(center_chunk: int) -> void:
 						# Only make it visible if it's not a trigger
 						if not obj.has_meta("is_trigger"):
 							obj.visible = true
+							
+							# ARefresh the color dynamically on wake
+							if not obj.has_meta("ignore_color"):
+								var channel = obj.get_meta("color_channel", 0)
+								var target_color = Global.get_channel_color(channel)
+								
+								if obj is Sprite2D:
+									obj.modulate = target_color
+								else:
+									var sprite = obj.get_node_or_null("Sprite2D")
+									if sprite:
+										sprite.modulate = target_color
+									# Keep root opaque for hitboxes
+									obj.modulate = Color(1, 1, 1, 1.0)
 						
 						var hitbox = obj.get_node_or_null("HitboxSprite")
 						if hitbox:
@@ -583,22 +536,3 @@ func trigger_level_end() -> void:
 	if level_end_screen:
 		level_end_screen.visible = true
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE # Bring mouse back for UI
-
-func update_gameplay_colors(channel: int, new_color: Color) -> void:
-	# Sweep through ACTIVE chunks only
-	for chunk_id in active_chunks:
-		if level_chunks.has(chunk_id):
-			for obj in level_chunks[chunk_id]:
-				if is_instance_valid(obj):
-					# Skip triggers AND orbs so they keep their default colors
-					if obj is Trigger or obj.has_meta("ignore_color"):
-						continue
-					
-					# If the object is on this channel, update its tint
-					if obj.get_meta("color_channel", 0) == channel:
-						if obj is Sprite2D:
-							obj.modulate = new_color
-						else:
-							var sprite = obj.get_node_or_null("Sprite2D")
-							if sprite:
-								sprite.modulate = new_color

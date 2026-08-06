@@ -42,15 +42,38 @@ func fire_trigger() -> void:
 		# Instantaneous transition
 		Global.active_level_colors[channel] = trigger_color
 		
-		var editor = get_tree().get_first_node_in_group("level_editor")
-		if editor:
-			# Tell the editor this trigger fired so it gets reset later
-			if not editor.modified_objects.has(self):
-				editor.modified_objects.append(self)
+		# 1. Consolidate the scene lookup to remove duplicate code
+		var main_scene = get_tree().get_first_node_in_group("level_editor")
+		if main_scene == null:
+			main_scene = get_tree().get_first_node_in_group("play_scene")
+			
+		if main_scene != null:
+			# Add to the reset list
+			if not main_scene.modified_objects.has(self):
+				main_scene.modified_objects.append(self)
 				
-			# Tell the editor to sweep the chunks and apply the color
-			if editor.has_method("update_gameplay_colors"):
-				editor.update_gameplay_colors(channel, trigger_color)
+			# 2. Grab the chunks directly from the active scene
+			var level_chunks = main_scene.level_chunks
+			var active_chunks = main_scene.active_chunks
+			
+			# 3. Sweep active chunks and apply the color
+			for chunk_id in active_chunks:
+				if level_chunks.has(chunk_id):
+					for obj in level_chunks[chunk_id]:
+						if is_instance_valid(obj):
+							if obj is Trigger or obj.has_meta("ignore_color"):
+								continue
+								
+							if obj.get_meta("color_channel", 0) == channel:
+								if obj is Sprite2D:
+									obj.modulate = trigger_color
+								else:
+									var sprite = obj.get_node_or_null("Sprite2D")
+									if sprite:
+										sprite.modulate = trigger_color
+									else:
+										# Fallback for obstacles without a Sprite2D child
+										obj.modulate = trigger_color
 	else:
 		# TODO: We'll put a Tween in here when you want to add the fade
 		pass
