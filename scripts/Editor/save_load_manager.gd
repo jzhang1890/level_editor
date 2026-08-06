@@ -102,7 +102,6 @@ func load_level(target_path: String) -> void:
 						"layer": 1,
 						"color_channel": 0,
 						"groups": [],
-						"target_channel": 0,
 					}
 					
 					# Read through array in pairs (key, value)
@@ -173,8 +172,11 @@ func load_level(target_path: String) -> void:
 						
 						# Apply color channel data
 						new_object.set_meta("color_channel", item_dict["color_channel"])
+						# Only apply target metadata if the save file explicitly contained key "15"
+						if item_dict.has("target_channel"):
+							new_object.set_meta("target_channel", item_dict["target_channel"])
 						
-						# 1. Check the path to catch Orbs and Triggers BEFORE _ready() fires
+						# 1. Check the path to catch Orbs and Triggers before _ready() fires
 						var saved_path = item_dict["scene_path"].to_lower()
 						if "/orbs/" in saved_path or "/triggers/" in saved_path:
 							new_object.set_meta("ignore_color", true)
