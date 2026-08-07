@@ -27,8 +27,8 @@ signal edit_action_requested(action_name: String)
 # GROUP ID UI REFERENCES
 @onready var edit_group_node: Node = $EditGroupMenu
 @onready var edit_group_menu: Control = $EditGroupMenu/EditGroupMenu
-@onready var group_id_input: LineEdit = $EditGroupMenu/EditGroupMenu/GroupIDInput
-@onready var add_group_btn: Button = $EditGroupMenu/EditGroupMenu/AddGroupIDButton
+@onready var group_id_input: LineEdit = $EditGroupMenu/EditGroupMenu/GroupIDContainer/GroupIDInput
+@onready var add_group_btn: Button = $EditGroupMenu/EditGroupMenu/GroupIDContainer/AddGroupIDButton
 @onready var active_groups_container: Container = $EditGroupMenu/EditGroupMenu/ActiveGroupsContainer
 @onready var edit_group_btn: Button = $SelectionMenu/EditGroupButton
 
@@ -285,7 +285,7 @@ func _on_edit_object_button_pressed() -> void:
 			var current_color = first_obj.get_meta("trigger_color", Color(1, 1, 1, 1))
 			
 			# Push data into UI nodes
-			$ColorTriggerMenu/ColorTriggerMenu/ChannelInput.text = str(current_channel)
+			$ColorTriggerMenu/ColorTriggerMenu/ChannelContainer/ChannelInput.text = str(current_channel)
 			$ColorTriggerMenu/ColorTriggerMenu/ColorPicker.color = current_color
 			
 		else:

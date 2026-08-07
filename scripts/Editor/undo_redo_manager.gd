@@ -63,7 +63,6 @@ func undo_action() -> void:
 		"place": remove_objects_by_id(action["new_data"])
 		"delete": recreate_objects(action["old_data"])
 		"edit": apply_object_state(action["old_data"])
-		"color_change": apply_global_color(action["old_data"])
 		
 	editor.update_trigger_visuals()
 	
@@ -77,7 +76,6 @@ func redo_action() -> void:
 		"place": recreate_objects(action["new_data"])
 		"delete": remove_objects_by_id(action["old_data"])
 		"edit": apply_object_state(action["new_data"])
-		"color_change": apply_global_color(action["new_data"])
 
 	editor.update_trigger_visuals()
 
@@ -233,14 +231,3 @@ func apply_object_state(data_array: Array) -> void:
 			# Place the gizmo at correct location
 	if editor.has_node("Foreground/TransformGizmo"):
 		editor.get_node("Foreground/TransformGizmo").update_selection(editor.selected_objects)
-
-func apply_global_color(data_array: Array) -> void:
-	var channel = data_array[0]["channel"]
-	var target_color = data_array[0]["color"]
-	
-	# Route the data back to the editor variables
-	editor.current_editing_channel = channel
-	editor.color_picker_btn.color = target_color
-	
-	# Re-run the existing color update function to paint the objects
-	editor._on_picker_color_changed(target_color)

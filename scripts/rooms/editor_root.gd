@@ -29,6 +29,7 @@ extends Node2D
 @onready var z_order_spinbox: SpinBox = $EditorUI/ColorChannelMenu/ColorChannelMenu/ZOrderSpinBox
 
 @onready var color_picker_btn: ColorPickerButton = $EditorUI/ColorChannelMenu/ColorChannelMenu/ColorPickerButton
+@onready var fade_time_input = $EditorUI/ColorTriggerMenu/ColorTriggerMenu/FadeTimeContainer/FadeTimeInput
 var color_before_edit: Color
 var current_editing_channel: int = 0
 
@@ -154,7 +155,12 @@ func _ready() -> void:
 	z_layer_menu.get_node("T4Button").pressed.connect(_on_z_layer_selected.bind(4))
 	z_layer_menu.get_node("T5Button").pressed.connect(_on_z_layer_selected.bind(5))
 	
-	color_picker_btn.color_changed.connect(_on_picker_color_changed)
+	# Connect color picker button
+	color_picker_btn.color_changed.connect(_on_picker_color_changed) 
+	
+	# Connect the fade time input
+	if fade_time_input:
+		fade_time_input.value_changed.connect(_on_fade_time_changed)
 	
 	# Create a dedicated node for drawing the box above everything else
 	selection_drawer = Node2D.new()
@@ -196,7 +202,7 @@ func _input(event: InputEvent) -> void:
 		if is_dragging_objects or is_box_selecting or is_dragging:
 			_handle_mouse_motion(event)
 			
-			# FIX: Only feed the event to the camera if we are purely panning
+			# Fix: Only feed the event to the camera if purely panning
 			if is_dragging and not is_dragging_objects and not is_box_selecting:
 				if camera.has_method("_unhandled_input"):
 					camera._unhandled_input(event)
@@ -439,7 +445,11 @@ func change_selection(clicked_obj: Node2D, is_multi: bool = false) -> void:
 		var current_z = selected_objects[0].get_meta("custom_z_order", 2)
 		if z_order_spinbox:
 			z_order_spinbox.set_value_no_signal(current_z)
-			
+		
+		# Update fade time to match new selection
+		if selected_objects[0].has_meta("fade_time") and fade_time_input:
+			fade_time_input.set_value_no_signal(selected_objects[0].get_meta("fade_time"))
+		
 		# Read the object's Z-layer and update the UI buttons to match
 		var obj_z_layer = selected_objects[0].get_meta("z_layer", 0)
 		update_z_layer_ui(obj_z_layer)
@@ -978,16 +988,10 @@ func _on_gizmo_transform_ended() -> void:
 	undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
 
 func _on_color_channel_selected(channel_id: int) -> void:
-	# Snap the start state for undo/redo manager
-	var start_state = undo_manager.serialize_objects(selected_objects)
-
 	for obj in selected_objects:
 		if is_instance_valid(obj):
 			obj.set_meta("color_channel", channel_id)
 			obj.set_highlight(true)
-
-	var end_state = undo_manager.serialize_objects(selected_objects)
-	undo_manager.commit_action("edit", start_state, end_state)
 
 	# 1. Tell the editor which channel its currently editing
 	current_editing_channel = channel_id
@@ -1200,7 +1204,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 								is_touching_gizmo = true
 								break
 
-				# If we clicked our selection, are NOT holding Ctrl, and are NOT using the Gizmo, start dragging
+				# If user clicked our selection, is NOT holding Ctrl, and is NOT using the Gizmo, start dragging
 				if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
 					is_dragging_objects = true
 					previous_mouse_pos = click_pos
@@ -1459,3 +1463,11 @@ func _draw_trigger_lines() -> void:
 					# Draw horizontal line at the trigger's Y position
 					var y_pos = obj.global_position.y
 					trigger_drawer.draw_line(Vector2(-100000, y_pos), Vector2(100000, y_pos), line_color, thickness)
+
+func _on_fade_time_changed(value: float) -> void:
+	if selected_objects.is_empty():
+		return
+		
+	for obj in selected_objects:
+		if is_instance_valid(obj) and obj.has_meta("is_color_trigger"):
+			obj.set_meta("fade_time", value)

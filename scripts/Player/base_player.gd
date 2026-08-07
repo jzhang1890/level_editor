@@ -42,31 +42,31 @@ func _physics_process(delta: float) -> void:
 		ball_target_rotation = 0.0
 		return
 		
-	# Camera Death Check 
-	var active_camera = get_viewport().get_camera_2d()
-	if active_camera:
-		# Calculate the bottom edge, then pull it up by the margin amount
-		var screen_bottom_y = active_camera.global_position.y + (get_viewport_rect().size.y / 2.0) / active_camera.zoom.y - orb_death_margin
-		
-		# Loop through all the orbs in the scene
-		for orb in get_tree().get_nodes_in_group("orbs"):
-			# If an orb is uncollected AND its center passes our adjusted bottom line
-			if not orb.triggered and orb.global_position.y > screen_bottom_y:
-				
-				# Keep your existing noclip logic so playtesting is still easy
-				var is_noclip = get_parent().get("noclip")
-				if is_noclip == null:
-					is_noclip = false
-					
-				if not is_noclip:
-					# Trigger the blink and camera pan
-					if orb.has_method("show_missed_warning"):
-						orb.show_missed_warning()
-					if active_camera.has_method("focus_on_missed_orb"):
-						active_camera.focus_on_missed_orb(orb.global_position.y)
-					
-					trigger_death()
-					break # Player is dead, stop checking the rest of the orbs
+	## Camera Death Check 
+	#var active_camera = get_viewport().get_camera_2d()
+	#if active_camera:
+		## Calculate the bottom edge, then pull it up by the margin amount
+		#var screen_bottom_y = active_camera.global_position.y + (get_viewport_rect().size.y / 2.0) / active_camera.zoom.y - orb_death_margin
+		#
+		## Loop through all the orbs in the scene
+		#for orb in get_tree().get_nodes_in_group("orbs"):
+			## If an orb is uncollected AND its center passes our adjusted bottom line
+			#if not orb.triggered and orb.global_position.y > screen_bottom_y:
+				#
+				## Keep existing noclip logic 
+				#var is_noclip = get_parent().get("noclip")
+				#if is_noclip == null:
+					#is_noclip = false
+					#
+				#if not is_noclip:
+					## Trigger the blink and camera pan
+					#if orb.has_method("show_missed_warning"):
+						#orb.show_missed_warning()
+					#if active_camera.has_method("focus_on_missed_orb"):
+						#active_camera.focus_on_missed_orb(orb.global_position.y)
+					#
+					#trigger_death()
+					#break # Player is dead, stop checking the rest of the orbs
 		
 	# Take away horizontal controls when the level is beat and slow down
 	if level_finished:

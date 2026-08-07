@@ -237,6 +237,7 @@ func load_level(target_path: String) -> void:
 							"13": item_dict["z_layer"] = val.to_int()
 							"14": item_dict["trigger_color"] = val
 							"15": item_dict["target_channel"] = val.to_int()
+							"16": item_dict["fade_time"] = val.to_float()
 					
 					# Track the highest point in the level
 					if item_dict.has("y") and item_dict["y"] < highest_obj_y:
@@ -283,6 +284,9 @@ func load_level(target_path: String) -> void:
 							
 						if item_dict.has("target_channel"):
 							new_object.set_meta("target_channel", item_dict["target_channel"])
+						
+						if item_dict.has("fade_time"):
+							new_object.set_meta("fade_time", item_dict["fade_time"])
 						
 						# Identify if it's a trigger or orb based on the path
 						var is_trigger = "/triggers/" in path.to_lower()
@@ -348,11 +352,10 @@ func _on_player_player_died() -> void:
 	if music_player and music_player.stream:
 		music_player.stop()
 	
-	# Dead sound
-	if death_sound:
-		death_sound.play()
-	
 	if not restart_button_pressed:
+		# Dead sound
+		if death_sound:
+			death_sound.play()
 		await get_tree().create_timer(respawn_time, false).timeout
 	
 	# Reset camera

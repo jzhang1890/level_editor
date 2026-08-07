@@ -237,7 +237,6 @@ offset_right = 1230.0
 offset_bottom = 483.0
 
 [node name="ColorChannelMenu" type="Control" parent="EditorUI" unique_id=1702470925]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -270,6 +269,14 @@ offset_bottom = -155.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.2, 0.2, 0.2, 0.78431374)
+
+[node name="Channel-1Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=611427925]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 67.0
+offset_right = 183.0
+offset_bottom = 97.0
+text = "Background"
 
 [node name="Channel0Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1914646805]
 layout_mode = 0
@@ -505,19 +512,22 @@ offset_right = 832.5
 offset_bottom = 77.5
 text = "X"
 
-[node name="GroupIDInput" type="LineEdit" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=1070788489]
+[node name="GroupIDContainer" type="HBoxContainer" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=76248525]
 layout_mode = 0
-offset_left = 91.0
-offset_top = 97.75
-offset_right = 182.0
-offset_bottom = 134.75
+offset_left = 93.0
+offset_top = 125.75
+offset_right = 289.0
+offset_bottom = 155.75
 
-[node name="AddGroupIDButton" type="Button" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=594772769]
-layout_mode = 0
-offset_left = 202.0
-offset_top = 101.75
-offset_right = 246.0
-offset_bottom = 131.75
+[node name="GroupIDLabel" type="Label" parent="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer" unique_id=981735867]
+layout_mode = 2
+text = "Group ID"
+
+[node name="GroupIDInput" type="LineEdit" parent="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer" unique_id=1070788489]
+layout_mode = 2
+
+[node name="AddGroupIDButton" type="Button" parent="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer" unique_id=594772769]
+layout_mode = 2
 text = "Add"
 
 [node name="ActiveGroupsContainer" type="HBoxContainer" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=1927754377]
@@ -769,12 +779,35 @@ color_modes_visible = false
 sliders_visible = false
 presets_visible = false
 
-[node name="ChannelInput" type="LineEdit" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=54583008]
+[node name="ChannelContainer" type="HBoxContainer" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=883575206]
 layout_mode = 0
-offset_left = 572.0
-offset_top = 395.0
-offset_right = 633.1875
-offset_bottom = 431.0
+offset_left = 486.0
+offset_top = 393.0
+offset_right = 691.0
+offset_bottom = 433.0
+
+[node name="ChannelLabel" type="Label" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelContainer" unique_id=665672017]
+layout_mode = 2
+text = "Color Channel"
+
+[node name="ChannelInput" type="LineEdit" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelContainer" unique_id=54583008]
+layout_mode = 2
+
+[node name="FadeTimeContainer" type="HBoxContainer" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=999308088]
+layout_mode = 0
+offset_left = 289.0
+offset_top = 393.0
+offset_right = 446.0
+offset_bottom = 433.0
+
+[node name="FadeTimeLabel" type="Label" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/FadeTimeContainer" unique_id=616843466]
+layout_mode = 2
+text = "Fade Time"
+
+[node name="FadeTimeInput" type="SpinBox" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/FadeTimeContainer" unique_id=1111456602]
+layout_mode = 2
+max_value = 10.0
+step = 0.1
 
 [node name="PauseMenu" type="ColorRect" parent="EditorUI" unique_id=300482010]
 visible = false
@@ -856,7 +889,7 @@ text = "Save and Quit"
 [connection signal="value_changed" from="EditorUI/ColorChannelMenu/ColorChannelMenu/ZOrderSpinBox" to="." method="_on_z_order_spinbox_value_changed"]
 [connection signal="pressed" from="EditorUI/ColorChannelMenu/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/EditGroupMenu/EditGroupMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="pressed" from="EditorUI/EditGroupMenu/EditGroupMenu/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]
+[connection signal="pressed" from="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
 [connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton" to="EditorUI" method="_on_regular_button_pressed"]
@@ -868,7 +901,7 @@ text = "Save and Quit"
 [connection signal="request_completed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader/NG_HTTPRequest" to="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" method="_on_ng_http_request_request_completed"]
 [connection signal="pressed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
 [connection signal="color_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ColorPicker" to="EditorUI" method="_on_trigger_color_picker_color_changed"]
-[connection signal="text_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelInput" to="EditorUI" method="_on_trigger_channel_input_text_changed"]
+[connection signal="text_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelContainer/ChannelInput" to="EditorUI" method="_on_trigger_channel_input_text_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]

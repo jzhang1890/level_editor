@@ -94,7 +94,7 @@ func load_level(target_path: String) -> void:
 					if data.size() < 2:
 						continue
 						
-					# Setup our baseline default values
+					# Setup baseline default values
 					var item_dict = {
 						"rotation": 0.0,
 						"scale_x": 1.0,
@@ -132,6 +132,7 @@ func load_level(target_path: String) -> void:
 							"13": item_dict["z_layer"] = val.to_int()
 							"14": item_dict["trigger_color"] = val
 							"15": item_dict["target_channel"] = val.to_int()
+							"16": item_dict["fade_time"] = val.to_float()
 							
 					# Instantiate the object using parsed dict
 					var resource = load(item_dict["scene_path"])
@@ -172,16 +173,20 @@ func load_level(target_path: String) -> void:
 						
 						# Apply color channel data
 						new_object.set_meta("color_channel", item_dict["color_channel"])
-						# Only apply target metadata if the save file explicitly contained key "15"
+						# Only apply target metadata if the save file contained key "15"
 						if item_dict.has("target_channel"):
 							new_object.set_meta("target_channel", item_dict["target_channel"])
+						
+						# Apply the fade time if it exists
+						if item_dict.has("fade_time"):
+							new_object.set_meta("fade_time", item_dict["fade_time"])
 						
 						# 1. Check the path to catch Orbs and Triggers before _ready() fires
 						var saved_path = item_dict["scene_path"].to_lower()
 						if "/orbs/" in saved_path or "/triggers/" in saved_path:
 							new_object.set_meta("ignore_color", true)
 							
-						# 2. Port updated editor logic for coloring Sprite2D vs Root
+						# 2. Port editor logic for modulation
 						if not new_object.has_meta("ignore_color"):
 							var target_color = Global.get_channel_color(item_dict["color_channel"])
 							
@@ -230,7 +235,7 @@ func load_ground_colors(saved_colors: Dictionary) -> void:
 		var color_hex = saved_colors[tab_str]
 		var loaded_color = Color(color_hex)
 		
-		# 1. Physically update the texture colors using the root's function
+		# 1. Update the texture colors using the root's function
 		editor.update_ground_color(tab_index, loaded_color)
 		
 		# 2. Sync the UI's memory dictionary so the color picker matches the loaded color
@@ -330,6 +335,12 @@ func _on_save_button_pressed() -> void:
 				var target_chan = object.get_meta("target_channel")
 				obj_parts.append("15")
 				obj_parts.append(str(target_chan))
+			
+			# 16: Fade Time
+			if object.has_meta("fade_time"):
+				var fade = object.get_meta("fade_time")
+				obj_parts.append("16")
+				obj_parts.append(str(snapped(fade, 0.001)))
 			
 			# Join properties with commas (e.g. "1,id,2,path,3,x,4,y")
 			items_string_builder.append(",".join(obj_parts))
