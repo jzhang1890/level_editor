@@ -12,7 +12,8 @@
 [ext_resource type="Script" uid="uid://co0q6xvm301gg" path="res://scripts/editor/save_load_manager.gd" id="9_b4iia"]
 [ext_resource type="Script" uid="uid://b0ihw12rxib34" path="res://scripts/editor/music_downloader.gd" id="11_0esmb"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_xxn6o"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_0esmb"]
+resource_local_to_scene = false
 
 [node name="EditorRoot" type="Node2D" unique_id=134942868]
 script = ExtResource("1_eufpp")
@@ -270,12 +271,14 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.2, 0.2, 0.2, 0.78431374)
 
-[node name="Channel-1Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=611427925]
+[node name="ChannelBGButton" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=611427925]
 layout_mode = 0
 offset_left = 58.0
 offset_top = 67.0
 offset_right = 183.0
 offset_bottom = 97.0
+toggle_mode = true
+button_group = SubResource("ButtonGroup_0esmb")
 text = "Background"
 
 [node name="Channel0Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1914646805]
@@ -286,7 +289,7 @@ offset_right = 140.5
 offset_bottom = 143.5
 toggle_mode = true
 button_pressed = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "Default"
 
 [node name="Channel1Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=800828293]
@@ -296,7 +299,7 @@ offset_top = 114.5
 offset_right = 183.5
 offset_bottom = 144.5
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "1"
 
 [node name="Channel2Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=2097595621]
@@ -306,7 +309,7 @@ offset_top = 114.5
 offset_right = 228.5
 offset_bottom = 144.5
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "2"
 
 [node name="Channel3Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1549381149]
@@ -316,7 +319,7 @@ offset_top = 114.5
 offset_right = 275.5
 offset_bottom = 144.5
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "3"
 
 [node name="Channel4Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=370865143]
@@ -326,7 +329,7 @@ offset_top = 115.5
 offset_right = 321.5
 offset_bottom = 145.5
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "4"
 
 [node name="Channel5Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1573993471]
@@ -336,7 +339,7 @@ offset_top = 116.0
 offset_right = 381.0
 offset_bottom = 146.0
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "5"
 
 [node name="Channel6Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1242377611]
@@ -346,7 +349,7 @@ offset_top = 115.0
 offset_right = 431.0
 offset_bottom = 145.0
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "6"
 
 [node name="Channel7Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1296480632]
@@ -356,7 +359,7 @@ offset_top = 114.0
 offset_right = 480.0
 offset_bottom = 144.0
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "7"
 
 [node name="Channel8Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=708063410]
@@ -366,7 +369,7 @@ offset_top = 113.0
 offset_right = 527.0
 offset_bottom = 143.0
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "8"
 
 [node name="Channel9Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1463585321]
@@ -376,7 +379,7 @@ offset_top = 114.0
 offset_right = 574.0
 offset_bottom = 144.0
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "9"
 
 [node name="Channel10Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=2064374537]
@@ -386,7 +389,7 @@ offset_top = 113.0
 offset_right = 631.0
 offset_bottom = 143.0
 toggle_mode = true
-button_group = SubResource("ButtonGroup_xxn6o")
+button_group = SubResource("ButtonGroup_0esmb")
 text = "10"
 
 [node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1639325206]

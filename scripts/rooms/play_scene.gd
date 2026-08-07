@@ -178,6 +178,9 @@ func load_level(target_path: String) -> void:
 					
 				# Take a snapshot of the starting colors
 				initial_level_colors = Global.active_level_colors.duplicate()
+				# Apply the Channel -1 color to the background 
+				if Global.active_level_colors.has(-1) and bg_rect:
+					bg_rect.modulate = Global.active_level_colors[-1]
 			
 			var items_raw = level_data["items"]
 			
@@ -392,6 +395,9 @@ func _on_player_player_died() -> void:
 			
 	# Restore the original colors
 	Global.active_level_colors = initial_level_colors.duplicate()
+	# Restore original background color
+	if Global.active_level_colors.has(-1) and bg_rect:
+		bg_rect.modulate = Global.active_level_colors[-1]
 	
 	# Sweep active chunks to instantly snap their colors back
 	for chunk_id in active_chunks:

@@ -290,13 +290,15 @@ func _on_edit_object_button_pressed() -> void:
 			
 		else:
 			# It's a standard object, show the normal menu
-			$ColorChannelMenu.visible = true
 			$ColorChannelMenu.visible = true 
 			for obj in current_selected_objects:
 				if obj.has_meta("color_channel"):
 					var channel = obj.get_meta("color_channel")
-					var button_name = "Channel" + str(channel) + "Button"
-					var target_button = $ColorChannelMenu/ColorChannelMenu.get_node(button_name)
+					
+					# Route to the BG button if it's channel -1
+					var button_name = "ChannelBGButton" if channel == -1  else "Channel" + str(channel) + "Button"
+					var target_button = $ColorChannelMenu/ColorChannelMenu.get_node_or_null(button_name)
+					
 					if target_button:
 						target_button.button_pressed = true
 						$ColorChannelMenu/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)

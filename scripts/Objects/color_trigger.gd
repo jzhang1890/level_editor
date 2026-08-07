@@ -21,7 +21,7 @@ func _ready() -> void:
 		set_meta("fade_time", 0.0)
 
 func _process(_delta: float) -> void:
-	# 1. If don't have the player yet, try to find them
+	# 1. If player doesn't exist yet, try to find them
 	if not is_instance_valid(player_ref):
 		player_ref = get_tree().get_first_node_in_group("player")
 		
@@ -59,7 +59,12 @@ func fire_trigger() -> void:
 		var main_scene = get_tree().get_first_node_in_group("level_editor")
 		if main_scene == null:
 			main_scene = get_tree().get_first_node_in_group("play_scene")
-			
+		
+		if main_scene != null:
+			# Sync the background
+			if channel == -1 and main_scene.get("bg_rect") != null:
+				main_scene.bg_rect.modulate = trigger_color
+		
 		if main_scene != null:
 			# Add to the reset list
 			if not main_scene.modified_objects.has(self):
@@ -109,6 +114,11 @@ func _on_fade_step(current_color: Color, target_channel: int, main_scene: Node) 
 	# 1. Update the global color so any sleeping chunks wake up with the precise intermediate color
 	Global.active_level_colors[target_channel] = current_color
 	
+	if is_instance_valid(main_scene):
+		# Smoothly fade the physical background
+		if target_channel == -1 and main_scene.get("bg_rect") != null:
+			main_scene.bg_rect.modulate = current_color
+			
 	# 2. Sweep the currently active chunks and update them
 	if is_instance_valid(main_scene):
 		var level_chunks = main_scene.level_chunks

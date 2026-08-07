@@ -141,6 +141,7 @@ func _ready() -> void:
 	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel8Button.pressed.connect(_on_color_channel_selected.bind(8))
 	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel9Button.pressed.connect(_on_color_channel_selected.bind(9))
 	$EditorUI/ColorChannelMenu/ColorChannelMenu/Channel10Button.pressed.connect(_on_color_channel_selected.bind(10))
+	$EditorUI/ColorChannelMenu/ColorChannelMenu/ChannelBGButton.pressed.connect(_on_color_channel_selected.bind(-1))
 	
 	# Bind Z-Layer buttons to their integer values
 	var z_layer_menu = $EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer
@@ -182,14 +183,14 @@ func _ready() -> void:
 		save_manager.current_save_path = Global.level_to_load # Makes sure to save to this file later
 		save_manager.load_level(save_manager.current_save_path)
 		
-	# Connect to the Gizmo's broadcasts
+	# Connect to the gizmo's signals
 	if has_node("Foreground/TransformGizmo"):
 		var gizmo = $Foreground/TransformGizmo
 		gizmo.transform_started.connect(_on_gizmo_transform_started)
 		gizmo.transform_ended.connect(_on_gizmo_transform_ended)
 		
 func _exit_tree() -> void:
-	# Intercepts the scene closure and forces the engine 
+	# Intercepts the scene closing and forces the engine 
 	# to wait for the background thread to finish saving.
 	if save_manager.save_thread and save_manager.save_thread.is_started():
 		save_manager.save_thread.wait_to_finish()
@@ -1014,9 +1015,21 @@ func apply_level_colors(json_color_data: Dictionary) -> void:
 		
 		# 3. Convert the hex string to a Godot Color and store it in Global
 		Global.active_level_colors[channel_id] = Color(color_hex)
+		
+	# Apply Channel -1 color to background
+	if Global.active_level_colors.has(-1) and bg_rect:
+			bg_rect.modulate = Global.active_level_colors[-1]
 
 func _on_picker_color_changed(new_color: Color) -> void:
 	Global.active_level_colors[current_editing_channel] = new_color
+	
+	# Push color backwards to the background
+	if current_editing_channel == -1:
+		bg_rect.modulate = new_color
+		save_manager.ground_colors[0] = new_color.to_html()
+		ui_layer.ground_colors[0] = new_color
+		if ui_layer.grounds_container.current_tab == 0:
+			ui_layer.settings_color_picker.color = new_color
 	
 	# Create a temporary dictionary for O(1) lookups
 	var fast_selection_check = {}
@@ -1296,14 +1309,22 @@ func update_ground_color(tab_index: int, new_color: Color) -> void:
 	# Match the tab index to the correct ground layer
 	if tab_index == 0:
 		bg_rect.modulate = new_color
-	elif tab_index == 1:
-		pass # Add middleground rect modulate here later
-	elif tab_index == 2:
-		pass # Add foreground rect modulate here later
 		
+		# Sync to Channel -1 and sweep objects
+		Global.active_level_colors[-1] = new_color
+		for chunk_id in active_chunks:
+			if level_chunks.has(chunk_id):
+				for obj in level_chunks[chunk_id]:
+					if is_instance_valid(obj) and not obj.has_meta("is_trigger") and not obj.has_meta("ignore_color"):
+						if obj.get_meta("color_channel", 0) == -1:
+							if obj is Sprite2D:
+								obj.modulate = new_color
+							else:
+								var sprite = obj.get_node_or_null("Sprite2D")
+								if sprite: sprite.modulate = new_color
 	# Store the color as a hex string so the save manager can write it to JSON
 	save_manager.ground_colors[tab_index] = new_color.to_html()
-
+	
 # PLAYTESTING LOGIC
 func toggle_playtest() -> void:
 	if not is_playtesting:
@@ -1402,7 +1423,10 @@ func stop_playtest() -> void:
 	
 	# Restore the global color dictionary
 	Global.active_level_colors = pre_test_colors.duplicate()
-	
+	# Restore background color
+	if Global.active_level_colors.has(-1) and bg_rect:
+		bg_rect.modulate = Global.active_level_colors[-1]
+
 	# 5. Snap the chunks back to the editor camera
 	var current_camera_chunk = int(floor(camera.global_position.y / CHUNK_HEIGHT))
 	update_editor_chunks(current_camera_chunk)
