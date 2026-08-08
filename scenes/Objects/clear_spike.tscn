@@ -9,7 +9,7 @@ atlas = ExtResource("2_w02jr")
 region = Rect2(0, 65, 64, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
-size = Vector2(20, 37)
+size = Vector2(20, 43)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1qrot"]
 atlas = ExtResource("3_le45d")
@@ -25,12 +25,12 @@ metadata/_custom_type_script = "uid://sk3rn71awo6r"
 texture = SubResource("AtlasTexture_4g0po")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
-position = Vector2(0, 9.5)
+position = Vector2(0, 6.5)
 shape = SubResource("RectangleShape2D_als3r")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
 visible = false
 z_index = 4090
-position = Vector2(-0.25, 10.000002)
-scale = Vector2(0.19140624, 0.37500003)
+position = Vector2(-0.25, 7.000002)
+scale = Vector2(0.19140624, 0.42187503)
 texture = SubResource("AtlasTexture_1qrot")

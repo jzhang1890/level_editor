@@ -4,10 +4,10 @@ extends CanvasLayer
 signal edit_action_requested(action_name: String)
 
 # The build tab items
-@onready var orbs_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Orbs
 @onready var obstacles_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Obstacles
 @onready var deco_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Decoration
 @onready var triggers_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Triggers
+@onready var orbs_list: ItemList = $EditorPanel/MainTabContainer/Build/ObjectsContainer/Orbs
 
 # The edit tab items
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
@@ -59,18 +59,6 @@ var pre_test_visibility: Dictionary = {}
 @onready var grounds_container: TabContainer = $LevelSettingsMenu/LevelSettingsMenu/GroundsContainer
 
 @onready var item_database: Dictionary = {
-	"orbs": [
-		{
-			"name": "Touch Orb",
-			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
-			"scene_path": "res://scenes/objects/orbs/touch_orb.tscn"
-		},
-		{
-			"name": "Move Orb",
-			"icon": get_game_sheet_icon(Rect2(390, 0, 64, 64)), 
-			"scene_path": "res://scenes/objects/orbs/move_orb.tscn"
-		},
-	],
 	"obstacles": [
 		{
 			"name": "Block",
@@ -129,6 +117,28 @@ var pre_test_visibility: Dictionary = {}
 			"icon": get_sheet_icon(Rect2(260, 0, 64, 64)), 
 			"scene_path": "res://scenes/objects/deco/half_square.tscn"
 		},
+		{
+			"name": "Circle Glow",
+			"icon": get_sheet_icon(Rect2(325, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/deco/circle_glow.tscn"
+		},
+		{
+			"name": "Sparkle Glow",
+			"icon": get_sheet_icon(Rect2(390, 0, 54, 52)), 
+			"scene_path": "res://scenes/objects/deco/sparkle_glow.tscn"
+		},
+	],
+	"orbs": [
+		{
+			"name": "Touch Orb",
+			"icon": get_game_sheet_icon(Rect2(325, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/orbs/touch_orb.tscn"
+		},
+		{
+			"name": "Move Orb",
+			"icon": get_game_sheet_icon(Rect2(390, 0, 64, 64)), 
+			"scene_path": "res://scenes/objects/orbs/move_orb.tscn"
+		},
 	],
 	"triggers": [
 		{
@@ -170,10 +180,10 @@ func get_game_sheet_icon(region: Rect2) -> AtlasTexture:
 	return atlas
 	
 func _ready() -> void:
-	populate_object_list(orbs_list, item_database["orbs"])
 	populate_object_list(obstacles_list, item_database["obstacles"])
 	populate_object_list(deco_list, item_database["deco"])
 	populate_object_list(triggers_list, item_database["triggers"])
+	populate_object_list(orbs_list, item_database["orbs"])
 	populate_actions_tab()
 	
 	# Hide regular and instrumental buttons
@@ -236,31 +246,31 @@ func populate_actions_tab() -> void:
 func _on_objects_container_tab_changed(tab: int) -> void:
 	selected_scene_path = ""
 	if tab == 0: 
+		var selected = obstacles_list.get_selected_items()
+		if selected.size() > 0:
+			_on_object_item_selected(selected[0])
+	elif tab == 1: 
+		var selected = deco_list.get_selected_items()
+		if selected.size() > 0:
+			_on_decoration_item_selected(selected[0])		
+	elif tab == 2: 
 		var selected = orbs_list.get_selected_items()
 		if selected.size() > 0:
 			_on_orbs_item_selected(selected[0])
-	elif tab == 1: 
-		var selected = obstacles_list.get_selected_items()
-		if selected.size() > 0:
-			_on_object_item_selected(selected[0])		
-	elif tab == 2: 
-		var selected = deco_list.get_selected_items()
-		if selected.size() > 0:
-			_on_decoration_item_selected(selected[0])
 	elif tab == 3: 
 		var selected = triggers_list.get_selected_items()
 		if selected.size() > 0:
 			_on_triggers_item_selected(selected[0])
-	
-func _on_orbs_item_selected(index: int) -> void:
-	selected_scene_path = orbs_list.get_item_metadata(index)
 
 func _on_object_item_selected(index: int) -> void:
 	selected_scene_path = obstacles_list.get_item_metadata(index)
 	
 func _on_decoration_item_selected(index: int) -> void:
 	selected_scene_path = deco_list.get_item_metadata(index)
-
+	
+func _on_orbs_item_selected(index: int) -> void:
+	selected_scene_path = orbs_list.get_item_metadata(index)
+	
 func _on_triggers_item_selected(index: int) -> void:
 	selected_scene_path = triggers_list.get_item_metadata(index)
 

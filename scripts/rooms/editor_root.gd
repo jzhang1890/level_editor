@@ -739,6 +739,10 @@ func _on_editor_ui_edit_action_requested(action_name: String) -> void:
 				
 	var end_state = undo_manager.serialize_objects(selected_objects)
 	undo_manager.commit_action("edit", start_state, end_state)
+	
+	# Refresh the mathematical chunks after a UI move
+	refresh_selection_chunks()
+	
 	# Updates triggers when moved with UI buttons
 	update_trigger_visuals()
 	
@@ -987,6 +991,9 @@ func _on_gizmo_transform_ended() -> void:
 	# Capture the final state and commit the action to the stack
 	var drag_end_state = undo_manager.serialize_objects(selected_objects)
 	undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
+
+	# efresh chunks after the gizmo finishes moving objects
+	refresh_selection_chunks()
 
 func _on_color_channel_selected(channel_id: int) -> void:
 	for obj in selected_objects:
@@ -1255,6 +1262,9 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					var drag_end_state = undo_manager.serialize_objects(selected_objects)
 					undo_manager.commit_action("edit", undo_manager.drag_start_state, drag_end_state)
 					
+					# Refresh the mathematical chunks so objects don't disappear
+					refresh_selection_chunks()
+					
 					# Force the Gizmo to recalculate its exact center point after being moved
 					if has_node("Foreground/TransformGizmo"):
 						$Foreground/TransformGizmo.update_selection(selected_objects)
@@ -1495,3 +1505,27 @@ func _on_fade_time_changed(value: float) -> void:
 	for obj in selected_objects:
 		if is_instance_valid(obj) and obj.has_meta("is_color_trigger"):
 			obj.set_meta("fade_time", value)
+
+func refresh_selection_chunks() -> void:
+	for obj in selected_objects:
+		if is_instance_valid(obj):
+			# Calculate the chunk it should be in right now
+			var correct_chunk = int(floor(obj.global_position.y / CHUNK_HEIGHT))
+			
+			# Find where the object currently is and move it if needed
+			for chunk_id in level_chunks.keys():
+				if level_chunks[chunk_id].has(obj):
+					# If it's already in the right chunk, stop searching
+					if chunk_id == correct_chunk:
+						break
+						
+					# Otherwise, erase it from the old chunk array
+					level_chunks[chunk_id].erase(obj)
+					
+					# Create the new chunk array if it doesn't exist yet
+					if not level_chunks.has(correct_chunk):
+						level_chunks[correct_chunk] = []
+						
+					# Add it to the correct mathematical chunk
+					level_chunks[correct_chunk].append(obj)
+					break

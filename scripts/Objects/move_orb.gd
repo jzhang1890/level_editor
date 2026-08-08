@@ -1,7 +1,7 @@
 extends Orb
 class_name MoveOrb
 
-@export var boost_amount: float = 800.0 
+@export var boost_amount: float = 900.0 
 
 func _process(_delta: float) -> void:
 	if player_inside != null and not triggered:

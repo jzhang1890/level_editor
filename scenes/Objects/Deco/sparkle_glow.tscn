@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://bv4p13u3a0kl2"]
+
+[ext_resource type="Texture2D" uid="uid://c41k54wpgw6lc" path="res://resources/objects/decosheet.png" id="1_e4qwr"]
+[ext_resource type="Script" uid="uid://huhodu03m3jt" path="res://scripts/objects/deco.gd" id="2_3wi7h"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fehoj"]
+atlas = ExtResource("1_e4qwr")
+region = Rect2(390, 0, 54, 52)
+
+[node name="SparkleGlow" type="Sprite2D" unique_id=78684395]
+texture = SubResource("AtlasTexture_fehoj")
+script = ExtResource("2_3wi7h")
+metadata/_custom_type_script = "uid://huhodu03m3jt"

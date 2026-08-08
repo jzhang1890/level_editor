@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://b6snkxghhjhrg"]
+
+[ext_resource type="Script" uid="uid://huhodu03m3jt" path="res://scripts/objects/deco.gd" id="1_2ev4i"]
+[ext_resource type="Texture2D" uid="uid://c41k54wpgw6lc" path="res://resources/objects/decosheet.png" id="1_mb4hi"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ykwhb"]
+atlas = ExtResource("1_mb4hi")
+region = Rect2(325, 0, 64, 64)
+
+[node name="CircleGlow" type="Sprite2D" unique_id=1087254626]
+texture = SubResource("AtlasTexture_ykwhb")
+script = ExtResource("1_2ev4i")
+metadata/_custom_type_script = "uid://huhodu03m3jt"
