@@ -14,10 +14,10 @@ script = ExtResource("1_x1qvo")
 modulate = Color(0, 0, 0, 1)
 
 [node name="Misc" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="1" unique_id=1842518117]
-modulate = Color(0, 0.60304123, 0.7301358, 1)
+modulate = Color(0.7339472, 0, 0.028693147, 1)
 
 [node name="Outline" parent="Player/Sprite2D" parent_id_path=PackedInt32Array(1001688488, 873178819) index="2" unique_id=565256926]
-modulate = Color(0, 0.6815843, 0.7131886, 1)
+modulate = Color(0.60674775, 0.34826294, 0, 1)
 
 [node name="BackgroundCanvas" type="ParallaxBackground" parent="." unique_id=2115234044]
 scroll_ignore_camera_zoom = true

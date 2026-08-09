@@ -66,6 +66,31 @@ var pre_test_visibility: Dictionary = {}
 			"scene_path": "res://scenes/objects/block.tscn"
 		},
 		{
+			"name": "Block2",
+			"icon": get_game_sheet_icon(Rect2(0, 195, 64, 64)),
+			"scene_path": "res://scenes/objects/block2.tscn"
+		},
+		{
+			"name": "Block3",
+			"icon": get_game_sheet_icon(Rect2(0, 260, 64, 64)),
+			"scene_path": "res://scenes/objects/block3.tscn"
+		},
+		{
+			"name": "Block4",
+			"icon": get_game_sheet_icon(Rect2(0, 325, 64, 64)),
+			"scene_path": "res://scenes/objects/block4.tscn"
+		},
+		{
+			"name": "Block5",
+			"icon": get_game_sheet_icon(Rect2(0, 390, 64, 64)),
+			"scene_path": "res://scenes/objects/block5.tscn"
+		},
+		{
+			"name": "Block6",
+			"icon": get_game_sheet_icon(Rect2(0, 455, 64, 64)),
+			"scene_path": "res://scenes/objects/block6.tscn"
+		},
+		{
 			"name": "Spike",
 			"icon": get_game_sheet_icon(Rect2(0, 130, 64, 64)),
 			"scene_path": "res://scenes/objects/spike.tscn"

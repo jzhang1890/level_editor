@@ -1,37 +1,36 @@
-[gd_scene format=3 uid="uid://b458liowqqkga"]
+[gd_scene format=3 uid="uid://br62lajgqlw1i"]
 
-[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/objects/obstacle.gd" id="1_6sclm"]
-[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://resources/objects/gamesheet.png" id="2_w02jr"]
-[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="3_le45d"]
+[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/objects/obstacle.gd" id="1_rgo0n"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://resources/objects/gamesheet.png" id="2_02fp8"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="3_u7giu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4g0po"]
-atlas = ExtResource("2_w02jr")
-region = Rect2(0, 65, 64, 64)
+atlas = ExtResource("2_02fp8")
+region = Rect2(0, 455, 64, 64)
 filter_clip = true
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
-size = Vector2(20, 43)
+size = Vector2(60, 60)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1qrot"]
-atlas = ExtResource("3_le45d")
+atlas = ExtResource("3_u7giu")
 region = Rect2(0, 0, 128, 128)
 
-[node name="ClearSpike" type="Area2D" unique_id=51429778]
+[node name="block" type="Area2D" unique_id=51429778]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("1_6sclm")
+script = ExtResource("1_rgo0n")
 metadata/_custom_type_script = "uid://sk3rn71awo6r"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
 texture = SubResource("AtlasTexture_4g0po")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=142486259]
-position = Vector2(0, 6.5)
 shape = SubResource("RectangleShape2D_als3r")
 
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
 visible = false
 z_index = 4090
-position = Vector2(-0.25, 7.000002)
-scale = Vector2(0.19140624, 0.42187503)
+position = Vector2(-0.49999815, -0.49999714)
+scale = Vector2(0.5703125, 0.5703125)
 texture = SubResource("AtlasTexture_1qrot")

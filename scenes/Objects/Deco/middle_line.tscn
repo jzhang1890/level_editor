@@ -6,6 +6,7 @@
 [sub_resource type="AtlasTexture" id="AtlasTexture_1r5p6"]
 atlas = ExtResource("1_3dkxq")
 region = Rect2(130, 0, 64, 64)
+filter_clip = true
 
 [node name="MiddleLine" type="Sprite2D" unique_id=1211243934]
 texture = SubResource("AtlasTexture_1r5p6")

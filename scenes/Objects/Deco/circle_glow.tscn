@@ -6,6 +6,7 @@
 [sub_resource type="AtlasTexture" id="AtlasTexture_ykwhb"]
 atlas = ExtResource("1_mb4hi")
 region = Rect2(325, 0, 64, 64)
+filter_clip = true
 
 [node name="CircleGlow" type="Sprite2D" unique_id=1087254626]
 texture = SubResource("AtlasTexture_ykwhb")

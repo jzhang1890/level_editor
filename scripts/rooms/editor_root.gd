@@ -1020,7 +1020,7 @@ func apply_level_colors(json_color_data: Dictionary) -> void:
 		# Grab the hex string associated with that ID
 		var color_hex = json_color_data[channel_id_str]
 		
-		# 3. Convert the hex string to a Godot Color and store it in Global
+		# 3. Convert the hex string to a Godot color and store it in Global
 		Global.active_level_colors[channel_id] = Color(color_hex)
 		
 	# Apply Channel -1 color to background

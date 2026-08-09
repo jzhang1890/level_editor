@@ -6,6 +6,7 @@
 [sub_resource type="AtlasTexture" id="AtlasTexture_fehoj"]
 atlas = ExtResource("1_e4qwr")
 region = Rect2(390, 0, 54, 52)
+filter_clip = true
 
 [node name="SparkleGlow" type="Sprite2D" unique_id=78684395]
 texture = SubResource("AtlasTexture_fehoj")

@@ -4,13 +4,13 @@ extends Camera2D
 @export var scroll_speed: float = 30.0
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 1. PANNING: Move camera if holding mouse button
+	# Move camera if holding mouse button
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		
 		# Pans the camera
 		position -= event.relative * pan_speed / zoom.x
 		
-		# Fixing the bug where camera gets stuck at edge
+		# Fix the bug where camera gets stuck at edge
 		# Force Godot to calculate the camera's visual limits
 		force_update_scroll()
 		

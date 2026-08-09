@@ -7,9 +7,10 @@
 [sub_resource type="AtlasTexture" id="AtlasTexture_4g0po"]
 atlas = ExtResource("2_b5vfb")
 region = Rect2(0, 0, 64, 64)
+filter_clip = true
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_als3r"]
-size = Vector2(54, 54)
+size = Vector2(60, 60)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1qrot"]
 atlas = ExtResource("3_wfynd")
@@ -30,6 +31,6 @@ shape = SubResource("RectangleShape2D_als3r")
 [node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
 visible = false
 z_index = 4090
-position = Vector2(-0.5000002, -0.49999923)
-scale = Vector2(0.5234375, 0.5234375)
+position = Vector2(-0.49999815, -0.49999714)
+scale = Vector2(0.5703125, 0.5703125)
 texture = SubResource("AtlasTexture_1qrot")

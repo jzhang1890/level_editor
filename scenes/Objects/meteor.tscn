@@ -8,6 +8,7 @@
 [sub_resource type="AtlasTexture" id="AtlasTexture_cyiuj"]
 atlas = ExtResource("2_cyiuj")
 region = Rect2(65, 0, 113, 128)
+filter_clip = true
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_cyiuj"]
 radius = 55.081757
