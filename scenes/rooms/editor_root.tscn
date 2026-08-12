@@ -542,7 +542,6 @@ offset_right = 776.0
 offset_bottom = 191.75
 
 [node name="LevelSettingsMenu" type="Control" parent="EditorUI" unique_id=363562272]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

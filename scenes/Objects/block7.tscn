@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cxrxb3xoryh1n"]
+
+[ext_resource type="Script" uid="uid://sk3rn71awo6r" path="res://scripts/objects/obstacle.gd" id="1_q6x64"]
+[ext_resource type="Texture2D" uid="uid://pfs7emic1og0" path="res://resources/objects/gamesheet.png" id="2_om1f8"]
+[ext_resource type="Texture2D" uid="uid://dinaflq0y8njs" path="res://resources/objects/hitboxsheet.png" id="3_kg7a4"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4g0po"]
+atlas = ExtResource("2_om1f8")
+region = Rect2(0, 520, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1qrot"]
+atlas = ExtResource("3_kg7a4")
+region = Rect2(0, 0, 128, 128)
+
+[node name="block" type="Area2D" unique_id=51429778]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_q6x64")
+metadata/_custom_type_script = "uid://sk3rn71awo6r"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=112267024]
+texture = SubResource("AtlasTexture_4g0po")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=855975436]
+polygon = PackedVector2Array(-30, -30, 30, -30, -30, 30)
+
+[node name="HitboxSprite" type="Sprite2D" parent="." unique_id=1944228443]
+visible = false
+z_index = 4090
+position = Vector2(-0.49999815, -0.49999714)
+scale = Vector2(0.5703125, 0.5703125)
+texture = SubResource("AtlasTexture_1qrot")

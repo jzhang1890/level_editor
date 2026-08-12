@@ -35,7 +35,7 @@ signal edit_action_requested(action_name: String)
 # Play Button
 @onready var play_music_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/PlayButton
 
-# Unified Song Info UI references
+# Song Info UI references
 @onready var song_name_label: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/SongNameLabel
 @onready var artist_label: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/ArtistLabel
 @onready var song_id_display: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/SongIDLabel
@@ -89,6 +89,16 @@ var pre_test_visibility: Dictionary = {}
 			"name": "Block6",
 			"icon": get_game_sheet_icon(Rect2(0, 455, 64, 64)),
 			"scene_path": "res://scenes/objects/block6.tscn"
+		},
+		{
+			"name": "Block7",
+			"icon": get_game_sheet_icon(Rect2(0, 520, 64, 64)),
+			"scene_path": "res://scenes/objects/block7.tscn"
+		},
+		{
+			"name": "Block8",
+			"icon": get_game_sheet_icon(Rect2(0, 585, 64, 64)),
+			"scene_path": "res://scenes/objects/block8.tscn"
 		},
 		{
 			"name": "Spike",
@@ -501,7 +511,7 @@ func _remove_group_from_selection(group_id: int) -> void:
 	refresh_group_ui()
 
 func _on_trigger_channel_input_text_changed(new_text: String) -> void:
-	# Make sure user actually typed a number
+	# Make sure user typed a number
 	if not new_text.is_valid_int():
 		return
 		

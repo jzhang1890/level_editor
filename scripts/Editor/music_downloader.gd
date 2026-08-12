@@ -25,6 +25,12 @@ var current_song_id: String = ""
 @onready var ncs_http_request: HTTPRequest = $HTTPRequest
 @onready var ng_http_request: HTTPRequest = $NG_HTTPRequest
 
+var browser_headers: PackedStringArray = PackedStringArray([
+	"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+	"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+	"Referer: https://www.newgrounds.com/"
+])
+
 func _ready() -> void:
 	pass
 
@@ -32,6 +38,21 @@ func _ready() -> void:
 
 func fetch_ncs(song_id: String) -> void:
 	if song_id != "":
+		# Check for local file first
+		var file_path = "user://songs/" + song_id + ".mp3"
+		if FileAccess.file_exists(file_path):
+			# Pull the real data and update the status text to "Complete"
+			var meta = _get_song_metadata(song_id)
+			status_updated.emit("Loaded local song", true) 
+			
+			var file = FileAccess.open(file_path, FileAccess.READ)
+			var audio_data = file.get_buffer(file.get_length())
+			file.close()
+			
+			# Pass the real title and artist to the UI
+			download_complete.emit(meta["title"], meta["artist"], song_id, audio_data)
+			return
+			
 		current_song_id = song_id
 		status_updated.emit("Fetching NCS link...", true)
 		is_fetching_html = true
@@ -39,7 +60,7 @@ func fetch_ncs(song_id: String) -> void:
 		instrumental_download_url = ""
 		var url = "https://ncs.io/" + song_id
 		ncs_http_request.request(url)
-
+		
 func download_ncs_regular() -> void:
 	if regular_download_url == "":
 		return
@@ -62,13 +83,35 @@ func download_ncs_instrumental() -> void:
 
 func fetch_newgrounds(song_id: String) -> void:
 	if song_id != "":
+		# Check for local file first
+		var file_path = "user://songs/" + song_id + ".mp3"
+		if FileAccess.file_exists(file_path):
+			var meta = _get_song_metadata(song_id)
+			status_updated.emit("Loaded local song", false) 
+			
+			var file = FileAccess.open(file_path, FileAccess.READ)
+			var audio_data = file.get_buffer(file.get_length())
+			file.close()
+			
+			download_complete.emit(meta["title"], meta["artist"], song_id, audio_data)
+			return
+			
 		current_song_id = song_id
-		status_updated.emit("Fetching Newgrounds link...", false)
+		status_updated.emit("Fetching from GD servers...", false)
 		is_ng_fetching_html = true
-		var url = "https://www.newgrounds.com/audio/listen/" + song_id
-		ng_http_request.request(url)
-
-
+		
+		# Use RobTop's database instead of scraping Newgrounds HTML
+		var url = "https://www.boomlings.com/database/getGJSongInfo.php"
+		var post_data = "songID=" + song_id + "&secret=Wmfd2893gb7"
+		
+		# Add the blank User-Agent to trick Cloudflare into thinking this is Geometry Dash
+		var headers = [
+			"Content-Type: application/x-www-form-urlencoded",
+			"User-Agent: " 
+		]
+		
+		ng_http_request.request(url, headers, HTTPClient.METHOD_POST, post_data)
+		
 # INTERNAL HTTP REQUEST HANDLERS
 
 func _on_ncs_http_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -112,6 +155,9 @@ func _on_ncs_http_request_request_completed(result: int, response_code: int, _he
 			return
 
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+			# Save the metadata to JSON file
+			_save_song_metadata(current_song_id, fallback_title, fallback_artist)
+			
 			status_updated.emit("Download complete", true)
 			download_complete.emit(fallback_title, fallback_artist, current_song_id, body)
 		else:
@@ -131,43 +177,87 @@ func _start_fallback_download() -> void:
 func _on_ng_http_request_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if is_ng_fetching_html:
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-			var html_string = body.get_string_from_utf8()
+			var data = body.get_string_from_utf8()
+			
+			# Boomlings returns "-1" or "-2" if the song isn't allowed in GD
+			if data == "-1" or data == "-2" or data.is_empty():
+				status_updated.emit("Song not allowed in GD", false)
+				is_ng_fetching_html = false
+				return
+				
+			var parts = data.split("~|~")
 			var found_url = false
 			
-			if "NgAudioPlayer.fromListenPage({" in html_string:
-				var payload = html_string.get_slice("NgAudioPlayer.fromListenPage({", 1)
+			# Parse the Boomlings array format
+			for i in range(0, parts.size() - 1, 2):
+				var key = parts[i]
+				var val = parts[i+1]
 				
-				if "'author': \"" in payload:
-					ng_artist = payload.get_slice("'author': \"", 1).get_slice("\"", 0).xml_unescape()
-				else:
-					ng_artist = "Unknown"
-					
-				if "'title': \"" in payload:
-					ng_title = payload.get_slice("'title': \"", 1).get_slice("\"", 0).xml_unescape()
-				else:
-					ng_title = "Unknown"
-				
-				if "'url': \"" in payload:
-					var raw_url = payload.get_slice("'url': \"", 1).get_slice("\"", 0)
-					ng_mp3_url = raw_url.replace("\\/", "/")
+				if key == "2":
+					ng_title = val.xml_unescape()
+				elif key == "4":
+					ng_artist = val.xml_unescape()
+				elif key == "10":
+					# Decode the percent-encoded URL back into standard https://
+					ng_mp3_url = val.uri_decode()
 					found_url = true
 			
 			if found_url:
 				status_updated.emit("Downloading Newgrounds MP3...", false)
 				is_ng_fetching_html = false
 				ng_http_request.timeout = 0
-				ng_http_request.request(ng_mp3_url)
+				
+				# The CDN (audio.ngfiles.com) doesn't have strict Cloudflare HTML blocks
+				ng_http_request.request(ng_mp3_url, browser_headers)
 			else:
 				status_updated.emit("Could not find MP3 file", false)
 				is_ng_fetching_html = false
 		else:
-			status_updated.emit("Failed to load Newgrounds page", false)
+			status_updated.emit("Failed to connect to GD servers", false)
 			is_ng_fetching_html = false
-		print(response_code)
 
 	else:
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+			# Save song metadata to JSON file
+			_save_song_metadata(current_song_id, ng_title, ng_artist)
+			
 			status_updated.emit("Download complete", false)
 			download_complete.emit(ng_title, ng_artist, current_song_id, body)
 		else:
 			status_updated.emit("Download failed, Code: " + str(response_code), false)
+
+const METADATA_PATH = "user://songs/metadata.json"
+
+func _save_song_metadata(id: String, title: String, artist: String) -> void:
+	var meta = {}
+	
+	# Load the existing address book if it exists
+	if FileAccess.file_exists(METADATA_PATH):
+		var read_file = FileAccess.open(METADATA_PATH, FileAccess.READ)
+		var json = JSON.parse_string(read_file.get_as_text())
+		read_file.close()
+		if typeof(json) == TYPE_DICTIONARY:
+			meta = json
+			
+	# Add the new song data
+	meta[id] = {"title": title, "artist": artist}
+	
+	# Make sure the songs folder exists, then save the updated book
+	if not DirAccess.dir_exists_absolute("user://songs"):
+		DirAccess.make_dir_absolute("user://songs")
+		
+	var write_file = FileAccess.open(METADATA_PATH, FileAccess.WRITE)
+	write_file.store_string(JSON.stringify(meta))
+	write_file.close()
+
+func _get_song_metadata(id: String) -> Dictionary:
+	# Read the book and return the title and artist for the requested ID
+	if FileAccess.file_exists(METADATA_PATH):
+		var file = FileAccess.open(METADATA_PATH, FileAccess.READ)
+		var json = JSON.parse_string(file.get_as_text())
+		file.close()
+		if typeof(json) == TYPE_DICTIONARY and json.has(id):
+			return json[id]
+			
+	# Fallback if the song isn't in the book
+	return {"title": "Unknown Title", "artist": "Unknown Artist"}
