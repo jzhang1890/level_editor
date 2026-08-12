@@ -237,30 +237,17 @@ offset_top = 156.0
 offset_right = 1230.0
 offset_bottom = 483.0
 
-[node name="ColorChannelMenu" type="Control" parent="EditorUI" unique_id=1702470925]
+[node name="TransparentRect" type="ColorRect" parent="EditorUI" unique_id=1492323315]
 visible = false
-layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+color = Color(0, 0, 0, 0.49411765)
 
-[node name="TransparentRect" type="ColorRect" parent="EditorUI/ColorChannelMenu" unique_id=1474151031]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 262.0
-offset_top = 80.0
-offset_right = 262.0
-offset_bottom = 80.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(1, 1, 1, 0)
-
-[node name="ColorChannelMenu" type="ColorRect" parent="EditorUI/ColorChannelMenu" unique_id=1408618124]
-layout_mode = 1
+[node name="ColorChannelMenu" type="ColorRect" parent="EditorUI" unique_id=1408618124]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -270,9 +257,9 @@ offset_right = -251.0
 offset_bottom = -155.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.2, 0.2, 0.2, 0.78431374)
+color = Color(0.20332184, 0.20332184, 0.20332184, 1)
 
-[node name="ChannelBGButton" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=611427925]
+[node name="ChannelBGButton" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=611427925]
 layout_mode = 0
 offset_left = 58.0
 offset_top = 67.0
@@ -282,7 +269,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "Background"
 
-[node name="Channel0Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1914646805]
+[node name="Channel0Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1914646805]
 layout_mode = 0
 offset_left = 56.5
 offset_top = 113.5
@@ -293,7 +280,7 @@ button_pressed = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "Default"
 
-[node name="Channel1Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=800828293]
+[node name="Channel1Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=800828293]
 layout_mode = 0
 offset_left = 165.5
 offset_top = 114.5
@@ -303,7 +290,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "1"
 
-[node name="Channel2Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=2097595621]
+[node name="Channel2Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=2097595621]
 layout_mode = 0
 offset_left = 209.5
 offset_top = 114.5
@@ -313,7 +300,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "2"
 
-[node name="Channel3Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1549381149]
+[node name="Channel3Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1549381149]
 layout_mode = 0
 offset_left = 256.5
 offset_top = 114.5
@@ -323,7 +310,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "3"
 
-[node name="Channel4Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=370865143]
+[node name="Channel4Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=370865143]
 layout_mode = 0
 offset_left = 301.5
 offset_top = 115.5
@@ -333,7 +320,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "4"
 
-[node name="Channel5Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1573993471]
+[node name="Channel5Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1573993471]
 layout_mode = 0
 offset_left = 361.0
 offset_top = 116.0
@@ -343,7 +330,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "5"
 
-[node name="Channel6Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1242377611]
+[node name="Channel6Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1242377611]
 layout_mode = 0
 offset_left = 411.0
 offset_top = 115.0
@@ -353,7 +340,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "6"
 
-[node name="Channel7Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1296480632]
+[node name="Channel7Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1296480632]
 layout_mode = 0
 offset_left = 460.0
 offset_top = 114.0
@@ -363,7 +350,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "7"
 
-[node name="Channel8Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=708063410]
+[node name="Channel8Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=708063410]
 layout_mode = 0
 offset_left = 507.0
 offset_top = 113.0
@@ -373,7 +360,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "8"
 
-[node name="Channel9Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1463585321]
+[node name="Channel9Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1463585321]
 layout_mode = 0
 offset_left = 554.0
 offset_top = 114.0
@@ -383,7 +370,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "9"
 
-[node name="Channel10Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=2064374537]
+[node name="Channel10Button" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=2064374537]
 layout_mode = 0
 offset_left = 601.0
 offset_top = 113.0
@@ -393,7 +380,7 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_0esmb")
 text = "10"
 
-[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1639325206]
+[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/ColorChannelMenu" unique_id=1639325206]
 layout_mode = 0
 offset_left = 656.0
 offset_top = 99.0
@@ -401,64 +388,64 @@ offset_right = 709.0
 offset_bottom = 152.0
 color = Color(1, 1, 1, 1)
 
-[node name="ZLayerContainer" type="HBoxContainer" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1253825435]
+[node name="ZLayerContainer" type="HBoxContainer" parent="EditorUI/ColorChannelMenu" unique_id=1253825435]
 layout_mode = 0
 offset_left = 57.0
 offset_top = 166.0
 offset_right = 97.0
 offset_bottom = 206.0
 
-[node name="B5Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=415539771]
+[node name="B5Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=415539771]
 layout_mode = 2
 toggle_mode = true
 text = "B5"
 
-[node name="B4Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=693725603]
+[node name="B4Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=693725603]
 layout_mode = 2
 toggle_mode = true
 text = "B4"
 
-[node name="B3Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=1910211805]
+[node name="B3Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=1910211805]
 layout_mode = 2
 toggle_mode = true
 text = "B3"
 
-[node name="B2Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=1596936790]
+[node name="B2Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=1596936790]
 layout_mode = 2
 toggle_mode = true
 text = "B2"
 
-[node name="B1Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=1806839502]
+[node name="B1Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=1806839502]
 layout_mode = 2
 toggle_mode = true
 text = "B1"
 
-[node name="T1Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=36892695]
+[node name="T1Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=36892695]
 layout_mode = 2
 toggle_mode = true
 text = "T1"
 
-[node name="T2Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=373506662]
+[node name="T2Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=373506662]
 layout_mode = 2
 toggle_mode = true
 text = "T2"
 
-[node name="T3Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=63788889]
+[node name="T3Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=63788889]
 layout_mode = 2
 toggle_mode = true
 text = "T3"
 
-[node name="T4Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=1592528446]
+[node name="T4Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=1592528446]
 layout_mode = 2
 toggle_mode = true
 text = "T4"
 
-[node name="T5Button" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu/ZLayerContainer" unique_id=879024171]
+[node name="T5Button" type="Button" parent="EditorUI/ColorChannelMenu/ZLayerContainer" unique_id=879024171]
 layout_mode = 2
 toggle_mode = true
 text = "T5"
 
-[node name="ZOrderSpinBox" type="SpinBox" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1492682566]
+[node name="ZOrderSpinBox" type="SpinBox" parent="EditorUI/ColorChannelMenu" unique_id=1492682566]
 layout_mode = 0
 offset_left = 58.0
 offset_top = 226.0
@@ -467,7 +454,7 @@ offset_bottom = 256.0
 min_value = -99.0
 max_value = 99.0
 
-[node name="ExitButton" type="Button" parent="EditorUI/ColorChannelMenu/ColorChannelMenu" unique_id=1965459271]
+[node name="ExitButton" type="Button" parent="EditorUI/ColorChannelMenu" unique_id=1965459271]
 layout_mode = 0
 offset_left = 649.0
 offset_top = 26.0
@@ -475,26 +462,8 @@ offset_right = 718.0
 offset_bottom = 78.0
 text = "X"
 
-[node name="EditGroupMenu" type="Control" parent="EditorUI" unique_id=1392935543]
+[node name="EditGroupMenu" type="ColorRect" parent="EditorUI" unique_id=936449996]
 visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="TransparentRect" type="ColorRect" parent="EditorUI/EditGroupMenu" unique_id=1436136720]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(1, 1, 1, 0)
-
-[node name="EditGroupMenu" type="ColorRect" parent="EditorUI/EditGroupMenu" unique_id=936449996]
-layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -506,9 +475,9 @@ offset_right = 435.0
 offset_bottom = 284.75
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.2, 0.2, 0.2, 0.78431374)
+color = Color(0.20392157, 0.20392157, 0.20392157, 1)
 
-[node name="ExitButton" type="Button" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=520064903]
+[node name="ExitButton" type="Button" parent="EditorUI/EditGroupMenu" unique_id=520064903]
 layout_mode = 0
 offset_left = 773.5
 offset_top = 30.5
@@ -516,72 +485,55 @@ offset_right = 832.5
 offset_bottom = 77.5
 text = "X"
 
-[node name="GroupIDContainer" type="HBoxContainer" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=76248525]
+[node name="GroupIDContainer" type="HBoxContainer" parent="EditorUI/EditGroupMenu" unique_id=76248525]
 layout_mode = 0
 offset_left = 93.0
 offset_top = 125.75
 offset_right = 289.0
 offset_bottom = 155.75
 
-[node name="GroupIDLabel" type="Label" parent="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer" unique_id=981735867]
+[node name="GroupIDLabel" type="Label" parent="EditorUI/EditGroupMenu/GroupIDContainer" unique_id=981735867]
 layout_mode = 2
 text = "Group ID"
 
-[node name="GroupIDInput" type="LineEdit" parent="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer" unique_id=1070788489]
+[node name="GroupIDInput" type="LineEdit" parent="EditorUI/EditGroupMenu/GroupIDContainer" unique_id=1070788489]
 layout_mode = 2
 
-[node name="AddGroupIDButton" type="Button" parent="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer" unique_id=594772769]
+[node name="AddGroupIDButton" type="Button" parent="EditorUI/EditGroupMenu/GroupIDContainer" unique_id=594772769]
 layout_mode = 2
 text = "Add"
 
-[node name="ActiveGroupsContainer" type="HBoxContainer" parent="EditorUI/EditGroupMenu/EditGroupMenu" unique_id=1927754377]
+[node name="ActiveGroupsContainer" type="HBoxContainer" parent="EditorUI/EditGroupMenu" unique_id=1927754377]
 layout_mode = 0
 offset_left = 93.0
 offset_top = 158.75
 offset_right = 776.0
 offset_bottom = 191.75
 
-[node name="LevelSettingsMenu" type="Control" parent="EditorUI" unique_id=363562272]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="TransparentRect" type="ColorRect" parent="EditorUI/LevelSettingsMenu" unique_id=2075391895]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(1, 1, 1, 0)
-
-[node name="LevelSettingsMenu" type="ColorRect" parent="EditorUI/LevelSettingsMenu" unique_id=114053226]
-layout_mode = 1
+[node name="LevelSettingsMenu" type="ColorRect" parent="EditorUI" unique_id=114053226]
+visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -378.75
-offset_top = -282.25
-offset_right = 378.75
-offset_bottom = 256.25
+offset_left = -498.875
+offset_top = -303.625
+offset_right = 498.875
+offset_bottom = 303.625
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.2, 0.2, 0.2, 0.9372549)
+color = Color(0.20392157, 0.20392157, 0.20392157, 1)
 
-[node name="ExitButton" type="Button" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=1413421263]
+[node name="ExitButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=1413421263]
 layout_mode = 0
-offset_left = 654.5
-offset_top = 30.5
-offset_right = 713.5
-offset_bottom = 77.5
+offset_left = 905.875
+offset_top = 30.625
+offset_right = 964.875
+offset_bottom = 77.625
 text = "X"
 
-[node name="MusicSourceTabs" type="TabContainer" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=2011524024]
+[node name="MusicSourceTabs" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2011524024]
 layout_mode = 0
 offset_left = 45.75
 offset_top = 36.25
@@ -589,18 +541,18 @@ offset_right = 536.75
 offset_bottom = 215.25
 current_tab = 0
 
-[node name="NCS" type="Control" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs" unique_id=805276591]
+[node name="NCS" type="Control" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs" unique_id=805276591]
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=42146442]
+[node name="SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=42146442]
 layout_mode = 0
 offset_left = 61.75
 offset_top = 38.25
 offset_right = 260.75
 offset_bottom = 68.25
 
-[node name="GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=986200182]
+[node name="GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=986200182]
 layout_mode = 0
 offset_left = 282.75
 offset_top = 39.25
@@ -608,41 +560,41 @@ offset_right = 337.75
 offset_bottom = 69.25
 text = "Use"
 
-[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=92092695]
+[node name="StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=92092695]
 layout_mode = 0
 offset_left = 65.75
 offset_top = 76.25
 offset_right = 209.75
 offset_bottom = 98.25
 
-[node name="SongOptionContainer" type="HBoxContainer" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=554572833]
+[node name="SongOptionContainer" type="HBoxContainer" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS" unique_id=554572833]
 layout_mode = 0
 offset_left = 61.75
 offset_top = 105.25
 offset_right = 298.75
 offset_bottom = 140.25
 
-[node name="RegularButton" type="Button" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=2102533336]
+[node name="RegularButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=2102533336]
 layout_mode = 2
 text = "Regular"
 
-[node name="InstrumentalButton" type="Button" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=1991398794]
+[node name="InstrumentalButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer" unique_id=1991398794]
 layout_mode = 2
 text = "Instrumental"
 
-[node name="Newgrounds" type="Control" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs" unique_id=1469506594]
+[node name="Newgrounds" type="Control" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs" unique_id=1469506594]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="NG_SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1889757240]
+[node name="NG_SongIDInput" type="LineEdit" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1889757240]
 layout_mode = 0
 offset_left = 61.75
 offset_top = 38.25
 offset_right = 260.75
 offset_bottom = 68.25
 
-[node name="NG_GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=2053343517]
+[node name="NG_GetButton" type="Button" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=2053343517]
 layout_mode = 0
 offset_left = 282.75
 offset_top = 39.25
@@ -650,30 +602,30 @@ offset_right = 337.75
 offset_bottom = 69.25
 text = "Use"
 
-[node name="NG_StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1907075194]
+[node name="NG_StatusLabel" type="Label" parent="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds" unique_id=1907075194]
 layout_mode = 0
 offset_left = 65.75
 offset_top = 76.25
 offset_right = 209.75
 offset_bottom = 98.25
 
-[node name="SongInfoContainer" type="VBoxContainer" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=2130612461]
+[node name="SongInfoContainer" type="VBoxContainer" parent="EditorUI/LevelSettingsMenu" unique_id=2130612461]
 layout_mode = 0
 offset_left = 50.75
 offset_top = 223.25
 offset_right = 258.75
 offset_bottom = 297.25
 
-[node name="SongNameLabel" type="Label" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer" unique_id=1456700509]
+[node name="SongNameLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=1456700509]
 layout_mode = 2
 
-[node name="ArtistLabel" type="Label" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer" unique_id=464914370]
+[node name="ArtistLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=464914370]
 layout_mode = 2
 
-[node name="SongIDLabel" type="Label" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer" unique_id=154906162]
+[node name="SongIDLabel" type="Label" parent="EditorUI/LevelSettingsMenu/SongInfoContainer" unique_id=154906162]
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=326683021]
+[node name="PlayButton" type="Button" parent="EditorUI/LevelSettingsMenu" unique_id=326683021]
 layout_mode = 0
 offset_left = 436.75
 offset_top = 276.25
@@ -681,22 +633,22 @@ offset_right = 529.75
 offset_bottom = 306.25
 text = "Play"
 
-[node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=499566738]
+[node name="GroundsContainer" type="TabContainer" parent="EditorUI/LevelSettingsMenu" unique_id=499566738]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -336.5
-offset_top = -220.5
-offset_right = 169.0
-offset_bottom = -30.0
+offset_left = -453.0
+offset_top = -261.625
+offset_right = 52.5
+offset_bottom = -71.125
 grow_horizontal = 2
 grow_vertical = 0
 current_tab = 0
 
-[node name="Background" type="ItemList" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/GroundsContainer" unique_id=184513869]
+[node name="Background" type="ItemList" parent="EditorUI/LevelSettingsMenu/GroundsContainer" unique_id=184513869]
 layout_mode = 2
 item_count = 1
 max_columns = 0
@@ -704,7 +656,7 @@ icon_mode = 0
 fixed_icon_size = Vector2i(150, 150)
 metadata/_tab_index = 0
 
-[node name="MiddleGround" type="ItemList" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/GroundsContainer" unique_id=673019510]
+[node name="MiddleGround" type="ItemList" parent="EditorUI/LevelSettingsMenu/GroundsContainer" unique_id=673019510]
 visible = false
 layout_mode = 2
 max_columns = 0
@@ -712,49 +664,30 @@ icon_mode = 0
 fixed_icon_size = Vector2i(75, 75)
 metadata/_tab_index = 1
 
-[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=688069703]
+[node name="ColorPickerButton" type="ColorPickerButton" parent="EditorUI/LevelSettingsMenu" unique_id=688069703]
 layout_mode = 0
-offset_left = 572.75
-offset_top = 373.25
-offset_right = 630.75
-offset_bottom = 430.25
+offset_left = 586.875
+offset_top = 465.625
+offset_right = 644.875
+offset_bottom = 522.625
 edit_alpha = false
 
-[node name="MusicDownloader" type="Node" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu" unique_id=1712061681]
+[node name="MusicDownloader" type="Node" parent="EditorUI/LevelSettingsMenu" unique_id=1712061681]
 script = ExtResource("11_0esmb")
 
-[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" unique_id=2006054138]
+[node name="HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/MusicDownloader" unique_id=2006054138]
 
-[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" unique_id=1443580158]
+[node name="NG_HTTPRequest" type="HTTPRequest" parent="EditorUI/LevelSettingsMenu/MusicDownloader" unique_id=1443580158]
 
-[node name="ColorTriggerMenu" type="Control" parent="EditorUI" unique_id=1570847708]
+[node name="ColorTriggerMenu" type="ColorRect" parent="EditorUI" unique_id=129132028]
 visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-
-[node name="TransparentRect" type="ColorRect" parent="EditorUI/ColorTriggerMenu" unique_id=1086646745]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(1, 1, 1, 0)
-
-[node name="ColorTriggerMenu" type="ColorRect" parent="EditorUI/ColorTriggerMenu" unique_id=129132028]
-layout_mode = 0
 offset_left = 265.0
 offset_top = 80.0
 offset_right = 1027.0
 offset_bottom = 565.0
-color = Color(0.2, 0.2, 0.2, 0.78431374)
+color = Color(0.20392157, 0.20392157, 0.20392157, 1)
 
-[node name="ExitButton" type="Button" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=683600580]
+[node name="ExitButton" type="Button" parent="EditorUI/ColorTriggerMenu" unique_id=683600580]
 layout_mode = 0
 offset_left = 654.5
 offset_top = 30.5
@@ -762,7 +695,7 @@ offset_right = 713.5
 offset_bottom = 77.5
 text = "X"
 
-[node name="ColorPicker" type="ColorPicker" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=1536727731]
+[node name="ColorPicker" type="ColorPicker" parent="EditorUI/ColorTriggerMenu" unique_id=1536727731]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -781,32 +714,32 @@ sampler_visible = false
 color_modes_visible = false
 presets_visible = false
 
-[node name="ChannelContainer" type="HBoxContainer" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=883575206]
+[node name="ChannelContainer" type="HBoxContainer" parent="EditorUI/ColorTriggerMenu" unique_id=883575206]
 layout_mode = 0
 offset_left = 368.0
 offset_top = 367.0
 offset_right = 573.0
 offset_bottom = 407.0
 
-[node name="ChannelLabel" type="Label" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelContainer" unique_id=665672017]
+[node name="ChannelLabel" type="Label" parent="EditorUI/ColorTriggerMenu/ChannelContainer" unique_id=665672017]
 layout_mode = 2
 text = "Color Channel"
 
-[node name="ChannelInput" type="LineEdit" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelContainer" unique_id=54583008]
+[node name="ChannelInput" type="LineEdit" parent="EditorUI/ColorTriggerMenu/ChannelContainer" unique_id=54583008]
 layout_mode = 2
 
-[node name="FadeTimeContainer" type="HBoxContainer" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu" unique_id=999308088]
+[node name="FadeTimeContainer" type="HBoxContainer" parent="EditorUI/ColorTriggerMenu" unique_id=999308088]
 layout_mode = 0
 offset_left = 367.0
 offset_top = 414.0
 offset_right = 542.0
 offset_bottom = 454.0
 
-[node name="FadeTimeLabel" type="Label" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/FadeTimeContainer" unique_id=616843466]
+[node name="FadeTimeLabel" type="Label" parent="EditorUI/ColorTriggerMenu/FadeTimeContainer" unique_id=616843466]
 layout_mode = 2
 text = "Fade Time"
 
-[node name="FadeTimeInput" type="SpinBox" parent="EditorUI/ColorTriggerMenu/ColorTriggerMenu/FadeTimeContainer" unique_id=1111456602]
+[node name="FadeTimeInput" type="SpinBox" parent="EditorUI/ColorTriggerMenu/FadeTimeContainer" unique_id=1111456602]
 layout_mode = 2
 max_value = 10.0
 step = 0.1
@@ -888,22 +821,22 @@ text = "Save and Quit"
 [connection signal="pressed" from="EditorUI/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="EditorUI/TestButton" to="EditorUI" method="_on_test_button_pressed"]
 [connection signal="value_changed" from="EditorUI/VSlider" to="." method="_on_v_slider_value_changed"]
-[connection signal="value_changed" from="EditorUI/ColorChannelMenu/ColorChannelMenu/ZOrderSpinBox" to="." method="_on_z_order_spinbox_value_changed"]
-[connection signal="pressed" from="EditorUI/ColorChannelMenu/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="pressed" from="EditorUI/EditGroupMenu/EditGroupMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="pressed" from="EditorUI/EditGroupMenu/EditGroupMenu/GroupIDContainer/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton" to="EditorUI" method="_on_regular_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton" to="EditorUI" method="_on_instrumental_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
-[connection signal="pressed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
-[connection signal="item_selected" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader/HTTPRequest" to="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" method="_on_ncs_http_request_request_completed"]
-[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader/NG_HTTPRequest" to="EditorUI/LevelSettingsMenu/LevelSettingsMenu/MusicDownloader" method="_on_ng_http_request_request_completed"]
-[connection signal="pressed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
-[connection signal="color_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ColorPicker" to="EditorUI" method="_on_trigger_color_picker_color_changed"]
-[connection signal="text_changed" from="EditorUI/ColorTriggerMenu/ColorTriggerMenu/ChannelContainer/ChannelInput" to="EditorUI" method="_on_trigger_channel_input_text_changed"]
+[connection signal="value_changed" from="EditorUI/ColorChannelMenu/ZOrderSpinBox" to="." method="_on_z_order_spinbox_value_changed"]
+[connection signal="pressed" from="EditorUI/ColorChannelMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="pressed" from="EditorUI/EditGroupMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="pressed" from="EditorUI/EditGroupMenu/GroupIDContainer/AddGroupIDButton" to="EditorUI" method="_on_add_group_id_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/GetButton" to="EditorUI" method="_on_get_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton" to="EditorUI" method="_on_regular_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton" to="EditorUI" method="_on_instrumental_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_GetButton" to="EditorUI" method="_on_ng_get_button_pressed"]
+[connection signal="pressed" from="EditorUI/LevelSettingsMenu/PlayButton" to="EditorUI" method="_on_play_button_pressed"]
+[connection signal="item_selected" from="EditorUI/LevelSettingsMenu/GroundsContainer/Background" to="EditorUI" method="_on_background_item_selected"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MusicDownloader/HTTPRequest" to="EditorUI/LevelSettingsMenu/MusicDownloader" method="_on_ncs_http_request_request_completed"]
+[connection signal="request_completed" from="EditorUI/LevelSettingsMenu/MusicDownloader/NG_HTTPRequest" to="EditorUI/LevelSettingsMenu/MusicDownloader" method="_on_ng_http_request_request_completed"]
+[connection signal="pressed" from="EditorUI/ColorTriggerMenu/ExitButton" to="EditorUI" method="_on_exit_button_pressed"]
+[connection signal="color_changed" from="EditorUI/ColorTriggerMenu/ColorPicker" to="EditorUI" method="_on_trigger_color_picker_color_changed"]
+[connection signal="text_changed" from="EditorUI/ColorTriggerMenu/ChannelContainer/ChannelInput" to="EditorUI" method="_on_trigger_channel_input_text_changed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/SaveButton" to="SaveLoadManager" method="_on_save_button_pressed"]
 [connection signal="pressed" from="EditorUI/PauseMenu/VBoxContainer/QuitButton" to="SaveLoadManager" method="_on_quit_button_pressed"]

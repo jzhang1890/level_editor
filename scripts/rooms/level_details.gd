@@ -47,6 +47,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # Renaming logic (RegEx) 
 func _on_name_edit_text_submitted(new_text: String) -> void:
+	# Clean up rogue spaces and check if the string is completely empty
+	if new_text.strip_edges() == "":
+		new_text = "Untitled"
+		name_edit.text = new_text # Force the UI to visually update
+		
 	var file = FileAccess.open(Global.level_to_load, FileAccess.READ)
 	if file:
 		var raw_text = file.get_as_text()

@@ -43,7 +43,7 @@ func fetch_ncs(song_id: String) -> void:
 		if FileAccess.file_exists(file_path):
 			# Pull the real data and update the status text to "Complete"
 			var meta = _get_song_metadata(song_id)
-			status_updated.emit("Loaded local song", true) 
+			status_updated.emit("Loaded song", true) 
 			
 			var file = FileAccess.open(file_path, FileAccess.READ)
 			var audio_data = file.get_buffer(file.get_length())
@@ -87,7 +87,7 @@ func fetch_newgrounds(song_id: String) -> void:
 		var file_path = "user://songs/" + song_id + ".mp3"
 		if FileAccess.file_exists(file_path):
 			var meta = _get_song_metadata(song_id)
-			status_updated.emit("Loaded local song", false) 
+			status_updated.emit("Loaded song", false) 
 			
 			var file = FileAccess.open(file_path, FileAccess.READ)
 			var audio_data = file.get_buffer(file.get_length())
@@ -97,14 +97,14 @@ func fetch_newgrounds(song_id: String) -> void:
 			return
 			
 		current_song_id = song_id
-		status_updated.emit("Fetching from GD servers...", false)
+		status_updated.emit("Downloading audio...", false)
 		is_ng_fetching_html = true
 		
 		# Use RobTop's database instead of scraping Newgrounds HTML
 		var url = "https://www.boomlings.com/database/getGJSongInfo.php"
 		var post_data = "songID=" + song_id + "&secret=Wmfd2893gb7"
 		
-		# Add the blank User-Agent to trick Cloudflare into thinking this is Geometry Dash
+		# Add blank User-Agent
 		var headers = [
 			"Content-Type: application/x-www-form-urlencoded",
 			"User-Agent: " 
@@ -179,9 +179,9 @@ func _on_ng_http_request_request_completed(result: int, response_code: int, _hea
 		if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
 			var data = body.get_string_from_utf8()
 			
-			# Boomlings returns "-1" or "-2" if the song isn't allowed in GD
+			# Boomlings returns "-1" or "-2" if the song isn't allowed 
 			if data == "-1" or data == "-2" or data.is_empty():
-				status_updated.emit("Song not allowed in GD", false)
+				status_updated.emit("Song not allowed", false)
 				is_ng_fetching_html = false
 				return
 				
@@ -207,13 +207,12 @@ func _on_ng_http_request_request_completed(result: int, response_code: int, _hea
 				is_ng_fetching_html = false
 				ng_http_request.timeout = 0
 				
-				# The CDN (audio.ngfiles.com) doesn't have strict Cloudflare HTML blocks
 				ng_http_request.request(ng_mp3_url, browser_headers)
 			else:
 				status_updated.emit("Could not find MP3 file", false)
 				is_ng_fetching_html = false
 		else:
-			status_updated.emit("Failed to connect to GD servers", false)
+			status_updated.emit("Failed to connect to servers", false)
 			is_ng_fetching_html = false
 
 	else:

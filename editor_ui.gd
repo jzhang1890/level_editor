@@ -13,34 +13,34 @@ signal edit_action_requested(action_name: String)
 @onready var actions_list: ItemList = $EditorPanel/MainTabContainer/Edit/Actions
 
 # NCS UI REFERENCES
-@onready var ncs_song_id_input: LineEdit = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
-@onready var ncs_status_label: Label = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
+@onready var ncs_song_id_input: LineEdit = $LevelSettingsMenu/MusicSourceTabs/NCS/SongIDInput
+@onready var ncs_status_label: Label = $LevelSettingsMenu/MusicSourceTabs/NCS/StatusLabel
 
-@onready var song_option_container: Control = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer
-@onready var regular_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton
-@onready var instrumental_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
+@onready var song_option_container: Control = $LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer
+@onready var regular_btn: Button = $LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/RegularButton
+@onready var instrumental_btn: Button = $LevelSettingsMenu/MusicSourceTabs/NCS/SongOptionContainer/InstrumentalButton
 
 # NEWGROUNDS UI REFERENCES
-@onready var ng_song_id_input: LineEdit = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
-@onready var ng_status_label: Label = $LevelSettingsMenu/LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
+@onready var ng_song_id_input: LineEdit = $LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_SongIDInput
+@onready var ng_status_label: Label = $LevelSettingsMenu/MusicSourceTabs/Newgrounds/NG_StatusLabel
 
 # GROUP ID UI REFERENCES
 @onready var edit_group_node: Node = $EditGroupMenu
-@onready var edit_group_menu: Control = $EditGroupMenu/EditGroupMenu
-@onready var group_id_input: LineEdit = $EditGroupMenu/EditGroupMenu/GroupIDContainer/GroupIDInput
-@onready var add_group_btn: Button = $EditGroupMenu/EditGroupMenu/GroupIDContainer/AddGroupIDButton
-@onready var active_groups_container: Container = $EditGroupMenu/EditGroupMenu/ActiveGroupsContainer
+@onready var edit_group_menu: Control = $EditGroupMenu
+@onready var group_id_input: LineEdit = $EditGroupMenu/GroupIDContainer/GroupIDInput
+@onready var add_group_btn: Button = $EditGroupMenu/GroupIDContainer/AddGroupIDButton
+@onready var active_groups_container: Container = $EditGroupMenu/ActiveGroupsContainer
 @onready var edit_group_btn: Button = $SelectionMenu/EditGroupButton
 
 # Play Button
-@onready var play_music_btn: Button = $LevelSettingsMenu/LevelSettingsMenu/PlayButton
+@onready var play_music_btn: Button = $LevelSettingsMenu/PlayButton
 
 # Song Info UI references
-@onready var song_name_label: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/SongNameLabel
-@onready var artist_label: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/ArtistLabel
-@onready var song_id_display: Label = $LevelSettingsMenu/LevelSettingsMenu/SongInfoContainer/SongIDLabel
+@onready var song_name_label: Label = $LevelSettingsMenu/SongInfoContainer/SongNameLabel
+@onready var artist_label: Label = $LevelSettingsMenu/SongInfoContainer/ArtistLabel
+@onready var song_id_display: Label = $LevelSettingsMenu/SongInfoContainer/SongIDLabel
 
-@onready var music_downloader: Node = $LevelSettingsMenu/LevelSettingsMenu/MusicDownloader
+@onready var music_downloader: Node = $LevelSettingsMenu/MusicDownloader
 
 var current_selected_objects: Array = []
 
@@ -55,8 +55,8 @@ var ground_colors: Dictionary = {
 # Dictionary to remember what was visible before playtesting
 var pre_test_visibility: Dictionary = {}
 
-@onready var settings_color_picker: ColorPickerButton = $LevelSettingsMenu/LevelSettingsMenu/ColorPickerButton 
-@onready var grounds_container: TabContainer = $LevelSettingsMenu/LevelSettingsMenu/GroundsContainer
+@onready var settings_color_picker: ColorPickerButton = $LevelSettingsMenu/ColorPickerButton 
+@onready var grounds_container: TabContainer = $LevelSettingsMenu/GroundsContainer
 
 @onready var item_database: Dictionary = {
 	"obstacles": [
@@ -235,9 +235,10 @@ func _ready() -> void:
 	settings_color_picker.color_changed.connect(_on_settings_color_changed)
 	grounds_container.tab_changed.connect(_on_grounds_tab_changed)
 		
-	load_images_from_folder($LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background, "res://resources/backgrounds")
+	load_images_from_folder($LevelSettingsMenu/GroundsContainer/Background, "res://resources/backgrounds")
 
 func _on_exit_button_pressed() -> void:
+	$TransparentRect.visible = false
 	$ColorChannelMenu.visible = false
 	$LevelSettingsMenu.visible = false
 	$EditGroupMenu.visible = false
@@ -316,6 +317,7 @@ func _on_actions_item_selected(index: int) -> void:
 	
 func _on_edit_object_button_pressed() -> void:
 	get_parent().paused = true
+	$TransparentRect.visible = true
 	
 	if current_selected_objects and current_selected_objects.size() > 0:
 		var first_obj = current_selected_objects[0]
@@ -330,8 +332,8 @@ func _on_edit_object_button_pressed() -> void:
 			var current_color = first_obj.get_meta("trigger_color", Color(1, 1, 1, 1))
 			
 			# Push data into UI nodes
-			$ColorTriggerMenu/ColorTriggerMenu/ChannelContainer/ChannelInput.text = str(current_channel)
-			$ColorTriggerMenu/ColorTriggerMenu/ColorPicker.color = current_color
+			$ColorTriggerMenu/ChannelContainer/ChannelInput.text = str(current_channel)
+			$ColorTriggerMenu/ColorPicker.color = current_color
 			
 		else:
 			# It's a standard object, show the normal menu
@@ -342,19 +344,20 @@ func _on_edit_object_button_pressed() -> void:
 					
 					# Route to the BG button if it's channel -1
 					var button_name = "ChannelBGButton" if channel == -1  else "Channel" + str(channel) + "Button"
-					var target_button = $ColorChannelMenu/ColorChannelMenu.get_node_or_null(button_name)
+					var target_button = $ColorChannelMenu.get_node_or_null(button_name)
 					
 					if target_button:
 						target_button.button_pressed = true
-						$ColorChannelMenu/ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
+						$ColorChannelMenu/ColorPickerButton.color = Global.get_channel_color(channel)
 						get_parent().current_editing_channel = channel
 
 func _on_background_item_selected(index: int) -> void:
-	var selected_path = $LevelSettingsMenu/LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
+	var selected_path = $LevelSettingsMenu/GroundsContainer/Background.get_item_metadata(index)
 	get_parent().change_background(selected_path)
 	
 func _on_level_settings_button_pressed() -> void:
 	$LevelSettingsMenu.visible = true
+	$TransparentRect.visible = true
 	get_parent().paused = true
 	
 func _on_grounds_tab_changed(tab: int) -> void:
@@ -448,6 +451,7 @@ func _toggle_playback(btn_node: Button) -> void:
 			btn_node.text = "Stop"
 			
 func _on_edit_group_button_pressed() -> void:
+	$TransparentRect.visible = true
 	edit_group_node.visible = true
 	get_parent().paused = true
 	refresh_group_ui()
