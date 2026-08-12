@@ -1069,32 +1069,31 @@ func _on_picker_color_changed(new_color: Color) -> void:
 									sprite.modulate = new_color
 
 func _handle_hotkeys(event: InputEventKey) -> bool:
-	# Backspace for deletion
 	if event.keycode == KEY_BACKSPACE:
 		delete_selected_object()
 		return true 
 
-	# Copy (Ctrl + C)
-	if event.keycode == KEY_C and Input.is_key_pressed(KEY_CTRL):
+	# Copy (Ctrl/Cmd + C)
+	if event.keycode == KEY_C and _is_modifier_pressed():
 		clipboard_manager.copy_selection()
 		return true
 		
-	# Paste (Ctrl + V) 
-	if event.keycode == KEY_V and Input.is_key_pressed(KEY_CTRL):
+	# Paste (Ctrl/Cmd + V) 
+	if event.keycode == KEY_V and _is_modifier_pressed():
 		clipboard_manager.paste_clipboard()
 		return true
 		
-	# Undo (Ctrl + Z)
-	if event.keycode == KEY_Z and Input.is_key_pressed(KEY_CTRL):
+	# Undo (Ctrl/Cmd + Z)
+	if event.keycode == KEY_Z and _is_modifier_pressed():
 		undo_manager.undo_action()
 		return true
 		
-	# Redo (Ctrl + Y)
-	if event.keycode == KEY_Y and Input.is_key_pressed(KEY_CTRL):
+	# Redo (Ctrl/Cmd + Y)
+	if event.keycode == KEY_Y and _is_modifier_pressed():
 		undo_manager.redo_action()
 		return true
 
-	return false # No hotkeys matched
+	return false
 	
 # Handles click and drag
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
@@ -1103,7 +1102,7 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		return
 		
 	# CONTINUOUS BRUSH (BUILD MODE CTRL PRESS)
-	if current_mode == EditorMode.BUILD and Input.is_key_pressed(KEY_CTRL):
+	if current_mode == EditorMode.BUILD and _is_modifier_pressed():
 		if ui_layer.selected_scene_path != "":
 			var current_pos = get_global_mouse_position()
 			
@@ -1120,7 +1119,7 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		return
 		
 	# BOX SELECTION (EDIT MODE CTRL PRESS)
-	if current_mode == EditorMode.EDIT and Input.is_key_pressed(KEY_CTRL):
+	if current_mode == EditorMode.EDIT and _is_modifier_pressed():
 		if event.position.distance_to(mouse_down_screen_pos) > drag_threshold:
 			is_box_selecting = true
 			box_current_pos = get_global_mouse_position()
@@ -1134,7 +1133,7 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 			return
 			
 	# CONTINUOUS ERASER (DELETE MODE CTRL PRESS)
-	if current_mode == EditorMode.DELETE and Input.is_key_pressed(KEY_CTRL):
+	if current_mode == EditorMode.DELETE and _is_modifier_pressed():
 		var current_pos = get_global_mouse_position()
 		
 		var obj_to_delete = check_for_object_at(current_pos, true) 
@@ -1196,7 +1195,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			drawn_cells_this_stroke.clear()
 			
 			# 3. If holding Ctrl, instantly freeze the camera so user can safely use tools like box-select
-			if Input.is_key_pressed(KEY_CTRL):
+			if _is_modifier_pressed():
 				camera.set_process_unhandled_input(false)
 				camera.set_process_input(false)
 				camera.set_process(false)
@@ -1225,7 +1224,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 								break
 
 				# If user clicked our selection, is NOT holding Ctrl, and is NOT using the Gizmo, start dragging
-				if current_mode == EditorMode.EDIT and is_touching_selection and not Input.is_key_pressed(KEY_CTRL) and not is_touching_gizmo:
+				if current_mode == EditorMode.EDIT and is_touching_selection and not _is_modifier_pressed() and not is_touching_gizmo:
 					is_dragging_objects = true
 					previous_mouse_pos = click_pos
 					
@@ -1296,7 +1295,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 							
 					EditorMode.EDIT:
 						# If holding Ctrl, enable multi-select toggling
-						var is_multi = Input.is_key_pressed(KEY_CTRL)
+						var is_multi = _is_modifier_pressed()
 						change_selection(clicked_obj, is_multi)
 						
 					EditorMode.DELETE:
@@ -1529,3 +1528,7 @@ func refresh_selection_chunks() -> void:
 					# Add it to the correct mathematical chunk
 					level_chunks[correct_chunk].append(obj)
 					break
+
+# Returns true if either Ctrl (Windows/Linux) or Command (macOS) is held down
+func _is_modifier_pressed() -> bool:
+	return Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)
