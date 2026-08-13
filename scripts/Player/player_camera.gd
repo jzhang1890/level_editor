@@ -21,7 +21,7 @@ var death_focus_y: float = 0.0
 @onready var target_x: float = global_position.x
 
 func _ready() -> void:
-	# Severs the physical link to the parent node so camera follows script
+	# Severs the link to the parent node so camera follows script
 	top_level = true
 
 func _physics_process(delta: float) -> void:
@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 			if player.global_position.y <= spawn_y:
 				waiting_at_spawn = false
 		else:
-			# 1. Keep the Y position locked perfectly to the player
+			# 1. Keep the Y position locked to the player
 			global_position.y = player.global_position.y
 			y_velocity = player.velocity.y
 	
@@ -70,7 +70,7 @@ func _physics_process(delta: float) -> void:
 		target_x = player.global_position.x + inner_boundary
 		
 	# Run the lerp unconditionally
-	# The camera will smoothly glide to target_x, then settle.
+	# The camera will glide to target_x, then settle.
 	global_position.x = lerp(global_position.x, target_x, follow_speed * delta)
 
 func focus_on_missed_orb(orb_y: float) -> void:

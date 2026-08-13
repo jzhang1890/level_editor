@@ -3,7 +3,7 @@ extends Node2D
 # The UI with tabs
 @onready var ui_layer: CanvasLayer = $EditorUI
 
-# The room where you put the objects
+# The room where objects are put
 @onready var room_canvas: Node2D = $Foreground/RoomCanvas
 
 @onready var camera: Camera2D = $Camera2D
@@ -63,7 +63,7 @@ var is_dragging: bool = false
 var drag_threshold: float = 3.0
 var drawn_cells_this_stroke: Dictionary = {}
 var batched_paint_objects: Array = []
-# Tracks resources so we only load them from disk once
+# Tracks resources so they are only loaded once
 var resource_cache: Dictionary = {}
 
 # Track for dragging object
@@ -279,7 +279,7 @@ func _process(_delta: float) -> void:
 		
 	# 3. If user is NOT clicking the slider AND not testing, make the slider follow the camera
 	if scrollbar and not scrollbar.has_focus() and not is_playtesting:
-		# Apply the exact same flip formula in reverse to keep them synced
+		# Apply the same flip formula in reverse to keep them synced
 		var inverted_val = scrollbar.max_value + scrollbar.min_value - camera.global_position.y
 		scrollbar.set_value_no_signal(inverted_val)
 
@@ -313,7 +313,7 @@ func apply_zoom_at_mouse(requested_zoom: float) -> void:
 	# 2. Calculate how much the world shrinks/grows relative to the mouse
 	var shift = offset_to_mouse * (1.0 - (old_zoom / new_zoom))
 	
-	# 3. Shift the camera to instantly compensate
+	# 3. Shift the camera to compensate
 	camera.global_position += shift
 	
 	# 4. Apply the actual zoom
@@ -322,7 +322,7 @@ func apply_zoom_at_mouse(requested_zoom: float) -> void:
 	update_trigger_visuals()
 
 func _on_z_layer_selected(layer_val: int) -> void:
-	# 1. Visually untoggle all other buttons instantly
+	# 1. Untoggle all other buttons 
 	update_z_layer_ui(layer_val)
 	current_z_layer = layer_val
 	
@@ -1186,7 +1186,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
 		# MOUSE BUTTON PRESSED DOWN
 		if event.pressed:
-			# 1. Record the exact starting positions for future distance/drag calculations
+			# 1. Record the starting positions for future distance/drag calculations
 			mouse_down_screen_pos = event.position
 			mouse_down_world_pos = get_global_mouse_position() 
 			
@@ -1194,7 +1194,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			is_dragging = false
 			drawn_cells_this_stroke.clear()
 			
-			# 3. If holding Ctrl, instantly freeze the camera so user can safely use tools like box-select
+			# 3. If holding Ctrl, freeze the camera so user can use tools like box-select
 			if _is_modifier_pressed():
 				camera.set_process_unhandled_input(false)
 				camera.set_process_input(false)
@@ -1264,7 +1264,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 					# Refresh the mathematical chunks so objects don't disappear
 					refresh_selection_chunks()
 					
-					# Force the Gizmo to recalculate its exact center point after being moved
+					# Force the Gizmo to recalculate its center point after being moved
 					if has_node("Foreground/TransformGizmo"):
 						$Foreground/TransformGizmo.update_selection(selected_objects)
 						
@@ -1360,7 +1360,7 @@ func start_playtest() -> void:
 	if not is_instance_valid(playtest_trail):
 		playtest_trail = Line2D.new()
 		playtest_trail.width = 4.0
-		# Bright orange color so it stands out, with slight transparency
+		# Line color with slight transparency
 		playtest_trail.default_color = Color(1.0, 0.5, 0.0, 0.8) 
 		playtest_trail.z_index = 4000
 		room_canvas.add_child(playtest_trail)
@@ -1376,7 +1376,7 @@ func start_playtest() -> void:
 	test_player = PLAYER_SCENE.instantiate()
 	test_player.add_to_group("player")
 	
-	# Spawn the player exactly at 0,0
+	# Spawn the player at 0,0
 	test_player.global_position = Vector2(0, 0)
 	
 	# Match the editor's hitbox visibility setting
@@ -1386,12 +1386,12 @@ func start_playtest() -> void:
 	# 3. Add to the canvas so it renders chronologically with the level
 	room_canvas.add_child(test_player)
 	
-	# Tell the engine to switch to the player's camera
+	# Switch to the player's camera
 	var player_cam = test_player.get_node_or_null("Camera2D")
 	if player_cam:
 		player_cam.make_current()
 	
-	# 4. Connect the death signal to automatically end the playtest if dead
+	# 4. Connect the death signal to end the playtest if dead
 	test_player.player_died.connect(stop_playtest)
 	
 	# 5. Freeze all editor inputs 
@@ -1404,7 +1404,7 @@ func start_playtest() -> void:
 	# 7. Start the music
 	var music_player = get_node_or_null("LevelMusic")
 	if music_player and music_player.stream != null:
-		music_player.play(0.0) # 0.0 forces it to start from the exact beginning
+		music_player.play(0.0) # 0.0 forces it to start from the beginning
 
 func stop_playtest() -> void:
 	is_playtesting = false
@@ -1418,7 +1418,7 @@ func stop_playtest() -> void:
 	if is_instance_valid(trigger_drawer):
 		trigger_drawer.visible = true
 		
-	# 2. Force the editor camera to take visual control back
+	# 2. Force the editor camera to take control back
 	if camera:
 		camera.make_current()
 		camera.global_position = pre_test_camera_pos
@@ -1478,7 +1478,7 @@ func _draw_trigger_lines() -> void:
 	# Keep the line thickness consistent regardless of zoom
 	var thickness = 1.0 / camera.zoom.x
 	
-	# Only loop through the chunks currently on screen for O(1) performance
+	# Only loop through the chunks currently on screen for O(1) 
 	for chunk_id in active_chunks:
 		if level_chunks.has(chunk_id):
 			for obj in level_chunks[chunk_id]:
@@ -1525,7 +1525,7 @@ func refresh_selection_chunks() -> void:
 					if not level_chunks.has(correct_chunk):
 						level_chunks[correct_chunk] = []
 						
-					# Add it to the correct mathematical chunk
+					# Add it to the correct chunk
 					level_chunks[correct_chunk].append(obj)
 					break
 

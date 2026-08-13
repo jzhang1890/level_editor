@@ -76,13 +76,13 @@ func _ready() -> void:
 	if Global.level_to_load != "":
 		load_level(Global.level_to_load)
 		
-			# Starts the music
+	# Starts the music
 	if music_player and music_player.stream:
 			music_player.play()
 		
 	# Lock and hide the mouse so it stops generating motion events
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	# Tell the engine to completely stop checking the mouse against collision objects
+	# Tell the engine to stop checking the mouse against collision objects
 	get_viewport().physics_object_picking = false
 	
 	# 2.  FOR LATER: Set the player's starting position based on level data for spawn points
@@ -120,7 +120,7 @@ func load_level(target_path: String) -> void:
 		
 		var level_data = JSON.parse_string(json_string)
 		
-		# Check if the data is the Dictionary format
+		# Check if the data is the dictionary format
 		if typeof(level_data) == TYPE_DICTIONARY and level_data.has("items"):
 			
 			# Load and apply the background
@@ -318,7 +318,7 @@ func load_level(target_path: String) -> void:
 							var sprite = new_object.get_node_or_null("Sprite2D")
 							
 							if sprite:
-								# Apply full color and alpha directly to the sprite
+								# Apply color and alpha directly to the sprite
 								sprite.modulate = target_color
 								# Keep root opaque so hitboxes show
 								new_object.modulate = Color(1, 1, 1, 1.0) 
@@ -336,7 +336,7 @@ func load_level(target_path: String) -> void:
 						level_canvas.add_child(new_object)
 						level_chunks[chunk_id].append(new_object)
 						
-						# 3. Sleep the object immediately if it's not in an active chunk
+						# 3. Sleep the object if it's not in an active chunk
 						if chunk_id not in active_chunks:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
@@ -366,7 +366,7 @@ func _on_player_player_died() -> void:
 		music_player.stop()
 	
 	if not restart_button_pressed:
-		# Dead sound
+		# Death sound
 		if death_sound:
 			death_sound.play()
 		await get_tree().create_timer(respawn_time, false).timeout

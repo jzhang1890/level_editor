@@ -118,12 +118,7 @@ func load_level(target_path: String) -> void:
 						
 						match key:
 							"1": item_dict["id"] = val
-							"2": 
-								# Check if value is a dictionary index or legacy path
-								if val.is_valid_int() and loaded_paths.size() > val.to_int():
-									item_dict["scene_path"] = loaded_paths[val.to_int()]
-								else:
-									item_dict["scene_path"] = val
+							"2": item_dict["scene_path"] = loaded_paths[val.to_int()]
 							"3": item_dict["x"] = val.to_float()
 							"4": item_dict["y"] = val.to_float()
 							"5": item_dict["rotation"] = val.to_float()
@@ -167,7 +162,7 @@ func load_level(target_path: String) -> void:
 						# Apply the loaded groups array
 						new_object.set_meta("groups", item_dict["groups"])
 						
-						# Apply skew (with a safe fallback to 0.0 for older saves)
+						# Apply skew
 						new_object.skew = item_dict.get("skew", 0.0)
 						
 						# Apply layer and Z-order data
@@ -183,7 +178,7 @@ func load_level(target_path: String) -> void:
 						
 						# Apply color channel data
 						new_object.set_meta("color_channel", item_dict["color_channel"])
-						# Only apply target metadata if the save file contained key "15"
+						# Only apply this metadata if the save file contained key "15"
 						if item_dict.has("target_channel"):
 							new_object.set_meta("target_channel", item_dict["target_channel"])
 						
@@ -229,13 +224,13 @@ func load_level(target_path: String) -> void:
 						editor.room_canvas.add_child(new_object)
 						editor.level_chunks[chunk_id].append(new_object)
 						
-						# Sleep immediately if chunk is inactive
+						# Sleep if chunk is inactive
 						if chunk_id not in editor.active_chunks:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
 							
 	editor.update_scrollbar_bounds()
-	# Visually updates the color box when the level finishes loading
+	# Updates the color box when the level finishes loading
 	editor.color_picker_btn.color = Global.get_channel_color(editor.current_editing_channel)
 
 func load_ground_colors(saved_colors: Dictionary) -> void:
@@ -251,7 +246,7 @@ func load_ground_colors(saved_colors: Dictionary) -> void:
 		# 2. Sync the UI's memory dictionary so the color picker matches the loaded color
 		editor.ui_layer.ground_colors[tab_index] = loaded_color
 
-	# 3. Visually update the physical UI button so it doesn't show the default white
+	# 3. Update the physical UI button so it doesn't show the default white
 	var active_tab = editor.ui_layer.grounds_container.current_tab
 	editor.ui_layer.settings_color_picker.color = editor.ui_layer.ground_colors[active_tab]
 
@@ -267,7 +262,7 @@ func _on_save_button_pressed() -> void:
 	var items_string_builder: Array[String] = []
 	var unique_paths: Array[String] = [] # Dictionary array for paths
 	
-	# 2. Gather data on the MAIN thread (extremely fast)
+	# 2. Gather data on the main thread (extremely fast)
 	for object in editor.room_canvas.get_children():
 		if object is Node2D and object.has_meta("unique_id"):
 			var obj_parts: Array[String] = []
@@ -383,7 +378,7 @@ func _on_save_button_pressed() -> void:
 		"colors": colors_as_hex,
 		"ground_colors": ground_colors,
 		"scene_paths": unique_paths, # Save the dictionary at the top
-		"items": compressed_items_string, # Single optimized string
+		"items": compressed_items_string, # Single string
 	}
 			
 	# 3. Spin up the background thread
@@ -402,7 +397,7 @@ func _on_quit_button_pressed() -> void:
 
 # Background worker function for saving data
 func _write_save_data_to_disk(save_dict: Dictionary, path: String) -> void:
-	# Removed the "\t" argument to minify the JSON into a single dense line 
+	# Removed the "\t" argument to minify the JSON into a single line 
 	var json_string = JSON.stringify(save_dict) 
 	
 	var file = FileAccess.open(path, FileAccess.WRITE)

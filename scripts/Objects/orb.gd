@@ -12,7 +12,7 @@ var scale_tween: Tween
 var player_inside: BasePlayer = null
 
 func _ready() -> void:
-	# Add this orb to a global group so the player can find it
+	# Adds this orb to a global group so the player can find it
 	add_to_group("orbs")
 	# Anchor the starting position the moment the level loads
 	base_position = global_position
@@ -27,12 +27,12 @@ func reset() -> void:
 	global_position = base_position
 	triggered = false 
 	
-	# Reset the scale instantly and kill any running animations
+	# Reset the scale and kill any running animations
 	if scale_tween:
 		scale_tween.kill()
 	$Sprite2D.scale = base_sprite_scale
 	
-	# Reset the full color, not just the alpha
+	# Reset the color
 	$Sprite2D.modulate = Color(1, 1, 1, 1)
 
 # Turns the green selection tint on/off for the editor
@@ -50,7 +50,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.get_parent() is BasePlayer:
 		player_inside = area.get_parent()
 		
-		# Register the orb immediately so hover animations always reset 
+		# Register the orb so hover animations always reset 
 		var current_level = get_tree().current_scene
 		if "modified_objects" in current_level and not self in current_level.modified_objects:
 			current_level.modified_objects.append(self)
@@ -93,11 +93,10 @@ func show_missed_warning() -> void:
 	# Modulate to red
 	blink_tween.tween_property($Sprite2D, "modulate", Color(1, 0, 0, 1), 0.15)
 	
-	# Just tween back to white
+	# Tween back to white
 	blink_tween.tween_property($Sprite2D, "modulate", Color(1, 1, 1, 1), 0.15)
 
-# Virtual Function for subclasses
-# These do nothing here, but allow child classes to easily inject their own logic
+# These funcions will be overridden by child classes with their own logic
 
 func _on_player_entered() -> void:
 	pass

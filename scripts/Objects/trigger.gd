@@ -5,12 +5,12 @@ extends Area2D
 var is_triggered: bool = false
 @export var trigger_once: bool = true
 
-# The toggle for your future feature
+# The toggle for future feature
 @export var use_hitbox: bool = false
 
 func _ready() -> void:
 	
-	# Let the editor know this is a generic trigger
+	# Let the editor know this is a trigger
 	if not has_meta("is_trigger"):
 		set_meta("is_trigger", true)
 	
@@ -29,7 +29,6 @@ func set_highlight(active: bool) -> void:
 func fire_trigger() -> void:
 	pass
 
-# Hook this up to your death/respawn manager later
 func reset() -> void:
 	is_triggered = false
 

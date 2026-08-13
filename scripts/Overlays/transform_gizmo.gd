@@ -66,7 +66,7 @@ func _process(_delta: float) -> void:
 		
 	var cam = get_viewport().get_camera_2d()
 	if cam:
-		# 1. Calculate the exact opposite of the camera's current zoom
+		# 1. Calculate the opposite of the camera's current zoom
 		# Divide it by 2 so the handles are smaller
 		var inverse_zoom = Vector2(1.0 / cam.zoom.x, 1.0 / cam.zoom.y)/2
 		
@@ -92,9 +92,9 @@ func _process(_delta: float) -> void:
 		# Force the box to redraw so the lines also adjust to the zoom
 		queue_redraw()
 
-# This is called by main script whenever selection changes
+# Called by main script whenever selection changes
 func update_selection(selected: Array[Node2D]) -> void:
-	# Add .duplicate() to safely isolate the data
+	# Add .duplicate() to isolate the data
 	target_objects = selected.duplicate()
 	
 	# If no objects selected or not toggled on, don't show the gizmo
@@ -104,7 +104,7 @@ func update_selection(selected: Array[Node2D]) -> void:
 		
 	visible = true
 	
-	# Smart Rotation: Hug single objects or reset for groups
+	# Gizmo rotation: Hug single objects or reset for groups
 	if target_objects.size() == 1:
 		global_rotation = deg_to_rad(target_objects[0].rotation_degrees)
 	else:
@@ -140,7 +140,7 @@ func _calculate_bounding_box() -> void:
 		# Search inside the collision object for its visual sprite
 		for child in obj.get_children():
 			if child is Sprite2D and child.texture:
-				# Get the true dimensions of the image, account for any sprite-level scaling, and cut it in half for the radius
+				# Get the dimensions of the image, account for any sprite-level scaling, and cut it in half for the radius
 				base_extents = (child.texture.get_size() * child.scale) / 2.0
 				break
 		
@@ -312,7 +312,7 @@ func _on_scale_handle_input(_viewport: Node, event: InputEvent, _shape_idx: int)
 			
 			initial_mouse_pos = get_global_mouse_position()
 			
-			# Snapshot the starting scales AND positions
+			# Snapshot the starting scales and positions
 			initial_scales.clear()
 			initial_positions.clear()
 			for obj in target_objects:

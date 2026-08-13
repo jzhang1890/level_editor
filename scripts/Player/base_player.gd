@@ -70,13 +70,13 @@ func _physics_process(delta: float) -> void:
 		
 	# Take away horizontal controls when the level is beat and slow down
 	if level_finished:
-		velocity.x = move_toward(velocity.x, 0.0, 275 * delta) # Coast horizontally to a stop
-		velocity.y = move_toward(velocity.y, -120.0, 150 * delta) # Hit the brakes until coasting at a slow speed
+		velocity.x = move_toward(velocity.x, 0.0, 275 * delta) # Brakes horizontally to a stop
+		velocity.y = move_toward(velocity.y, -120.0, 150 * delta) # Brakes until moving at a slow speed
 		
 		# ROTATION HANDLING ON LEVEL END
 		match current_mode:
 			GameMode.SHIP:
-				# Smoothly straighten the sprite upright (0.0 rad)
+				# Straighten the sprite upright (0.0 rad)
 				$Sprite2D.rotation = move_toward($Sprite2D.rotation, 0.0, ship_rotation_speed * delta)
 			GameMode.BALL:
 				# Keep interpolating the ball toward its target rotation
@@ -145,12 +145,12 @@ func process_ball(delta: float) -> void:
 	if clicked:
 		is_moving_x = true
 
-	# 2 & 3. Kinematic Movement with Accel/Decel
+	# Movement with Accel/Decel
 	if is_moving_x:
 		var distance_to_target = ball_target_x - global_position.x
 		var dir = sign(distance_to_target)
 		
-		# Dynamically scale physics based on how many grid tiles the player is jumping
+		# Scale physics based on how many grid tiles the player is jumping
 		var actual_max_speed = ball_max_speed * ball_speedX
 		var actual_acceleration = ball_acceleration * ball_speedX
 		var actual_deceleration = ball_deceleration * ball_speedX
@@ -159,7 +159,7 @@ func process_ball(delta: float) -> void:
 		var stopping_distance = (velocity.x * velocity.x) / (2.0 * actual_deceleration)
 		
 		if abs(distance_to_target) <= stopping_distance:
-			# Player is close enough; hit the brakes
+			# Player is close enough, so hit the brakes
 			velocity.x = move_toward(velocity.x, 0.0, actual_deceleration * delta)
 		else:
 			# The player has room to speed up, so accelerate toward the target direction
@@ -190,7 +190,7 @@ func process_ship(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0, ship_deceleration * delta)
 
-	# Keep the constant upward movement
+	# Keep the constant upward speed
 	velocity.y = -speedY
 	
 	# Rotation physics

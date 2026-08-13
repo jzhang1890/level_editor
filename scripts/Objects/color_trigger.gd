@@ -145,6 +145,6 @@ func _on_fade_step(current_color: Color, target_channel: int, main_scene: Node) 
 func interrupt_active_tween(incoming_channel: int) -> void:
 	# Check if the broadcast channel matches this trigger's target channel
 	if get_meta("target_channel", 0) == incoming_channel:
-		# Kill the tween if it is currently running
+		# Kill the tween if it is running
 		if active_tween and active_tween.is_valid():
 			active_tween.kill()

@@ -14,4 +14,4 @@ func _on_player_entered() -> void:
 		scale_tween.tween_property($Sprite2D, "scale", $Sprite2D.scale * 1.5, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		scale_tween.parallel().tween_property($Sprite2D, "modulate:a", 0.0, 0.2)
 		
-		# Put your instant effect on the player here
+		# Put instant effect on the player here
