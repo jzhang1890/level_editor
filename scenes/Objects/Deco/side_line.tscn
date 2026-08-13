@@ -9,6 +9,7 @@ region = Rect2(65, 0, 64, 64)
 filter_clip = true
 
 [node name="SideLine" type="Sprite2D" unique_id=2083463240]
+scale = Vector2(1.01, 1.01)
 texture = SubResource("AtlasTexture_ga2on")
 script = ExtResource("2_qfk8r")
 metadata/_custom_type_script = "uid://huhodu03m3jt"

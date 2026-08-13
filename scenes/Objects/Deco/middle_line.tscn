@@ -9,6 +9,7 @@ region = Rect2(130, 0, 64, 64)
 filter_clip = true
 
 [node name="MiddleLine" type="Sprite2D" unique_id=1211243934]
+scale = Vector2(1.01, 1.01)
 texture = SubResource("AtlasTexture_1r5p6")
 script = ExtResource("2_5pb7s")
 metadata/_custom_type_script = "uid://huhodu03m3jt"

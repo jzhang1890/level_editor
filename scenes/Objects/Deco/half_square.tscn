@@ -9,6 +9,7 @@ region = Rect2(260, 0, 64, 64)
 filter_clip = true
 
 [node name="HalfSquare" type="Sprite2D" unique_id=1647959957]
+scale = Vector2(1.01, 1.01)
 texture = SubResource("AtlasTexture_rutpx")
 script = ExtResource("2_o747g")
 metadata/_custom_type_script = "uid://huhodu03m3jt"
