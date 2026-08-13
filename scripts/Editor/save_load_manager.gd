@@ -227,14 +227,14 @@ func load_level(target_path: String) -> void:
 						if not editor.level_chunks.has(chunk_id):
 							editor.level_chunks[chunk_id] = []
 
-						# Add to canvas
-						editor.room_canvas.add_child(new_object)
-						editor.level_chunks[chunk_id].append(new_object)
-						
 						# Sleep if chunk is inactive
 						if chunk_id not in editor.active_chunks:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
+
+						# Add to canvas
+						editor.room_canvas.add_child(new_object)
+						editor.level_chunks[chunk_id].append(new_object)
 							
 	editor.update_scrollbar_bounds()
 	# Updates the color box when the level finishes loading

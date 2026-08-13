@@ -330,14 +330,14 @@ func load_level(target_path: String) -> void:
 						if not level_chunks.has(chunk_id):
 							level_chunks[chunk_id] = []
 							
-						# 2. Add the object to the main canvas to preserve chronological layering
-						level_canvas.add_child(new_object)
-						level_chunks[chunk_id].append(new_object)
-						
-						# 3. Sleep the object if it's not in an active chunk
+						# 1. Sleep the object if it's not in an active chunk
 						if chunk_id not in active_chunks:
 							new_object.process_mode = Node.PROCESS_MODE_DISABLED
 							new_object.visible = false
+						
+						# 3. Add the object to the main canvas to preserve chronological layering
+						level_canvas.add_child(new_object)
+						level_chunks[chunk_id].append(new_object)
 				
 				# Set the final trigger line
 				if highest_obj_y != 999999.0:
