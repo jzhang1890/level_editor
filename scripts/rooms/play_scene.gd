@@ -181,6 +181,11 @@ func load_level(target_path: String) -> void:
 				# Apply the Channel -1 color to the background 
 				if Global.active_level_colors.has(-1) and bg_rect:
 					bg_rect.modulate = Global.active_level_colors[-1]
+					
+			# Load the path dictionary (defaults to empty array for old saves)
+			var loaded_paths: Array = []
+			if level_data.has("scene_paths"):
+				loaded_paths = level_data["scene_paths"]
 			
 			var items_raw = level_data["items"]
 			
@@ -221,7 +226,12 @@ func load_level(target_path: String) -> void:
 						
 						match key:
 							"1": item_dict["id"] = val
-							"2": item_dict["scene_path"] = val
+							"2": 
+								# Check if value is a dictionary index or legacy path
+								if val.is_valid_int() and loaded_paths.size() > val.to_int():
+									item_dict["scene_path"] = loaded_paths[val.to_int()]
+								else:
+									item_dict["scene_path"] = val
 							"3": item_dict["x"] = val.to_float()
 							"4": item_dict["y"] = val.to_float()
 							"5": item_dict["rotation"] = val.to_float()

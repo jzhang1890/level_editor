@@ -77,11 +77,16 @@ func load_level(target_path: String) -> void:
 					# Tell the UI to display the loaded info
 					editor.ui_layer.update_song_ui(current_song_name, current_song_artist, current_song_id)
 					
-			# Load and apply the ground tab colors
+# Load and apply the ground tab colors
 			if level_data.has("ground_colors"):
 				# Pass the JSON directly without replacing the main dictionary
 				load_ground_colors(level_data["ground_colors"])
 			
+			# Load the path dictionary (defaults to empty array for old saves)
+			var loaded_paths: Array = []
+			if level_data.has("scene_paths"):
+				loaded_paths = level_data["scene_paths"]
+				
 			var items_raw = level_data["items"]
 			if typeof(items_raw) == TYPE_STRING:
 				var item_strings = items_raw.split(";")
@@ -113,7 +118,12 @@ func load_level(target_path: String) -> void:
 						
 						match key:
 							"1": item_dict["id"] = val
-							"2": item_dict["scene_path"] = val
+							"2": 
+								# Check if value is a dictionary index or legacy path
+								if val.is_valid_int() and loaded_paths.size() > val.to_int():
+									item_dict["scene_path"] = loaded_paths[val.to_int()]
+								else:
+									item_dict["scene_path"] = val
 							"3": item_dict["x"] = val.to_float()
 							"4": item_dict["y"] = val.to_float()
 							"5": item_dict["rotation"] = val.to_float()
@@ -255,6 +265,7 @@ func _on_save_button_pressed() -> void:
 		save_thread.wait_to_finish()
 
 	var items_string_builder: Array[String] = []
+	var unique_paths: Array[String] = [] # Dictionary array for paths
 	
 	# 2. Gather data on the MAIN thread (extremely fast)
 	for object in editor.room_canvas.get_children():
@@ -265,9 +276,15 @@ func _on_save_button_pressed() -> void:
 			obj_parts.append("1")
 			obj_parts.append(object.get_meta("unique_id", ""))
 			
-			# 2: Scene Path
+			# 2: Scene Path (Using Dictionary Index)
+			var path = object.scene_file_path
+			var path_index = unique_paths.find(path)
+			if path_index == -1:
+				unique_paths.append(path)
+				path_index = unique_paths.size() - 1
+				
 			obj_parts.append("2")
-			obj_parts.append(object.scene_file_path)
+			obj_parts.append(str(path_index))
 			
 			# 3 & 4: Snapped Coordinates
 			obj_parts.append("3")
@@ -365,6 +382,7 @@ func _on_save_button_pressed() -> void:
 		"song_artist": current_song_artist,
 		"colors": colors_as_hex,
 		"ground_colors": ground_colors,
+		"scene_paths": unique_paths, # Save the dictionary at the top
 		"items": compressed_items_string, # Single optimized string
 	}
 			

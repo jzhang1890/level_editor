@@ -63,67 +63,67 @@ var pre_test_visibility: Dictionary = {}
 		{
 			"name": "Block",
 			"icon": get_game_sheet_icon(Rect2(0, 0, 64, 64)),
-			"scene_path": "res://scenes/objects/block.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block.tscn"
 		},
 		{
 			"name": "Block2",
 			"icon": get_game_sheet_icon(Rect2(0, 195, 64, 64)),
-			"scene_path": "res://scenes/objects/block2.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block2.tscn"
 		},
 		{
 			"name": "Block3",
 			"icon": get_game_sheet_icon(Rect2(0, 260, 64, 64)),
-			"scene_path": "res://scenes/objects/block3.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block3.tscn"
 		},
 		{
 			"name": "Block4",
 			"icon": get_game_sheet_icon(Rect2(0, 325, 64, 64)),
-			"scene_path": "res://scenes/objects/block4.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block4.tscn"
 		},
 		{
 			"name": "Block5",
 			"icon": get_game_sheet_icon(Rect2(0, 390, 64, 64)),
-			"scene_path": "res://scenes/objects/block5.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block5.tscn"
 		},
 		{
 			"name": "Block6",
 			"icon": get_game_sheet_icon(Rect2(0, 455, 64, 64)),
-			"scene_path": "res://scenes/objects/block6.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block6.tscn"
 		},
 		{
 			"name": "Block7",
 			"icon": get_game_sheet_icon(Rect2(0, 520, 64, 64)),
-			"scene_path": "res://scenes/objects/block7.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block7.tscn"
 		},
 		{
 			"name": "Block8",
 			"icon": get_game_sheet_icon(Rect2(0, 585, 64, 64)),
-			"scene_path": "res://scenes/objects/block8.tscn"
+			"scene_path": "res://scenes/objects/obstacles/block8.tscn"
 		},
 		{
 			"name": "Spike",
 			"icon": get_game_sheet_icon(Rect2(0, 130, 64, 64)),
-			"scene_path": "res://scenes/objects/spike.tscn"
+			"scene_path": "res://scenes/objects/obstacles/spike.tscn"
 		},
 		{
 			"name": "Clear Block",
 			"icon": get_game_sheet_icon(Rect2(65, 130, 64, 64)),
-			"scene_path": "res://scenes/objects/clear_block.tscn"
+			"scene_path": "res://scenes/objects/obstacles/clear_block.tscn"
 		},
 		{
 			"name": "Clear Spike",
 			"icon": get_game_sheet_icon(Rect2(0, 65, 64, 64)),
-			"scene_path": "res://scenes/objects/clear_spike.tscn"
+			"scene_path": "res://scenes/objects/obstacles/clear_spike.tscn"
 		},
 		{
 			"name": "Sawblade1",
 			"icon": get_game_sheet_icon(Rect2(190, 0, 128, 128)),
-			"scene_path": "res://scenes/objects/sawblade1.tscn"
+			"scene_path": "res://scenes/objects/obstacles/sawblade1.tscn"
 		},
 		{
 			"name": "Meteor",
 			"icon": get_game_sheet_icon(Rect2(65, 0, 113, 128)),
-			"scene_path": "res://scenes/objects/meteor.tscn"
+			"scene_path": "res://scenes/objects/obstacles/meteor.tscn"
 		},
 	],
 	"deco": [
