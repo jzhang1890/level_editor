@@ -217,7 +217,7 @@ func _input(event: InputEvent) -> void:
 		if is_dragging_objects or is_box_selecting or is_dragging:
 			_handle_mouse_button(event)
 			
-			# FIX: Only feed the release to the camera if we were purely panning
+			# Fix: Only feed the release to the camera if we were purely panning
 			if is_dragging and not is_dragging_objects and not is_box_selecting:
 				if camera.has_method("_unhandled_input"):
 					camera._unhandled_input(event)
@@ -238,7 +238,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	# 2. Block all other inputs if the editor is paused
 	if paused: return
 	
-	# Scrollbar fix: Force scrollbar to let go on click
+	# Force scrollbar to let go on click
 	if event is InputEventMouseButton and event.is_pressed():
 		if scrollbar and scrollbar.has_focus():
 			scrollbar.release_focus()

@@ -60,7 +60,7 @@ func populate_list() -> void:
 				# 1. Default to the file name just in case the file is corrupted
 				var display_name = file_name.replace(".json", "")
 				
-				# 2. Extract the name instantly without parsing the items!
+				# 2. Extract the name without parsing the items
 				var extracted_name = get_level_name_fast(full_path)
 				if extracted_name != "Unknown Level":
 					display_name = extracted_name
@@ -74,7 +74,7 @@ func _on_level_list_item_selected(index: int) -> void:
 	# 1. Grab the path from the item clicked
 	var selected_path = level_list.get_item_metadata(index)
 	
-	# 2. Store it in our Global script
+	# 2. Store it in Global script
 	Global.level_to_load = selected_path
 	
 	# 3. Change to the level details page
@@ -98,7 +98,7 @@ func _on_create_new_button_pressed() -> void:
 		file_path = "user://Levels/" + file_name
 		counter += 1
 		
-	# 3. Create the default starting data for a brand new level
+	# 3. Create the default starting data for a new level
 	var default_level_data: Dictionary = {
 		"level_name": "Untitled", 
 		"background": "res://resources/backgrounds/background1.png", 

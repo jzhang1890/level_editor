@@ -5,7 +5,7 @@ func _on_player_entered() -> void:
 	if not triggered:
 		triggered = true
 		
-		# Fix: Kill the base hover tween so it doesn't get orphaned
+		# Kill the base hover tween so it doesn't get orphaned
 		if scale_tween:
 			scale_tween.kill()
 		

@@ -139,7 +139,7 @@ func _on_fade_step(current_color: Color, target_channel: int, main_scene: Node) 
 								if sprite:
 									sprite.modulate = current_color
 								else:
-									# Fallback for obstacles without a Sprite2D child
+									# Fallback for objects without a Sprite2D child
 									obj.modulate = current_color
 									
 func interrupt_active_tween(incoming_channel: int) -> void:

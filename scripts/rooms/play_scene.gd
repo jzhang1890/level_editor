@@ -145,8 +145,6 @@ func load_level(target_path: String) -> void:
 						bg_rect.modulate = loaded_color
 					elif tab_index == 1:
 						pass # Add middleground rect modulate here later
-					elif tab_index == 2:
-						pass # Add foreground rect modulate here later		
 			
 			# Apply the name
 			if level_data.has("level_name"):

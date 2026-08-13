@@ -25,7 +25,7 @@ func set_highlight(active: bool) -> void:
 		$Sprite2D.modulate = Color(1, 1, 1, 1)
 
 
-# The child classes will overwrite this with their own unique math.
+# The child classes will overwrite this with their own logic
 func fire_trigger() -> void:
 	pass
 

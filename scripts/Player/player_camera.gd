@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		return # Skip the rest of normal player-tracking logic
 		
 	if camera_locked:
-		# Smoothly ease the velocity down to 0 and apply it
+		# Ease the velocity down to 0 and apply it
 		y_velocity = lerp(y_velocity, 0.0, 5.0 * delta)
 		global_position.y += y_velocity * delta
 	else:

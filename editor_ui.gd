@@ -45,11 +45,10 @@ signal edit_action_requested(action_name: String)
 var current_selected_objects: Array = []
 
 # For level settings menu
-# Tracks the colors for Background (0), Middleground (1), and Foreground (2)
+# Tracks the colors for Background (0), Middleground (1)
 var ground_colors: Dictionary = {
 	0: Color(1, 1, 1, 1), 
 	1: Color(1, 1, 1, 1), 
-	2: Color(1, 1, 1, 1)  
 }
 
 # Dictionary to remember what was visible before playtesting

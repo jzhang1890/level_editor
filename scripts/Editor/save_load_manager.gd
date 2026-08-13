@@ -20,11 +20,10 @@ var current_level_name: String = "Untitled"
 # Default background path
 var current_bg_path: String = "res://resources/backgrounds/background1.png"
 
-# Tab 0: Background, Tab 1: Middleground, Tab 2: Foreground
+# Tab 0: Background, Tab 1: Middleground
 var ground_colors: Dictionary = {
 	0: "ffffffff", 
 	1: "ffffffff", 
-	2: "ffffffff"
 }
 
 # Loading level function
@@ -77,7 +76,7 @@ func load_level(target_path: String) -> void:
 					# Tell the UI to display the loaded info
 					editor.ui_layer.update_song_ui(current_song_name, current_song_artist, current_song_id)
 					
-# Load and apply the ground tab colors
+			# Load and apply the ground tab colors
 			if level_data.has("ground_colors"):
 				# Pass the JSON directly without replacing the main dictionary
 				load_ground_colors(level_data["ground_colors"])
@@ -90,6 +89,9 @@ func load_level(target_path: String) -> void:
 			var items_raw = level_data["items"]
 			if typeof(items_raw) == TYPE_STRING:
 				var item_strings = items_raw.split(";")
+				
+				# 1. Setup the memory cache for the editor
+				var scene_cache: Dictionary = {}
 				
 				for item_str in item_strings:
 					if item_str.is_empty():
@@ -138,9 +140,14 @@ func load_level(target_path: String) -> void:
 							"14": item_dict["trigger_color"] = val
 							"15": item_dict["target_channel"] = val.to_int()
 							"16": item_dict["fade_time"] = val.to_float()
-							
+					
+					# 3. Use the cache instead of hitting the hard drive
+					var path = item_dict["scene_path"]
+					if not scene_cache.has(path):
+						scene_cache[path] = load(path)
+						
 					# Instantiate the object using parsed dict
-					var resource = load(item_dict["scene_path"])
+					var resource = scene_cache[item_dict["scene_path"]]
 					if resource:
 						var new_object = resource.instantiate()
 						new_object.global_position = Vector2(item_dict["x"], item_dict["y"])

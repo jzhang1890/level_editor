@@ -9,7 +9,7 @@ func reset_colors() -> void:
 	active_level_colors.clear()
 
 func get_channel_color(channel_id: int) -> Color:
-	# Check if the channel exists in our dictionary
+	# Check if the channel exists in dictionary
 	if active_level_colors.has(channel_id):
 		return active_level_colors[channel_id]
 	
