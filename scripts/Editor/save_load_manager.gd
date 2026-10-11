@@ -449,4 +449,3 @@ func load_song_to_editor(song_id: String) -> void:
 			music_player.stream = stream
 	else:
 		print("Warning: Song file not found at ", file_path)
-x
